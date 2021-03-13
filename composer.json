@@ -1,0 +1,28 @@
+{
+    "name": "ricardohernandezg/janssen",
+    "description": "Janssen. A very lightweight framework",
+    "type": "library",
+    "license": "Propietary",
+    "authors": [
+        {
+            "name": "Ricardo Hernandez",
+            "email": "ricardohernandezg@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": "^5.6.18 || ^7.0.3",
+        "vlucas/phpdotenv": "3.*",
+		"league/plates": "3.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Janssen\\": "src/"
+        },
+        "files": [ "src/Helpers/GlobalFunctions.php" ]
+    }
+	"scripts": {
+        "post-install-cmd": [
+            "Janssen\\Helpers\\ComposerScripts::initJanssen",
+        ],
+}
