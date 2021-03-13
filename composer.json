@@ -2,7 +2,7 @@
     "name": "ricardohernandezg/janssen",
     "description": "Janssen. A very lightweight framework",
     "type": "library",
-    "license": "GPL",
+    "license": "MIT",
     "authors": [
         {
             "name": "Ricardo Hernandez",
