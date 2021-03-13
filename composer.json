@@ -20,9 +20,10 @@
             "Janssen\\": "src/"
         },
         "files": [ "src/Helpers/GlobalFunctions.php" ]
-    }
+    },
 	"scripts": {
         "post-install-cmd": [
-            "Janssen\\Helpers\\ComposerScripts::initJanssen",
-        ],
+            "Janssen\\Helpers\\ComposerScripts::initJanssen"
+        ]
+    }
 }
