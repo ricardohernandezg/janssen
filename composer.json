@@ -20,8 +20,12 @@
             "Janssen\\": "src/"
         },
         "files": [ "src/Helpers/GlobalFunctions.php" ]
+<<<<<<< HEAD
     },
 	"scripts": {
 		"post-update-cmd": "Janssen\\Helpers\\ComposerScripts::prepareJanssen"
 	}
+=======
+    }
+>>>>>>> 7bdab46783b71545e9dff10218fd765e129558f1
 }
