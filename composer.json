@@ -2,7 +2,7 @@
     "name": "ricardohernandezg/janssen",
     "description": "Janssen. A very lightweight framework",
     "type": "library",
-    "license": "Propietary",
+    "license": "MIT",
     "authors": [
         {
             "name": "Ricardo Hernandez",
@@ -22,8 +22,6 @@
         "files": [ "src/Helpers/GlobalFunctions.php" ]
     },
 	"scripts": {
-        "post-update-cmd": [
-            "Janssen\\Helpers\\ComposerScripts::initJanssen"
-        ]
-    }
+		"post-update-cmd": "Janssen\\Helpers\\ComposerScripts::prepareJanssen"
+	}
 }

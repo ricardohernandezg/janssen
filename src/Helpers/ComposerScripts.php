@@ -8,35 +8,21 @@ use Composer\Installer\PackageEvent;
 class ComposerScripts
 {
 
-    public static function initJanssen(Event $e)
+    private static $pkg_name = 'ricardohernandezg/janssen';
+
+    public static function prepareJanssen(Event $e)
     {
         $vendor_dir = $e->getComposer()->getConfig()->get('vendor-dir');
         // check if app directories exists. 
         // If not make the base scaffolding
         $base_dir = $vendor_dir . '/..';
-        $sca_dir = $vendor_dir . '/smc/janssen-core/src/Resource/Scaffolding';
-
-        if(is_file($base_dir . '/.env'))
-            unlink($base_dir . '/.env');
-
-        copy($sca_dir . '/.env', $base_dir . '/.env');
-
-        if(is_dir($base_dir . '/app'))
-            self::custom_delete($base_dir . '/app');
-
-        mkdir($base_dir . '/app');
-        self::custom_copy($sca_dir . '/app', $base_dir . '/app');
+        $sca_dir = $vendor_dir . '/' . self::$pkg_name . '/src/Resource/Scaffolding';
         
-        if(!is_dir($base_dir . '/public')){
-            mkdir($base_dir . '/public');
-            copy($vendor_dir . '/smc/janssen-core/src/Resource/Scaffolding/public/.htaccess', $base_dir . '/public/.htaccess');
-            copy($vendor_dir . '/smc/janssen-core/src/Resource/Scaffolding/public/index.php', $base_dir . '/public/index.php');
-        }
+        if(!is_dir($base_dir . '/bin'))
+            mkdir($base_dir . '/bin');
 
-        //self::custom_delete($base_dir . '/templates');
-        if(!is_dir($base_dir . '/templates')){
-            self::custom_copy($sca_dir . '/templates', $base_dir . '/templates');
-        }
+        copy($sca_dir . '/janssen.100', $base_dir . '/bin/janssen.php');
+
     }
 
     /**
