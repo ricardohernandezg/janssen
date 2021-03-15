@@ -53,7 +53,7 @@ switch (strtolower($argv[1])){
             }
             
         }
-
+        break;
     default:
         die(showArgumentList());
 
