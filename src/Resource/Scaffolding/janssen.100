@@ -98,6 +98,9 @@ function createDir($base_path, $new_path)
 }
 
 function showArgumentList(){
-    $ret = "init: make scaffolding to start your app" . PHP_EOL;
+    $ret = "Hey! You forgot to put the action you want to do!" . PHP_EOL . PHP_EOL .
+    "What do you want to do? (use a command from the list)" . PHP_EOL .  PHP_EOL .
+    "init: make scaffolding to start your app" . PHP_EOL;
     return $ret;
 }
+
