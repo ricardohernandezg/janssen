@@ -10,6 +10,7 @@ namespace Janssen\Helpers;
 */
 
 use Janssen\Helpers\Exception;
+use Janssen\Engine\Config;
 
 class Encrypt
 {
@@ -50,7 +51,7 @@ class Encrypt
          */
         private static function getKey()
         {
-            $k = getenv('enc_key');
+            $k = Config::get('enc_key');
             if(!empty($k))
                 return $k;
             else
@@ -67,7 +68,10 @@ class Encrypt
             if(empty($text))
                 return false;
 
-            $method = getenv('enc_method');
+            $method = Config::get('enc_method');
+            if(empty($method))
+                throw new Exception('You must configure a cipher method in you config file!');
+
             $iv_length = openssl_cipher_iv_length($method);
             $iv = openssl_random_pseudo_bytes($iv_length);
             $crypted = openssl_encrypt($text, $method, self::getKey(), null, $iv);
@@ -86,13 +90,17 @@ class Encrypt
             if(empty($crypted))
                 return false;
 
+            $method = Config::get('enc_method');
+            if(empty($method))
+                throw new Exception('You must configure a cipher method in you config file!');                
+
             $decoded = self::safe_b64decode($crypted);                 
             $a = explode('$', $decoded);
             if(is_array($a) && count($a)>1)
             {   
                 $iv_b64 = $a[0];
                 $payload = $a[1];
-                $text = openssl_decrypt($payload, getenv('enc_method'), self::getKey(), null, self::safe_b64decode($iv_b64));
+                $text = openssl_decrypt($payload, $method, self::getKey(), null, self::safe_b64decode($iv_b64));
                 return trim($text);
             }else
                 return false;

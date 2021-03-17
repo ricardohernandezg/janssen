@@ -7,6 +7,42 @@ class Config
     private static $settings = [];
 
     /**
+     * Tries to load a value from env and return it. In case
+     * value is inexistent, return $default
+     * 
+     * This function differs from get() as this goes directly through
+     * getenv and is built to the configuration array take advantage of
+     * env files loaded by DotEnv in case user chose to use it.
+     *
+     * @param String $key
+     * @param Any $default
+     * @return Any
+     */
+    public static function env($key, $default){
+        $v = getenv($key);
+        if(is_null($v))
+            return $default;
+        else
+            return $v;
+    }
+
+    /**
+     * 
+     * Load variables and put them in PHP's env space
+     * 
+     * @param String $path
+     * @return void
+     */
+    public static function loadConfigFromEnv($path)
+    {
+        if(class_exists('\Dotenv\Dotenv', false)){
+            $dotenv = \Dotenv\Dotenv::create($path);
+            $dotenv->load();
+        }
+    }
+
+
+    /**
      * Get a configuration setting
      *
      * @param String $name

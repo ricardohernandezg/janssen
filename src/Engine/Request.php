@@ -18,10 +18,7 @@ namespace Janssen\Engine;
 use Janssen\Engine\Parameter;
 use Janssen\Engine\Mapper;
 use Janssen\Helpers\Guard;
-
-// use Janssen\Helpers\Exception;
-// use ReflectionClass;
-// use ReflectionException;
+use Janssen\Engine\Config;
 
 class Request
 {
@@ -540,7 +537,7 @@ class Request
 
     public static function getScheme()
     {
-        if(getenv('force_https') == true)
+        if(Config::get('force_https', true) == true)
             return 'https';
         else
             return self::getRealScheme();

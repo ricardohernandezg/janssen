@@ -6,6 +6,7 @@ use Janssen\Engine\Request;
 use Janssen\Engine\Response;
 use Janssen\Resource\EmbedFonts;
 use Janssen\Helpers\Exception;
+use Janssen\Engine\Config;
 use Throwable;
 
 class ErrorResponse extends Response
@@ -454,7 +455,7 @@ class ErrorResponse extends Response
 
 	public function render()
 	{
-		if(getenv('debug') == 'true')
+		if( Config::get('debug', false) == 'true')
 			return ($this->is_json)?$this->makeDebugJson():$this->makeDebugHtml();
 		else
 			return ($this->is_json)?$this->makeFriendlyJson():$this->makeFriendlyHtml();
@@ -473,10 +474,6 @@ class ErrorResponse extends Response
 			$from = 0;
 		$until = $line + floor($lines/2);
 
-		/*
-		if($from > 0)
-			$r[] = '...';*/
-
 		if(file_exists($file)){
 			$h = fopen($file, 'r');
 			$i = 1;
@@ -488,10 +485,6 @@ class ErrorResponse extends Response
 				if($i > $until)
 					break;
 			}
-			
-			/*
-			if (!feof($h)) 
-				$r[$i] = '...'; */
 		}
 		
 		return $r;
@@ -537,7 +530,6 @@ class ErrorResponse extends Response
 					'line' => $v['line']
 				];
 			}
-			
 		}
 		return $ret;
 	}

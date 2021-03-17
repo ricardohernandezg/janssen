@@ -80,8 +80,8 @@ class App
         $user_global_functions = (is_file($ugf_conf_candidate)) ? (include $ugf_conf_candidate) : [];
         create_global_functions($user_global_functions);
 
-        // load .env config
-        $this->loadConfig($app_path . '/..');
+        // load config
+        Config::loadConfigFromEnv($app_path . '/..');
     
         // load app config
         $engine_conf_candidate = $this->getPathCandidate();
@@ -97,23 +97,7 @@ class App
             self::$request::fixPath();
     }
 
-    /**
-     * 
-     * @param String $path
-     * @return void
-     */
-    private function loadConfig($path)
-    {
-        try{
-            $dotenv = \Dotenv\Dotenv::create($path);
-            $dotenv->load();
-            $dotenv->required(['enc_key']);
-            
-        }catch(\Exception $e){
-            throw new Exception($e->getMessage(), 500, 'Contact administrator');
-        }
-        
-    }
+    
 
     // we'll put the running logic here, but is possible to modify this to
     // move it to another class
