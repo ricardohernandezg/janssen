@@ -2,6 +2,7 @@
 
 namespace Janssen\Engine;
 
+use Exception;
 class Config
 {
     private static $settings = [];
@@ -35,12 +36,15 @@ class Config
      */
     public static function loadConfigFromEnv($path)
     {
-        if(class_exists('\Dotenv\Dotenv', false)){
-            $dotenv = \Dotenv\Dotenv::create($path);
-            $dotenv->load();
+        if(file_exists("$path/.env")){
+            try{
+                $dotenv = \Dotenv\Dotenv::create($path);
+                $dotenv->load();
+            }catch(Exception $e){
+                throw new Exception('You need to use Dotenv if you want to load .env files!');
+            }
         }
     }
-
 
     /**
      * Get a configuration setting

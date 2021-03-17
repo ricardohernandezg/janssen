@@ -12,7 +12,6 @@
     "minimum-stability": "dev",
     "require": {
         "php": "^5.6.18 || ^7.0.3",
-        "vlucas/phpdotenv": "3.*",
 		"league/plates": "3.*"
     },
     "autoload": {
@@ -20,8 +19,5 @@
             "Janssen\\": "src/"
         },
         "files": [ "src/Helpers/GlobalFunctions.php" ]
-    },
-	"scripts": {
-		"post-update-cmd": "Janssen\\Helpers\\ComposerScripts::prepareJanssen"
-	}
+    }
 }
