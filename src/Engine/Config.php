@@ -20,11 +20,10 @@ class Config
      * @return Any
      */
     public static function env($key, $default){
-        $v = getenv($key);
-        if(is_null($v))
-            return $default;
+        if(isset($_ENV[$key]))
+            return getenv($key);
         else
-            return $v;
+            return $default;
     }
 
     /**
