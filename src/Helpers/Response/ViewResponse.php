@@ -11,12 +11,14 @@ namespace Janssen\Helpers\Response;
  * times
  */
 
+use Janssen\App;
 use Janssen\Helpers\Exception;
 use Janssen\Engine\Event;
 use Janssen\Engine\Response;
 use \League\Plates\Engine;
 use App\Auth\AdminGuard;
 use App\Auth\UserGuard;
+
 
 
 class ViewResponse extends Response

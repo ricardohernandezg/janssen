@@ -39,7 +39,7 @@ abstract class Event
             throw new Exception("Invalid Event name to invoke");
 
         $class = "App\\Event\\" . $event_path;
-        if(class_exists($class)){
+        if(class_exists($class, false)){
             $i = new $class;
             if(method_exists($i, 'handle'))
                 return call_user_func_array([$i, "handle"], $args);

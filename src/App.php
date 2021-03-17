@@ -375,7 +375,7 @@ class App
         }
 
         // here we should make the postprocessing if applyable
-        return $ret;
+        return $ret->render();
     }
 
     /**
