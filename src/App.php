@@ -56,20 +56,11 @@ class App
     
     public function init(String $app_path)
     {
-        //error_reporting(0);
-
         $app_path = trim($app_path);
         if (empty($app_path)) 
             throw new Exception("App configuration is corrupt", 500, 'Contact administrator');
         if(substr($app_path,-1,1) == '/') 
             $app_path = substr($app_path,0,strlen($app_path) -1);
-
-        // create a header to the response
-        $this->header = new Header;            
-
-        // the only way to know what user want? the request
-        Request::fill();
-        self::$request = new Request;
 
         $this->app_path = $app_path;
         self::$s_app_path = $this->app_path;
@@ -87,6 +78,15 @@ class App
         $engine_conf_candidate = $this->getPathCandidate();
         Config::setAll((is_file($engine_conf_candidate)) ? (include $engine_conf_candidate) : []);
         self::$engine_config = Config::get();
+
+        //error_reporting(0);
+
+        // create a header to the response
+        $this->header = new Header;            
+
+        // the only way to know what user want? the request
+        Request::fill();
+        self::$request = new Request;
 
         // start session
         Session::start();
@@ -261,13 +261,13 @@ class App
                 $r = $dbe;
 
             if (class_exists($r)) {
-                $a = new $r;
-                $cf = $a->getAllConfigFields();
+                $adaptor = new $r;
+                $cf = $adaptor->getAllConfigFields();
 
                 foreach ($cf as $k => $v) {
-                    $a->setConfigField($k, empty($dc[$k]) ? null : $dc[$k]);
+                    $adaptor->setConfigField($k, empty($dc[$k]) ? null : $dc[$k]);
                 }
-                Database::setAdaptor($a);
+                Database::setAdaptor($adaptor);
             } else {
                 throw new Exception('Database class not implemented or inexistent', 500);
             }
