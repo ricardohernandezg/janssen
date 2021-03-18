@@ -101,18 +101,9 @@ abstract class Response
         return $this->content;
     }
 
-    public function withData(Array $data)
+    public function withMessageSet(Array $messages, $type = 'info')
     {
-        /*
-        $o = Session::getValue('_janssen_flash', []);
-        $no = $o;
-        foreach($data as $k=>$v)
-        {
-            $no[$k] = $v;
-        }
-        Session::setValue('_janssen_flash', $no);
-        */
-        foreach($data as $k=>$v){
+        foreach($messages as $k=>$v){
             FlashMessage::addMessage($k, $v);
         }
         FlashMessage::forceUpdate();        
@@ -121,7 +112,6 @@ abstract class Response
 
     public function withMessage($key, $message, $type = 'info')
     {
-        //Session::flash($message, $type);
         FlashMessage::addMessage($key, $message, $type);
         return $this;
     }
@@ -137,6 +127,8 @@ abstract class Response
         if(is_null($this->header))
             $this->setHeader(new Header());
 
+        $this->render();
+
         // redirects can have empty responses (and they should have empty reponses)
         if($this->isEmpty() && !$this->header->hasRedirect())
             throw new Exception('Empty response', 500, 'Contact administrator', [], true, true);
@@ -149,7 +141,7 @@ abstract class Response
         $this->header->send();
         if($this->content_type)
             header('Content-Type: ' . $this->content_type);
-        return $this->render();
+        return $this->getContent();
     }
     
 }

@@ -35,7 +35,7 @@ class Session
      * @return Array|Bool
      */
     public static function getValue($name, $default = null){
-        return (empty($_SESSION[$name])?$default:$_SESSION[$name]);
+        return (isset($_SESSION[$name])?$_SESSION[$name]:$default);
     }
     
     /**

@@ -455,11 +455,12 @@ class ErrorResponse extends Response
 
 	public function render()
 	{
-		if( Config::get('debug', false) == 'true')
-			return ($this->is_json)?$this->makeDebugJson():$this->makeDebugHtml();
-		else
-			return ($this->is_json)?$this->makeFriendlyJson():$this->makeFriendlyHtml();
-	
+        if( Config::get('debug', false) == 'true')
+            $this->setContent(($this->is_json)?$this->makeDebugJson():$this->makeDebugHtml());
+        else
+            $this->setContent(($this->is_json)?$this->makeFriendlyJson():$this->makeFriendlyHtml());
+
+        return $this->getContent();
 	}
 
 	private function extractContextCode($file, $line, $lines = null)

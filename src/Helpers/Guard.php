@@ -148,7 +148,7 @@ abstract class Guard
     {
         //$r = [];
         if(empty($guard))
-            $guard = Config::get('default_guard', 'No');
+            $guard = Config::get('default_guard', 'nobody');
 
         if(is_array($guard)){
             $r = [];

@@ -16,7 +16,7 @@ class RawResponse extends Response
 
     public function render()
     {
-        return $this->getContent();
+        return $this;
     }
 
     /**

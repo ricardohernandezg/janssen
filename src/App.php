@@ -360,7 +360,8 @@ class App
             $ret = $response;
         } elseif ($response instanceof Exception) {
             $er = new ErrorResponse();
-            $this->header->setMessage('Internal Server Error', 500, true);
+            $http_code = $response->isHttpCode() ? $response->getCode() : 500;
+            $this->header->setMessage('', $http_code, true);
             $er->isJson(self::$request->expectsJSON())
                 ->setException($response)
                 ->setHeader($this->header);

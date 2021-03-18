@@ -15,13 +15,14 @@ class Exception extends \Exception
     protected $advise;
     protected $stack_items = [];
     protected $rewrite_stack = false;
+    protected $is_http_code = false;
 
 
     public function __construct($message = '', $code = 0, $advice = '', Array $stack_items = [], $rewrite_stack = false, $render = false)
     {
         //parent::__construct($message, $code);
         $this->message = $message;
-        $this->code = $code;
+        $this->setErrorCode($code);
         $this->advise = $advice;
         $this->rewrite_stack = $rewrite_stack;
 
@@ -70,10 +71,21 @@ class Exception extends \Exception
         return $this->stack_items;
     }
 
+    private function setErrorCode($code)
+    {
+        $this->code = $code;
+        $this->is_http_code = ($code >= 100 and $code <= 599);
+    }
+
+    public function isHttpCode()
+    {
+        return $this->is_http_code;
+    }
+
     public function __toString()
     {
         echo $this->render();    
         return $this->getMessage();
     }
-    
+
 }

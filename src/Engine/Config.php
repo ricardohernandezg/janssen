@@ -56,8 +56,7 @@ class Config
     {
         if(empty($name))
             return self::$settings;
-
-        return empty(self::$settings[$name])?$default:self::$settings[$name];
+        return isset(self::$settings[$name])?self::$settings[$name]:$default;
     }
 
     /**

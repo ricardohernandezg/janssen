@@ -75,7 +75,7 @@ class ViewResponse extends Response
             $template = strtolower(substr($template, 0, -4));
         $this->template = $template;
         if(!empty($data))
-            $this->setTemplateData($data); // this is absolutely redundant but kept for compat reason
+            $this->setData($data); // this is absolutely redundant but kept for compat reason
         return $this;
     }
 
@@ -95,13 +95,13 @@ class ViewResponse extends Response
         return $this->template_path;
     }
 
-    public function setTemplateData(Array $data)
+    public function setData(Array $data)
     {
         $this->data = $data;
         return $this;
     }
 
-    public function getTemplateData()
+    public function getData()
     {
         return $this->data;
     }

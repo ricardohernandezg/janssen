@@ -38,7 +38,7 @@ class Route
             self::$current = self::$routes[$i];
             return self::$routes[$i];
         }else
-            throw new Exception("Path '$path' not routed", 400);
+            throw new Exception("Path '$path' not routed", 404);
             
     }
 

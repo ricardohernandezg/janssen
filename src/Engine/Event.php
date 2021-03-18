@@ -27,11 +27,6 @@ abstract class Event
      */
     public static function invoke($event_name, ...$args)
     {
-        /*
-        $events = Config::getEvents();
-        if(empty($events))
-            return $args;*/
-
         $a = explode('.',$event_name, 2); // name shouldn't have more than 2 members class.event
         if(is_array($a) && !empty($a[0]) && !empty($a[1]))
             $event_path = $a[0] . "\\" . $a[1] . 'Event';

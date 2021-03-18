@@ -17,7 +17,6 @@ namespace Janssen\Engine;
 
 use Janssen\Engine\Parameter;
 use Janssen\Engine\Mapper;
-use Janssen\Helpers\Guard;
 use Janssen\Engine\Config;
 
 class Request

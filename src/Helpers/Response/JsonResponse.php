@@ -17,13 +17,12 @@ class JsonResponse extends Response
 
     public function render()
     {
-        $rendered = '';
-        if(is_array($this->content))
-            $rendered = json_encode($this->content);
-        else
-            $rendered = json_encode([$this->content]);
-
-        return $rendered;
+        $content = $this->getContent();
+        if(!is_array($content))
+            $content = json_encode([$this->content]);
+            
+        $this->setContent($content);
+        return $this;
     }
 
 }

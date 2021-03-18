@@ -6,7 +6,7 @@ class DefaultResolver
 {
     
     private static $aliased_defaults = [
-        'mysqli' => '\Janssen\Helpers\Database\Adaptors\MySqlAdaptor',
+        'mysql' => '\Janssen\Helpers\Database\Adaptors\MySqlAdaptor',
         'pgsql' => '\Janssen\Helpers\Database\Adaptors\PostgresAdaptor',
         ];
 
