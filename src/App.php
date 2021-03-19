@@ -179,6 +179,10 @@ class App
                 $ca = 'Called-action: ' . $ua['controller'] . '/' . $ua['method'];
                 $this->header->setMessage($ca);
 
+                /**
+                 * @todo put the validator inside Request to not instanciate more than 
+                 * once
+                 */
                 $validator_name = transform_to_class_name($ua['controller']) . 'Validator';
                 $validator_fullname = "App\\Validator\\" . $validator_name;
                 $validator_method = 'validate' . transform_to_class_name($method);
@@ -319,7 +323,7 @@ class App
             // if user wants to get detailed validator error, we need to save the object to use outside
             $is_validator = ($instance instanceof Validator);
             if($is_validator){
-                $this->validator = self::getConfig('detail_validator_error')?$instance:false;
+                $this->validator = $instance;
                 $use_params = true;
             }
 

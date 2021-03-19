@@ -160,7 +160,7 @@ class Validator
      * Validates a value against the rule
      * 
      * @param String|Integer|Boolean $value
-     * @param Integer $rule
+     * @param Integer|Array $rule
      * @return Boolean
      * 
      */
@@ -433,6 +433,17 @@ class Validator
         $r = true;
         $rq = new Request;
         return $r;
+    }
+
+    /**
+     * Checks if an action is excepted of Guard restrictions
+     */
+    public function isExcepted($action)
+    {
+        if(empty($this->guard_except))
+            return false;
+        else
+            return (array_search($action, $this->guard_except) !== false);
     }
 
     /**
