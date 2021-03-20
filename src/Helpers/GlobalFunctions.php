@@ -1,6 +1,7 @@
 <?php
 
 use Janssen\App;
+use Janssen\Engine\Response;
 use Janssen\Engine\Route;
 use Janssen\Engine\Session;
 use Janssen\Helpers\Guard;
@@ -132,7 +133,7 @@ set_error_handler('custom_error_handler');
  * @param integer $code http error code
  * @return Response
  */
-function error($message, $code = 500)
+function error($message, $code = 500) : Response
 {
     return App::errorResponse($message, $code);
 }
@@ -143,7 +144,7 @@ function error($message, $code = 500)
  * @param string $to path to make the redirection
  * @return Response
  */
-function redirect($to = '/')
+function redirect($to = '/') : Response
 {
     return App::redirectResponse($to);
 }

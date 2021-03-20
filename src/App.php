@@ -209,7 +209,7 @@ class App
                          * 
                          * @todo check what happens when sending arrays to FlashMessage
                          */
-                        FlashMessage::addMessage('general', 'Data validation error', 'error');
+                        FlashMessage::add('general', 'Data validation error', 'error');
                         $res = \redirect(self::$request->back());
                     }
                     

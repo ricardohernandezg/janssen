@@ -10,7 +10,7 @@ class Controller
     {
         foreach($reasons as $reason)
         {
-            FlashMessage::addMessage($reason['field'], $reason['reason'], $reason['type']);
+            FlashMessage::add($reason['field'], $reason['reason'], $reason['type']);
         }
     }
 

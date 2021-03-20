@@ -25,6 +25,11 @@ abstract class Guard
     private $grant_var_name = '_granted';
 
     /**
+     * Session variable to store the guards
+     */
+    private static $guard_var_name = '_jannsen_guards';
+
+    /**
      * Authenticate the user with the given request data
      * and sets session
      */
@@ -86,7 +91,8 @@ abstract class Guard
      */
     public function setData($key, $value = null)
     {
-        $g = Session::getValue('guards', []);
+        $gvn = $this->getGuardVarName();
+        $g = Session::getValue($gvn, []);
         $guard_name = get_class_name(get_class($this));
         if(is_array($key)){
             foreach($key as $k=>$v){
@@ -95,19 +101,20 @@ abstract class Guard
         }else{
             $g[$guard_name][$key] = $value;
         }
-        Session::setValue('guards', $g);
+        Session::setValue($gvn, $g);
         return $this;
     }
 
     public function revoke()
     {
-        $g = Session::getValue('guards', []);
+        $gvn = $this->getGuardVarName();
+        $g = Session::getValue($gvn, []);
         $granted_by = get_class_name(get_class($this));
         unset($g[$granted_by]);
         if(empty($g))
-            Session::removeField('guards');
+            Session::removeField($gvn);
         else
-            Session::setValue('guards', $g);
+            Session::setValue($gvn, $g);
         
         Request::authorizedBy('');
     }
@@ -119,13 +126,8 @@ abstract class Guard
      */
     public function isGranted()
     {
-        $c = get_class_name(get_called_class());
-        $md = self::getData($c);
-        $granted = false;
-        if(is_array($md) && array_key_exists($this->grant_var_name, $md))
-            $granted = $md[$this->grant_var_name];
-
-        return $granted;
+        $granted = $this->getData($this->grant_var_name);     
+        return ($granted == true);
     }
 
     /**
@@ -138,13 +140,19 @@ abstract class Guard
         return get_class();
     }
 
+
+    private function getGuardVarName()
+    {
+        return Config::get('guard_var_name', self::$guard_var_name);
+    }
+
     /**
      * Resolve the guard class by given name
      *
      * @param String|Array $guard
      * @return Object|Array
      */
-    public static function resolve($guard = null)
+    public static function resolve($guard = null) : Guard
     {
         //$r = [];
         if(empty($guard))
@@ -164,16 +172,17 @@ abstract class Guard
         return $r;        
     }
    
-    public static function getData($guard = null)
+    public function getData($key = null)
     {
-        // if user don't send a guard, try to get it from the request
-        if(empty($guard))
-            $guard = Request::whoAuthorizes();
-            
-        //$guard = \engine_config('default_guard');
+        $gvn = $this->getGuardVarName();
+        $sg = Session::getValue($gvn);
 
-        $sg = Session::getValue('guards');
-        return empty($sg)?false:(array_key_exists($guard, $sg)?$sg[$guard]:false);
+        $data = $sg[$this->getName()];
+
+        if(is_null($key))
+            return $data;
+        else
+            return isset($data[$key])?$data[$key]:null;
     }
 
     
@@ -182,6 +191,16 @@ abstract class Guard
         $guard = trim($guard);
         $ag = (substr($guard,-5) == 'Guard');
         return '\App\Auth\\' . transform_to_class_name($guard) . (!$ag?'Guard':'');
+    }
+
+    /**
+     * Revoke all guards authorizations
+     *
+     * @return void
+     */
+    public static function revokeAll()
+    {
+        Session::removeField(self::$guard_var_name);
     }
 
 }

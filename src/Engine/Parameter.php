@@ -41,13 +41,11 @@ class Parameter implements \Countable
      */
     public function getMember($name, $default = '')
     {
-        //$name = strtolower($name);
         return isset($this->members[$name])?$this->members[$name]:$default;
     }
 
     public function getQuotedOrNull($name)
     {
-        //$name = strtolower($name);
         $gm = $this->getMember($name, '');
         if(empty($gm) && $gm != '0')
             if($this->blanks_as_null) 
@@ -77,7 +75,6 @@ class Parameter implements \Countable
 
     public function setMember($name, $value)
     {
-        //$name = strtolower($name);
         $this->members[$name] = $value;
         return $this;
     }
