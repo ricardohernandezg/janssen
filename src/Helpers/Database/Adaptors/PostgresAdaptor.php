@@ -18,19 +18,19 @@ class PostgresAdaptor extends Adaptor
 
     }
 
-    public function query(){
+    public function query($sql){
         
     }
 
-    public function statement(){
+    public function statement($sql){
         
     }
 
-    public function howMany()
+    public function howMany($sql)
     {
     }
         
-    public function insert(){
+    public function insert($sql){
         // the last insert id here is mad attaching 
         // RETURNING id field statement to the query
     }

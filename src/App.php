@@ -468,7 +468,7 @@ class App
         $r->setHeader($h)
             ->setContent('');
         if(FlashMessage::howMany() > 0){
-            Session::setValue(FlashMessage::getSessionVarName(), FlashMessage::getMessages());
+            Session::setValue(FlashMessage::getSessionVarName(), FlashMessage::all());
         }
         return $r;
     }

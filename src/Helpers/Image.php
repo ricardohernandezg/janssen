@@ -285,8 +285,8 @@ class Image
     /**
      * Calculates the reason between width and height 
      *
-     * @param Integer $width
-     * @param Integer $height
+     * @param Int $width
+     * @param Int $height
      * @return Float
      */
     public static function calculateReason($width, $height){
