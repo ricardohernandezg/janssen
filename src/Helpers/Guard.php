@@ -137,7 +137,7 @@ abstract class Guard
      */
     public function getName()
     {
-        return get_class();
+        return get_class_name(get_class($this));
     }
 
 
