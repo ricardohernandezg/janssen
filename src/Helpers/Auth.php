@@ -61,9 +61,9 @@ class Auth
      *
      * @return void
      */
-    public static function revoke(Request $request)
+    public static function revokeAll()
     {
-        Session::removeField('guards');
+        Guard::revokeAll();
         return true;
     }
 
@@ -105,6 +105,5 @@ class Auth
         else
             throw new Exception('Guard class doesn\'t exist', 500);
     }
-    
 
 }

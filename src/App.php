@@ -249,7 +249,7 @@ class App
             //$param is an instance of ReflectionParameter
             $ret[] = ['name' => $param->getName(),
                 'optional' => $param->isOptional(),
-                'type' => strval($param->getType()),
+                'type' => $param->getType()->getName(),
                 'default_value' => ($param->isOptional() ? $param->getDefaultValue() : null)];
         }
         return $ret;
