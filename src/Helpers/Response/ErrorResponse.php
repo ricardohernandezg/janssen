@@ -538,10 +538,10 @@ class ErrorResponse extends Response
 	private function lineIsPublishable($file, $line)
 	{
 		$unpublishable = [
-			['\src\Helpers\GlobalFunctions.php', 124],
-			['\src\Helpers\GlobalFunctions.php', 170],
-			['\src\App.php', 191],
-			['\src\Engine\Response.php', 125]
+			['\src\Helpers\GlobalFunctions.php', 125],  // exception handler
+			['\src\Helpers\GlobalFunctions.php', 188],  // class resolver 2
+			['\src\App.php', 173],              // view don't exists
+			['\src\Engine\Response.php', 134]   // empty response
 		];
 		foreach($unpublishable as $unp)
 		{

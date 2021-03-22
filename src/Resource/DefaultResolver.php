@@ -15,7 +15,7 @@ class DefaultResolver
     
     public static function resolve($alias)
     {
-        return (empty(self::$aliased_defaults[$alias])?false:self::$aliased_defaults[$alias]);
+        return (empty(self::$aliased_defaults[$alias])? false : new self::$aliased_defaults[$alias]);
     }
 
     /**

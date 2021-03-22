@@ -11,6 +11,7 @@ use Janssen\Engine\Route;
 use Janssen\Engine\Session;
 use Janssen\Engine\Validator;
 use Janssen\Helpers\Database;
+use Janssen\Helpers\Database\Adaptor;
 use Janssen\Helpers\Exception;
 use Janssen\Helpers\Response\ErrorResponse;
 use Janssen\Helpers\Response\JsonResponse;
@@ -165,11 +166,11 @@ class App
                      * of Janssen\Response
                      */
                     $page = $action[0];
-                    $renderer = new $action[1];
-                    if ($renderer instanceof Response) {
+                    $renderer = DefaultResolver::resolve($action[1]);
+                    if($renderer && $renderer instanceof Response){
                         $res = $renderer->render(['filename' => $page]);
                     } else
-                        throw new Exception("Renderer for $page is not configured", 500, 'Contact Administrator');
+                        throw new Exception("Indicated renderer for $page doesn't exists!", 500, 'Contact Administrator');
                 } else {
                     $p = new RawResponse;
                     $p->loadPage($action);
@@ -266,14 +267,9 @@ class App
         $dc = self::getConfig('connections')[self::getConfig('default_connection')];
         $dbe = $dc['driver'];
         if ($dbe) {
-            $r = DefaultResolver::resolve($dbe);
-            if ($r == false) 
-                $r = $dbe;
-
-            if (class_exists($r)) {
-                $adaptor = new $r;
+            $adaptor = DefaultResolver::resolve($dbe);
+            if ($adaptor && $adaptor instanceof Adaptor){ 
                 $cf = $adaptor->getAllConfigFields();
-
                 foreach ($cf as $k => $v) {
                     $adaptor->setConfigField($k, empty($dc[$k]) ? null : $dc[$k]);
                 }
@@ -281,7 +277,6 @@ class App
             } else {
                 throw new Exception('Database class not implemented or inexistent', 500);
             }
-
         }
     }
 
