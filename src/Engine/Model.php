@@ -113,6 +113,8 @@ class Model
         self::clearOrderBy();
         // clear specific field mapping
         self::clearMapping();
+        // clear select fields created by mapping
+        self::selectOnly([]);
         // clear limit and offset
         self::limit();
         self::offset();
@@ -156,9 +158,9 @@ class Model
     protected function setPartedSql(Array $parted_sql)
     {
         //parted must be an Array and have all the members
-        $fields = ['select','from','where','orderby','limit'];
+        $parts = ['select','from','where','orderby','limit'];
         $f = true;
-        foreach($fields as $v){
+        foreach($parts as $v){
             $f = ($f && isset($parted_sql[$v]));
         }
         if($f){
@@ -239,20 +241,6 @@ class Model
 
     protected function prepareSelect(Array $parted_sql)
     {
-        /*
-        $s = ' * ';
-        $er = '/^SELECT\s(.+)/mis';
-        $m = [];
-        $i =  preg_match($er, $parted_sql['select'], $m, PREG_OFFSET_CAPTURE);
-        if($i > 0 && count($m) == 2){ // we expect exactly 2 captures. More than that will lead to error
-            $start = $m[1][1];
-            $length = strlen($m[1][0]);
-            $fp = substr($parted_sql['select'], 0, $start);
-            $sp = substr($parted_sql['select'], $start + $length);
-            //$s = "$fp " . $this->flatFields() . " $sp";
-            
-        }
-        */
         $parted_sql['select'] = $this->flatFields();
         return $this->flatSQL($parted_sql);
     }

@@ -35,11 +35,11 @@ $files = [
 $base_path = __DIR__ . '/../';
 
 if ($argc == 1)
-    die(showArgumentList());
+    dieWithMessage(showArgumentList());
 
 switch (strtolower($argv[1])){
     case 'init':
-
+        echo 'init';
         foreach($files as $section=>$encfile){
             if(is_array($encfile)){
                 foreach($encfile as $eencfile){
@@ -52,12 +52,64 @@ switch (strtolower($argv[1])){
             }
         }
         break;
+    case 'make-model':
+        echo "make model";
+        // param 2 should be the model name and optionally 4th the table name if 3rd is -t
+        $mn = $argv[2];
+
+        if(empty($mn))
+            dieWithMessage('Model name is required!');
+
+        $tn = false;
+        if(isset($argv[3]) && strtolower($argv[3]) == '-t'){
+            if(!empty($argv[4])){
+                $tn = $argv[4];
+            }else
+                dieWithMessage('if you set -t must indicate table name');
+        }
+        $text = createModel($mn, $tn);
+        $m_path = 'app/Model';
+        createDir($base_path, $m_path);
+        $dest = $base_path . $m_path . '/' . ucfirst($mn) . '.php';
+        file_put_contents($dest, $text);
+        break;
+    
+    case 'make-validator':
+        echo 'make validator';
+        // param 2 should be the validator name 
+        $vn = $argv[2];
+
+        if(empty($vn))
+            dieWithMessage('Validator name is required!');
+
+        $v = createValidator($vn);
+        $m_path = 'app/Validator';
+        createDir($base_path, $m_path);
+        $dest = $base_path . $m_path . '/' . $v['name'] . '.php';
+        file_put_contents($dest, $v['text']);
+        break;
+
+    case 'make-controller':
+            echo 'make controller';
+            // param 2 should be the controller name 
+            $cn = $argv[2];
+    
+            if(empty($cn))
+                dieWithMessage('Controller name is required!');
+    
+            $c = createController($cn);
+            $m_path = 'app/Controller';
+            createDir($base_path, $m_path);
+            $dest = $base_path . $m_path . '/' . $c['name'] . '.php';
+            file_put_contents($dest, $c['text']);
+            break;        
+        
     default:
-        die(showArgumentList());
+        dieWithMessage(showArgumentList());
 
 }
 
-echo PHP_EOL . "done!" . PHP_EOL;
+dieWithMessage('Done!');
 
 function getParts($encoded){
     $a = explode('$', $encoded, 3);
@@ -98,6 +150,93 @@ function createDir($base_path, $new_path)
 function showArgumentList(){
     $ret = "Hey! You forgot to put the action you want to do!" . PHP_EOL . PHP_EOL .
     "What do you want to do? (use a command from the list)" . PHP_EOL .  PHP_EOL .
-    "init: make scaffolding to start your app" . PHP_EOL;
+    "init: make scaffolding to start your app" . PHP_EOL . 
+    "make-model name [-t table-name]: make a model with given name. Add optional -t parameter to use your own table name" . PHP_EOL . 
+    "make-validator name : make validator file" . PHP_EOL . 
+    "make-controller name : make controller file";
     return $ret;
+}
+
+function createModel($name, $table = false)
+{
+    $pyload = <<<MODEL_CNTS
+<?php 
+
+namespace App\Model;
+
+use Janssen\Engine\Model;
+
+class _{MODEL_NAME}_ extends Model
+{
+    public \$table = '_{TABLE_NAME}_';
+    public \$primaryKey = '_{PK_NAME}_';
+}
+MODEL_CNTS;
+
+    $ret = str_replace('_{MODEL_NAME}_', makeClassName($name), $pyload);
+    if($table)
+        $ret = str_replace('_{TABLE_NAME}_', strtolower($table), $ret);
+    else
+        $ret = str_replace('_{TABLE_NAME}_', strtolower($name), $ret);
+
+    $pk = 'Id' . makeClassName($name);
+    if(substr($pk, -1, 1) == 's')
+        $pk = substr($pk, 0, strlen($pk) - 1);
+
+    $ret = str_replace('_{PK_NAME}_', $pk, $ret);
+    return $ret;
+}
+
+function createValidator($name){
+
+    $pyload = <<<VAL_CNTS
+<?php 
+
+namespace App\Validator;
+
+use Janssen\Engine\Validator;
+use Janssen\Engine\Request;
+use Janssen\Engine\Ruleset;
+
+class _{VAL_NAME}_ extends Validator
+{
+    
+}
+VAL_CNTS;
+
+    $vn = makeClassName($name) . 'Validator';
+    $ret = str_replace('_{VAL_NAME}_', $vn, $pyload);
+    return ['name' => $vn, 'text' =>$ret];
+
+}
+
+function createController($name){
+
+    $pyload = <<<CNT_CNTS
+<?php 
+
+namespace App\Controller;
+
+use Janssen\Engine\Controller;
+use Janssen\Engine\Request;
+
+class _{CNT_NAME}_ extends Controller
+{
+    
+}
+CNT_CNTS;
+
+    $cn = makeClassName($name) . 'Controller';
+    $ret = str_replace('_{CNT_NAME}_', $cn, $pyload);
+    return ['name' => $cn, 'text' =>$ret];
+
+}
+
+function makeClassName($name){
+    return ucfirst($name);
+}
+
+function dieWithMessage($message)
+{
+    die(PHP_EOL . $message . PHP_EOL);
 }

@@ -14,14 +14,13 @@ class JsonResponse extends Response
         $this->setContentType('application/json');
     }
 
-
     public function render()
     {
         $content = $this->getContent();
         if(!is_array($content))
-            $content = json_encode([$this->content]);
+            $content = [$this->content];
             
-        $this->setContent($content);
+        $this->setContent(json_encode($content));
         return $this;
     }
 

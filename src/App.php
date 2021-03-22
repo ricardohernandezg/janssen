@@ -65,6 +65,12 @@ class App
         $this->app_path = $app_path;
         self::$s_app_path = $this->app_path;
 
+        // load external aliases
+        $ca_candidate = $this->getPathCandidate('aliases');
+        $external_aliases = (is_file($ca_candidate)) ? (include $ca_candidate) : [];
+        if(!empty($external_aliases))
+            DefaultResolver::loadExternal($external_aliases);
+
         // make the global functions mapped to aliases to be called
         // from everywhere in the app
         $ugf_conf_candidate = $this->getPathCandidate('functions');
@@ -79,7 +85,7 @@ class App
         Config::setAll((is_file($engine_conf_candidate)) ? (include $engine_conf_candidate) : []);
         self::$engine_config = Config::get();
 
-        //error_reporting(0);
+        error_reporting(Config::get('php_error_reporting', 0));
 
         // create a header to the response
         $this->header = new Header;            
@@ -380,7 +386,7 @@ class App
         }
 
         // here we should make the postprocessing if applyable
-        return $ret->render();
+        return $ret;
     }
 
     /**

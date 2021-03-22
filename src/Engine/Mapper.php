@@ -8,6 +8,8 @@ use Janssen\Engine\Request;
 class Mapper
 {
 
+    use \Janssen\Traits\InstanceGetter;
+
     private $map = [];
 
     public function __construct($map = 'auto')
@@ -24,21 +26,38 @@ class Mapper
         $this->setMap($map);
     }
 
+    /**
+     * Sets a map
+     */
     public function setMap(Array $map)
     {
         $this->map = $map;
+        return $this;
     }
     
+    /**
+     * Checks if a input member exists
+     */
     public function has($key)
     {
         return array_key_exists($key, self::$map);
     }
 
+    /**
+     * Returns the map
+     *
+     * @return Array
+     */
     public function getMap()
     {
         return $this->map;
     }
 
+    /**
+     * Returns true if Mapper is working in auto mode
+     *
+     * @return boolean
+     */
     public function isAuto()
     {
         return empty($this->map);
@@ -124,5 +143,31 @@ class Mapper
         }
         $s = substr($s, 0, strlen($s)-2);
         return $s;
+    }
+
+    /**
+     * Get output name for a member
+     *
+     * @param Ruleset $rule
+     * @param String $input_member_name
+     * @return String
+     */
+    public static function getOutputMember(Ruleset $rule, $input_member_name)
+    {
+        $oi = self::getOwnInstance()->setMap($rule->getMapping());
+        return $oi->asOutput($input_member_name);
+    }
+
+    /**
+     * Get the input name for a member
+     *
+     * @param Ruleset $rule
+     * @param String $output_member_name
+     * @return String
+     */
+    public static function getInputMember(Ruleset $rule, $output_member_name)
+    {
+        $oi = self::getOwnInstance()->setMap($rule->getMapping());
+        return $oi->asInput($output_member_name);
     }
 }
