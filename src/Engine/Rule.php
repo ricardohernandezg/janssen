@@ -32,6 +32,7 @@ abstract class Rule
     const RULE_STRICT_STRING = 50;
     const RULE_EMAIL = 51;
     const RULE_ARRAY_MEMBER_TYPE = 52;
-
+    const RULE_NUMBER_POSITIVE = 53;
+    const RULE_NUMBER_NEGATIVE = 54;
     
 }

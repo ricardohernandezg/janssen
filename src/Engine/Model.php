@@ -127,7 +127,11 @@ class Model
         return $this;
     }
 
-
+    /**
+     * Makes the query string with the internal parted SQL object
+     *
+     * @return object
+     */
     public function makeBasicSelect()
     {
         if(self::$use_view && empty($this->view))
@@ -150,12 +154,21 @@ class Model
         return $this;
     }
 
-    protected function getPartedSql()
+    /**
+     * Returns the SQL parts that will be used to make the query string
+     */
+    public function getPartedSql() : Array
     {
         return self::$parted_sql;
     }
 
-    protected function setPartedSql(Array $parted_sql)
+    /**
+     * Sets the parts that Model will use to make the query string
+     *
+     * @param Array $parted_sql
+     * @return void
+     */
+    public function setPartedSql(Array $parted_sql)
     {
         //parted must be an Array and have all the members
         $parts = ['select','from','where','orderby','limit'];

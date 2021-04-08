@@ -73,13 +73,25 @@ class Parameter implements \Countable
             return $v;
     }
 
+    /**
+     * Sets or replaces a member value in the parameter list
+     *
+     * @param string $name
+     * @param any $value
+     * @return object
+     */
     public function setMember($name, $value)
     {
         $this->members[$name] = $value;
         return $this;
     }
 
-    
+    /**
+     * Sets the mapping to be used with this object
+     *
+     * @param Mapper $map
+     * @return void
+     */
     public function setMapping(Mapper $map)
     {
         $this->original_map = $map;

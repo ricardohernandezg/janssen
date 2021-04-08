@@ -110,9 +110,12 @@ class Validator
                 return is_string($value);
                 break;
             case Rule::RULE_TYPE_INTEGER:
-                $re = '/^\d*$/';
-                return $this->validateAgainstRegex($value, $re);
-                //return is_integer($value);
+                if(strval($value) === '0')
+                    return true;
+                else{
+                    $re = '/^-?\d+$/';
+                    return $this->validateAgainstRegex($value, $re);
+                }
                 break;
             case Rule::RULE_TYPE_FLOAT:
                 // we don't need to ask if its float as 1.0 is valid as integer and as float.
@@ -173,8 +176,14 @@ class Validator
             $rule = array_shift($param);
         
         switch ($rule) {
+            case Rule::RULE_NUMBER_POSITIVE:
+                $ret = (is_numeric($value) && $value >= 0);
+                break;
+            case Rule::RULE_NUMBER_NEGATIVE:
+                $ret = (is_numeric($value) && $value < 0);
+                break;                
             case Rule::RULE_GRTN_0:
-                $ret = (is_integer(intval($value)) && $value > 0);
+                $ret = (is_numeric($value) && $value > 0);
                 break;
             case Rule::RULE_REQUIRED:
                 $ret = !empty($value) || $value == '0';

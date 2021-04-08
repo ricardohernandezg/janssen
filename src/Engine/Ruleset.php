@@ -50,11 +50,13 @@ class Ruleset
     public function getRules()
     {
         if(!empty($this->disabled)){
-            $ret = ['_param_count' => $this->rules['_param_count']] ;
+            $ret = [];
             foreach($this->rules as $k => $rule){
                 if($this->isEnabled($k))
                     $ret[$k] = $rule;
             }
+            $ct = count($ret);
+            $this->rules['_param_count'] = isset($ret['_param_count']) ? $ct -1 : $ct;
             return $ret;
         }else
             return $this->rules;
@@ -152,6 +154,13 @@ class Ruleset
             throw new Exception('Malformed validation rule', 500);
 
         return $this;
+    }
+
+    /**
+     * Alias for disableRule
+     */
+    public function without($name){
+        return $this->disableRule($name);
     }
 
     /**
