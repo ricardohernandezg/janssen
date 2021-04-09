@@ -86,7 +86,7 @@ abstract class Response
     /**
      * Sets content of response
      *
-     * @param String $content
+     * @param String|Array $content
      * @return Response
      */
     public function setContent($content){

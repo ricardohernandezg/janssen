@@ -26,18 +26,36 @@ class Ruleset
         return array_key_exists($name, $this->rules);
     }
 
+    /**
+     * Add the rules 
+     *
+     * @param Array $rules
+     * @return object
+     */
     protected function addRules(Array $rules)
     {
         $this->rules = $rules;
         return $this;
     }
 
+    /**
+     * Add the messages
+     *
+     * @param Array $messages
+     * @return object
+     */
     protected function addMessages(Array $messages)
     {
         $this->messages = $messages;
         return $this;
     }
 
+    /**
+     * Add mapping
+     *
+     * @param Array $mapping
+     * @return object
+     */
     protected function addMapping(Array $mapping = [])
     {
         if(empty($mapping))
@@ -47,6 +65,11 @@ class Ruleset
         return $this;
     }
 
+    /**
+     * Returns the current set of rules excluding disabled
+     *
+     * @return array
+     */
     public function getRules()
     {
         if(!empty($this->disabled)){
@@ -57,11 +80,17 @@ class Ruleset
             }
             $ct = count($ret);
             $this->rules['_param_count'] = isset($ret['_param_count']) ? $ct -1 : $ct;
+            $ret['_param_count'] = $this->rules['_param_count'];
             return $ret;
         }else
             return $this->rules;
     }
 
+    /**
+     * Returns the current set of rules excluding disabled
+     *
+     * @return array
+     */
     public function getMessages()
     {
         if(!empty($this->disabled)){
@@ -75,12 +104,25 @@ class Ruleset
             return $this->messages;
     }
 
+    /**
+     * Returns the current mapping
+     *
+     * @return void
+     */
     public function getMapping()
     {
         return $this->mapping;
     }
 
-
+    /**
+     * Adds or alters a rule
+     *
+     * @param string $name
+     * @param array $rules
+     * @param array $messages
+     * @param array $mapping
+     * @return void
+     */
     public function addRule($name, Array $rules = null, Array $messages = null, Array $mapping = null)
     {
         if($rules){
@@ -158,6 +200,7 @@ class Ruleset
 
     /**
      * Alias for disableRule
+     * @return object
      */
     public function without($name){
         return $this->disableRule($name);

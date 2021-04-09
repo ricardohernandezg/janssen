@@ -90,7 +90,7 @@ class Parameter implements \Countable
      * Sets the mapping to be used with this object
      *
      * @param Mapper $map
-     * @return void
+     * @return object
      */
     public function setMapping(Mapper $map)
     {
@@ -188,28 +188,6 @@ class Parameter implements \Countable
     public function TreatBlanksAsNull($v = true)
     {
         $this->blanks_as_null = $v;
-    }
-
-
-    /**
-     * Excepts members from parameter functions
-     *
-     * @param Array $member_exceptions fields to be removed from functions
-     * @return void
-     */
-    public function allBut(Array $member_exceptions)
-    {
-        return $this;
-    }
-    
-    /**
-     * Restores all the members to be used in parameter functions
-     *
-     * @return void
-     */
-    public function useAll()
-    {
-        return $this;
     }
 
 }
