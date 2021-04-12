@@ -72,14 +72,13 @@ class Ruleset
      */
     public function getRules()
     {
+        $this->updateParamCount();
         if(!empty($this->disabled)){
             $ret = [];
             foreach($this->rules as $k => $rule){
                 if($this->isEnabled($k))
                     $ret[$k] = $rule;
             }
-            $ct = count($ret);
-            $this->rules['_param_count'] = isset($ret['_param_count']) ? $ct -1 : $ct;
             $ret['_param_count'] = $this->rules['_param_count'];
             return $ret;
         }else
@@ -125,20 +124,16 @@ class Ruleset
      */
     public function addRule($name, Array $rules = null, Array $messages = null, Array $mapping = null)
     {
-        if($rules){
-            if(!isset($this->rules[$name]))
-                $this->rules['_param_count']++;
-            
+        if($rules)
             $this->rules[$name] = $rules;
-        }
-
+        
         if($messages)
             $this->messages[$name] = $messages;
         
         if($mapping)
             $this->mapping[$name] = $mapping;
 
-        return $this;
+        return $this->updateParamCount();
     }
 
     /**
@@ -168,9 +163,7 @@ class Ruleset
         }else
             throw new Exception('Validation rule does not exists!', 500);
 
-        $ct = count($this->rules);
-        $this->rules['_param_count'] = isset($this->rules['_param_count']) ? $ct -1 : $ct;
-        return $this;
+        return $this->updateParamCount();
     }
 
     public function alterMapping($key, $new_map, $new_key = '')
@@ -195,7 +188,7 @@ class Ruleset
         else
             throw new Exception('Malformed validation rule', 500);
 
-        return $this;
+        $this->updateParamCount();
     }
 
     /**
@@ -230,5 +223,19 @@ class Ruleset
      */
     private function isEnabled($name){
         return (array_search($name, $this->disabled) === false);
+    }
+
+    /**
+     * Updates parameter count if exists in rules
+     *
+     * @return object
+     */
+    private function updateParamCount(){
+        if(isset($this->rules['_param_count'])){
+            $dc = count($this->disabled);
+            $rc = count($this->rules) - 1;
+            $this->rules['_param_count'] = $rc-$dc;
+        }
+        return $this;
     }
 }

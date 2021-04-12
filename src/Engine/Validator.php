@@ -278,6 +278,12 @@ class Validator
             // we'll need to add the files to the input array
             foreach($_FILES as $k=>$file)
             {
+                // first we need to check if the rul expects this as a file, as the Rules could change this
+                $pn = Request::parameters()->getMap()->asInput($k);
+                $fr = $this->rules[$pn];
+                if($fr['type'] !== Rule::RULE_TYPE_FILE)
+                    continue;
+
                 $file['is_file'] = true;
                 if($file['error'] == 0){
                     $file['server_type'] = mime_content_type($file['tmp_name']);
@@ -291,8 +297,7 @@ class Validator
                     $file['server_type'] = $file['type'];
                 // we need to know if the file has an internal mapped name to use it in the request
                 $file['orig_name'] = $k;
-                $k = Request::parameters()->getMap()->asInput($k);
-                $input[$k] = $file;
+                $input[$pn] = $file;
             }
         }
 
@@ -520,15 +525,14 @@ class Validator
 
     private function rulesHaveFiles($rules = [])
     {
-        $fr = 0;
         foreach($rules as $rule)
         {
             if(isset($rule['type'])){
                 if ($rule['type'] == Rule::RULE_TYPE_FILE)
-                    $fr++;
+                    return true;
             }
         }
-        return $fr;
+        return false;
     }
 
 
