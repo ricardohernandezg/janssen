@@ -188,7 +188,7 @@ class Ruleset
         else
             throw new Exception('Malformed validation rule', 500);
 
-        $this->updateParamCount();
+        return $this->updateParamCount();
     }
 
     /**
