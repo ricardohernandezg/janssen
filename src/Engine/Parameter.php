@@ -185,9 +185,15 @@ class Parameter implements \Countable
         return $this->updatefyFromArray(($ar_f?$ar_f:[]), $delimiter, $ignore_absents);
     }
 
+    /**
+     * Make empty or blank fields as null
+     * 
+     * @return object
+     */
     public function TreatBlanksAsNull($v = true)
     {
         $this->blanks_as_null = $v;
+        return $this;
     }
 
 }
