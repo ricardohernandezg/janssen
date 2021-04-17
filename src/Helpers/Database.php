@@ -115,7 +115,7 @@ class Database
 
     public static function setFieldMapping($value = true)
     {
-        self::$_adaptor->setAutoFieldMapping($value);
+        return self::$_adaptor->setAutoFieldMapping($value);
     }
 
     

@@ -31,7 +31,7 @@ class App
      * objects
      */
 
-    private $version = '0.1a';
+    private $version = '0.7.5';
     private $name = 'Janssen Core';
     private $app_path;
     private static $s_app_path;

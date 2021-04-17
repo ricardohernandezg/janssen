@@ -166,7 +166,7 @@ class Attachment
             }
         } // foreach
         return $ret;
-    } //function
+    } 
 
 
     /**

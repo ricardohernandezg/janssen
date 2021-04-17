@@ -91,8 +91,11 @@ class Image
         }
     }
 
-    public function save($filename, $image_type = IMAGETYPE_JPEG, $compression = 75, $permissions = null)
+    public function save($filename, $image_type = 'auto', $compression = 75, $permissions = null)
     {
+        if($image_type == 'auto')
+            $image_type = $this->image_type;
+
         if ($image_type == IMAGETYPE_JPEG || is_null($image_type)) {
             $r = imagejpeg($this->image, $filename, $compression);
         } elseif ($image_type == IMAGETYPE_GIF) {
@@ -113,7 +116,9 @@ class Image
             imagesavealpha($new, true);
             imagecopyresampled($new, $this->image, 0, 0, 0, 0, $w, $h, $w, $h);
             $r = imagepng($new, $filename);
-        }
+        }else
+            return false;
+
         if ($permissions != null) {
             chmod($filename, $permissions);
         }

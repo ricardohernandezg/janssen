@@ -113,7 +113,7 @@ abstract class Adaptor
      *
      * @return void
      */
-    public function getAllConfigFields()
+    public function getAllConfigFields() : Array
     {
         return $this->_config_fields;
     }
