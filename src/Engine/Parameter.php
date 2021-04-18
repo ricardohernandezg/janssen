@@ -11,6 +11,12 @@ class Parameter implements \Countable
     private $original_map = null;
 
     private $blanks_as_null = false;
+    private $process_value = true;
+
+    private static $normalizers = [
+        ['<', '&lt;'],
+        ['>', '&gt;'],
+    ];
 
     /**
      * Returns how many members has the parameter object
@@ -46,14 +52,19 @@ class Parameter implements \Countable
 
     public function getQuotedOrNull($name)
     {
-        $gm = $this->getMember($name, '');
-        if(empty($gm) && $gm != '0')
-            if($this->blanks_as_null) 
-                $r = 'null';
+        $member = $this->getMember($name, '');
+        if(empty($member) && $member !== '0')
+            $r  = ($this->blanks_as_null) ? 'null' : $member;
+        else{
+            $v = $this->members[$name];
+            if(is_numeric($v) || is_bool($v))
+                $mc = ($this->process_value) ? $this->processNumericValue($v) : $v;    
+            elseif (is_string($v))
+                $mc = ($this->process_value) ? $this->processTextValue($v) : $v;    
             else
-                $r = $gm;
-        else
-            $r = "'{$this->members[$name]}'";
+                $mc = $v;
+            $r = "'$mc'";
+        }
         return $r;
     }
 
@@ -196,4 +207,87 @@ class Parameter implements \Countable
         return $this;
     }
 
+    public function disableProcessValue(){
+        $this->process_value = false;
+    }
+
+    /**
+     * Process value to substitute values before send to string
+     *
+     * @param string $value
+     * @return string
+     */
+    private function processTextValue($value)
+    {
+
+        $p = $value;
+        foreach(self::$normalizers as $v){
+            $i = strpos($p, $v[0]);
+            if($i !== false)
+                $p = str_replace($v[0], $v[1], $p);
+        }
+        
+        $p = str_replace("\\'", "'", $p);
+        $i = strpos($p, "'");
+        if($i !== false)
+            $p = str_replace("'", "\\'", $p);
+
+        return $p;
+    }
+
+
+    private function processNumericValue($value)
+    {
+        return $value;
+    }
+
+    /**
+     * Replaces single quote in string
+     *
+     * @param string $value
+     * @return string
+     */
+    private function replaceSingleQuote($value)
+    {
+        // first we delete all \' quotes to replace
+        $vc = str_replace("\\'", "'", $value);
+        $i = strpos($vc, "'");
+        if($i !== false)
+            $vc = str_replace("'", "\\'", $vc);
+
+        return $vc;
+        
+    }
+
+    public static function normalize($value)
+    {
+        $n = '';
+        $lf = self::$normalizers;
+        $lf[] = ["\\'", "'"];
+        foreach ($lf as $v)
+        {
+            $i = strpos($value, $v[1]);
+            if($i !== false)
+                $n = str_replace($v[1], $v[0], $value);
+        }
+
+        return $n;
+    }
+
+    /**
+     * To use in case of Dynamic Js generation and need of normalizers
+     * Returns the Parameter normalizers as JS array to be used to normalize
+     * in script
+     *
+     * @return string
+     */
+    public static function jsNormalizers()
+    {
+        $n = '[';
+        foreach(self::$normalizers as $v)
+        {
+            $n .= "[{$v[0]},{$v[1]}],";
+        }
+        $n .= ']';
+    }
 }
