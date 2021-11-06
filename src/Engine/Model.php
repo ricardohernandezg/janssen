@@ -165,8 +165,8 @@ class Model
     /**
      * Sets the parts that Model will use to make the query string
      *
-     * @param Array $parted_sql
-     * @return void
+     * @param array $parted_sql
+     * @return object
      */
     public function setPartedSql(Array $parted_sql)
     {
@@ -183,6 +183,11 @@ class Model
             throw new Exception('Parted sql needs all its parameter to be built correctly.', 500);
     }
 
+    /**
+     * Prepares the where part of query
+     *
+     * @return string
+     */
     protected function prepareWhere(){
         $w = '';
         if(self::$query_mode > 0)
@@ -192,6 +197,11 @@ class Model
         return $w;
     }
 
+    /**
+     * Prepares the order by part of query
+     *
+     * @return string
+     */
     protected function prepareOrderBy(){
         $o = '';
         if(count(self::$order_by) > 0)
@@ -208,7 +218,7 @@ class Model
     /**
      * Sets the field array as select only to be flatten at query prepare time
      * 
-     * @return Object
+     * @return object
      */
     protected function prepareMapping()
     {
@@ -361,24 +371,48 @@ class Model
         return self::me();
     }
 
+    /**
+     * Cleans the mapping 
+     *
+     * @return object
+     */
     public static function clearMapping()
     {
         self::$external_mapping = self::$defaults['mapping'];
         return self::me();
     }
 
+    /**
+     * Sets the use of view or table in Model
+     *
+     * @param boolean $value
+     * @return object
+     */
     public static function useView($value = true)
     {
         self::$use_view = $value;
         return self::me();
     }
 
+    /**
+     * Sets or disables the use of DISTINCT clause in query
+     *
+     * @param boolean $value
+     * @return object
+     */
     public static function distinct($value = true)
     {
         self::$distinct = $value;
         return self::me();
     }
 
+    /**
+     * Sets the order by fields in the query
+     *
+     * @param string $field
+     * @param string $mode
+     * @return object
+     */
     public static function orderBy($field, $mode = '')
     {
         $mode = strtoupper(trim($mode));
@@ -389,18 +423,37 @@ class Model
         return self::me();
     }
 
+    /**
+     * Cleans the order by clause
+     *
+     * @return object
+     */
     public static function clearOrderBy()
     {
         self::$order_by = self::$defaults['orderBy'];
         return self::me();
     }
 
+    /**
+     * Sets the limit of rows in query
+     *
+     * @param integer $rows_count
+     * @return object
+     */
     public static function limit($rows_count = -1)
     {
         self::$limit = $rows_count;
         return self::me();
     }
 
+    /**
+     * Sets the offset in query
+     * @todo Check the compatibility with engines. Actually offset works well 
+     * with Postgres
+     *
+     * @param integer $rows_skip
+     * @return object
+     */
     public static function offset($rows_skip = -1)
     {
         self::$offset = $rows_skip;

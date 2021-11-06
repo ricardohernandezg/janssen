@@ -221,7 +221,10 @@ class App
                     }
                     
                 }
+            }elseif($rm == 'OPTIONS'){
+                $res = true;
             }
+            
         } catch (\Janssen\Helpers\Exception $e) {            
             $res = $e;
         } catch (Throwable $e) {
