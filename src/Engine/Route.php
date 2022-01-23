@@ -15,7 +15,7 @@ class Route
      *
      * @var array
      */
-    public static $current = [];
+    protected static $current = [];
 
     /**
      * Saves all the routes that were configured
@@ -27,6 +27,8 @@ class Route
     public static function setRoutes(Array $routes = [])
     {
         self::$routes = $routes;
+        // try to get the route from path
+        self::getByPath(Request::getPath());
     }
 
     public static function getByPath($path)

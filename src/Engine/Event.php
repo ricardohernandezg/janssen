@@ -27,14 +27,19 @@ abstract class Event
      */
     public static function invoke($event_name, ...$args)
     {
+        /*
+        $events = Config::getEvents();
+        if(empty($events))
+            return $args;*/
+
         $a = explode('.',$event_name, 2); // name shouldn't have more than 2 members class.event
         if(is_array($a) && !empty($a[0]) && !empty($a[1]))
             $event_path = $a[0] . "\\" . $a[1] . 'Event';
         else
             throw new Exception("Invalid Event name to invoke");
 
-        $class = "App\\Event\\" . $event_path;
-        if(class_exists($class, false)){
+        $class = "\\App\\Event\\" . $event_path;
+        if(class_exists($class)){
             $i = new $class;
             if(method_exists($i, 'handle'))
                 return call_user_func_array([$i, "handle"], $args);

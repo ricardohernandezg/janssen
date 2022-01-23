@@ -28,6 +28,8 @@ class ErrorResponse extends Response
 		$this->message = $message;
 		$this->code = $code;
 		$this->advise = $advise;
+        $this->getHeaders()->setMessage(' ', $code);
+
 		// this makes default error handling an ajax response.
 		$this->setContent(['error' => true, 'message' => $message, 'code' => $code, 'advise' => $advise]);
 

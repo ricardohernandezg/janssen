@@ -111,9 +111,9 @@ abstract class Adaptor
      * Get internal array with the fields needed to
      * instanciate a connection with this adapter
      *
-     * @return void
+     * @return Array
      */
-    public function getAllConfigFields() : Array
+    public function getAllConfigFields()
     {
         return $this->_config_fields;
     }

@@ -240,11 +240,12 @@ class Request
         $path = str_replace(basename($sn), '', $sn);
         self::$path = $look_for . self::server('HTTP_HOST') . $path;
         // extract the path from the request
-        if($path !== '/')
+        if($path !== '/'){
             self::$payload = str_replace($path, '', $rqst_uri);        
-        else
+        }else
             self::$payload = substr($rqst_uri, 1);        
 
+        self::$payload = self::fix(self::$payload);
         self::$ownURI = self::$path;
     }
 
@@ -583,11 +584,19 @@ class Request
         return self::$ownURI;
     }
 
-
     public static function fixPath()
     {
+        return self::fix(self::$path);
+        /*
         if(!in_array(self::$path, ['','/']) && substr(self::$path, -1) =='/')
-            self::$path = substr(self::$path, 0, strlen(self::$path)-1);
+            self::$path = substr(self::$path, 0, strlen(self::$path)-1);*/
+    }
+
+    private static function fix($text){
+        if(!in_array($text, ['','/']) && substr($text, -1) =='/')
+            return substr($text, 0, strlen($text)-1);
+        
+        return $text;
     }
 
     /**

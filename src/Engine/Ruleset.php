@@ -145,7 +145,7 @@ class Ruleset
      * @param string $name
      * @param array $rules
      * @param array $messages
-     * @return object
+     * @return Ruleset
      */
     public function alterRule($name, Array $rules = null, Array $messages = null)
     {
@@ -179,7 +179,7 @@ class Ruleset
      * Disable rule for validation
      *
      * @param string $name
-     * @return object
+     * @return Ruleset
      */
     public function disableRule($name)
     {
@@ -193,7 +193,7 @@ class Ruleset
 
     /**
      * Alias for disableRule
-     * @return object
+     * @return Ruleset
      */
     public function without($name){
         return $this->disableRule($name);
@@ -203,7 +203,7 @@ class Ruleset
      * Validate only with one rule
      *
      * @param string $name
-     * @return object
+     * @return Ruleset
      */
     public function useOnly($name){
         foreach($this->rules as $k => $rule){
@@ -219,7 +219,7 @@ class Ruleset
      * Check if rule is disabled
      *
      * @param string $name
-     * @return boolean
+     * @return Boolean
      */
     private function isEnabled($name){
         return (array_search($name, $this->disabled) === false);
@@ -228,7 +228,7 @@ class Ruleset
     /**
      * Updates parameter count if exists in rules
      *
-     * @return object
+     * @return Ruleset
      */
     private function updateParamCount(){
         if(isset($this->rules['_param_count'])){

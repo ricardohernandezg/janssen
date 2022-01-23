@@ -104,7 +104,7 @@ abstract class Response
     public function withMessageSet(Array $messages, $type = 'info')
     {
         foreach($messages as $k=>$v){
-            FlashMessage::add($k, $v);
+            FlashMessage::addMessage($k, $v, $type);
         }
         FlashMessage::forceUpdate();        
         return $this;
@@ -112,7 +112,7 @@ abstract class Response
 
     public function withMessage($key, $message, $type = 'info')
     {
-        FlashMessage::add($key, $message, $type);
+        FlashMessage::addMessage($key, $message, $type);
         return $this;
     }
     
@@ -138,9 +138,14 @@ abstract class Response
         if(FlashMessage::howMany() > 0)
             FlashMessage::forceUpdate(true);
 
-        $this->header->send();
-        if($this->content_type)
-            header('Content-Type: ' . $this->content_type);
+        
+        if($this->content_type){
+            $t = $this->getContentType();
+            $this->header->setMessage('Content: ' . $t);
+        }
+
+        $this->header->send();            
+        
         return $this->getContent();
     }
     

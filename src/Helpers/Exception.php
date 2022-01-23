@@ -36,11 +36,14 @@ class Exception extends \Exception
 
     public function render()
     {
+        /** 
+         * @todo get the header from current request
+         */
         $request = new Request;
 
         $h = current_header();
         if(!headers_sent())
-            $h->setMessage('Internal Server Error', 500, true)
+            $h->setMessage('', 500, true)
                 ->send();
 
         $ej = $request->expectsJSON();

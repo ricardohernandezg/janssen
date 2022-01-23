@@ -203,11 +203,11 @@ class App
                     // the validation didn't pass. Make a response with that
                     $ve = $this->validator->getValidationErrors();
                     if(self::$request->expectsJSON()){
-                        $this->header->setMessage('Error validating input',400, true);
+                        $this->header->setMessage('',400, true);
                         if (self::getConfig('detail_validator_error'))
                             $res = ['error' => ['validator' => $ve]];  // let's try with a 
                         else
-                            $res = ['error' => 'Validator rejected your input'];
+                            $res = ['error' => 'VALIDATOR_REJECT_REQUEST'];
                     }else{
                         /**
                          * @todo We should send the validator errors detailed here no matter
@@ -221,17 +221,14 @@ class App
                     }
                     
                 }
-            }elseif($rm == 'OPTIONS'){
-                $res = true;
             }
-            
         } catch (\Janssen\Helpers\Exception $e) {            
             $res = $e;
         } catch (Throwable $e) {
             $s = $e->getTrace();
             $res = new ErrorResponse();
             $h = new Header;
-            $h->setMessage('Exception', 500, true);
+            $h->setMessage('', 500, true);
             $res->setException($e)
                 ->setHeader($h);
         }

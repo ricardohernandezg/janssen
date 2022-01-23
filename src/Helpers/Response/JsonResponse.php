@@ -14,6 +14,9 @@ class JsonResponse extends Response
         $this->setContentType('application/json');
     }
 
+    /**
+     * @return Object
+     */
     public function render()
     {
         $content = $this->getContent();
@@ -24,4 +27,11 @@ class JsonResponse extends Response
         return $this;
     }
 
+    public function __toString()
+    {  
+        $t = $this->getContentType();            
+        $this->header->setMessage('Content: ' . $t);
+        
+        return $this->render()->getContent();
+    }
 }
