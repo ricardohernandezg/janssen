@@ -7,9 +7,12 @@ use Janssen\Engine\Rule;
 use Janssen\Engine\Ruleset;
 use Janssen\Engine\Mapper;
 use Janssen\Engine\Request;
+use Janssen\Traits\InstanceGetter;
 
 class Validator
 {
+    use InstanceGetter;
+
     /**
      * Guard to authorize access to the controller asociated 
      *
@@ -45,7 +48,8 @@ class Validator
         'date' => '/^(?:19|20)\d\d-(?:[0]?[1-9]{1}|1[012]{1})-(?:[0]?[1-9]{1}|[12]{1}[0-9]{1}|[3]{1}[01]{1})$/',
         'time' => '/^([0]?[0-9]{1}|[1]{1}[0-9]{1}|[2]{1}[0-3]{1}):([0]?[0-9]{1}|[1-5]{1}[0-9]{1}):([0]?[0-9]{1}|[1-5]{1}[0-9]{1})$/',
         'time-hm' => '/^([0]?[0-9]{1}|[1]{1}[0-9]{1}|[2]{1}[0-3]{1}):([0]?[0-9]{1}|[1-5]{1}[0-9]{1})$/',
-        'datetime' => '/^(19|20)\d\d-([0]?[1-9]{1}|1[012]{1})-([0]?[1-9]{1}|[12]{1}[0-9]{1}|[3]{1}[01]{1}) ([0]?[0-9]{1}|[1]{1}[0-9]{1}|[2]{1}[0-3]{1}):([0]?[0-9]{1}|[1-5]{1}[0-9]{1}):([0]?[0-9]{1}|[1-5]{1}[0-9]{1})$/',
+        'datetime' => '/^(19|20)\d\d-([0]?[1-9]{1}|1[012]{1})-([0]?[1-9]{1}|[12]{1}[0-9]{1}|[3]{1}[01]{1})\s([0]?[0-9]{1}|[1]{1}[0-9]{1}|[2]{1}[0-3]{1}):([0]?[0-9]{1}|[1-5]{1}[0-9]{1}):([0]?[0-9]{1}|[1-5]{1}[0-9]{1})$/',
+        'isodate' => '/^(?:19|20)\d\d(?:[0]?[1-9]{1}|1[012]{1})(?:[0]?[1-9]{1}|[12]{1}[0-9]{1}|[3]{1}[01]{1})$/'
     ];
 
     private $rules = [];
@@ -125,8 +129,9 @@ class Validator
                 return in_array(strtolower($value),[0,1,'true','false']) && is_bool(boolval($value));
                 break;
             case Rule::RULE_TYPE_DATE:
-                $re = $this->paramTypeRules['date'];
-                return $this->validateAgainstRegex($value, $re);
+                $re1 = $this->paramTypeRules['date'];
+                $re2 = $this->paramTypeRules['isodate'];
+                return $this->validateAgainstRegex($value, $re1) || $this->validateAgainstRegex($value, $re2);
                 break;
             case Rule::RULE_TYPE_TIME:
                 $re = $this->paramTypeRules['time'];
@@ -558,6 +563,25 @@ class Validator
                 $r = ($r && false);
         }
         return $r;
+    }
+
+    // STATIC FUNCTIONS   
+    /**
+     * Useful to make validations without having to instantiate the Validator
+     * 
+     * validateRule = validateRuleStatic
+     *  
+     * validateType = validateType
+     * */ 
+    public static function validateRuleStatic($value, $rule){
+        $oi = self::getOwnInstance();
+        return $oi->validateRule($value, $rule);
+    }
+
+    public static function validateTypeStatic($value, $type)
+    {
+        $oi = self::getOwnInstance();
+        return $oi->validateType($value, $type);
     }
 
 }

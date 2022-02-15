@@ -235,6 +235,7 @@ class Route
         /**
          * @todo add the timestamp to randomize the cipher when auth is done
          */
+        if(substr($route, 0,1) == '/') $route = substr($route, 1);
         $er = Config::get('encrypt_route', true);
         if($er == "true"){
             $e = Encrypt::encrypt($route);

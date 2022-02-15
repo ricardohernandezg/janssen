@@ -30,7 +30,8 @@ class JsonResponse extends Response
     public function __toString()
     {  
         $t = $this->getContentType();            
-        $this->header->setMessage('Content: ' . $t);
+        $this->header->setMessage('Content-Type: ' . $t)
+            ->send();
         
         return $this->render()->getContent();
     }

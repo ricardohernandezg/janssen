@@ -116,13 +116,13 @@ class Ruleset
     /**
      * Adds or alters a rule
      *
-     * @param string $name
-     * @param array $rules
-     * @param array $messages
-     * @param array $mapping
-     * @return void
+     * @param String $name
+     * @param Array $rules
+     * @param Array $messages
+     * @param String $mapping
+     * @return Object
      */
-    public function addRule($name, Array $rules = null, Array $messages = null, Array $mapping = null)
+    public function addRule($name, Array $rules = null, Array $messages = null, String $mapping = null)
     {
         if($rules)
             $this->rules[$name] = $rules;
@@ -142,10 +142,10 @@ class Ruleset
      * Let $rules null to delete the full rule
      * Send $rules as empty array to only alter the messages.
      *
-     * @param string $name
-     * @param array $rules
-     * @param array $messages
-     * @return Ruleset
+     * @param String $name
+     * @param Array $rules
+     * @param Array $messages
+     * @return Object
      */
     public function alterRule($name, Array $rules = null, Array $messages = null)
     {
@@ -178,8 +178,8 @@ class Ruleset
     /**
      * Disable rule for validation
      *
-     * @param string $name
-     * @return Ruleset
+     * @param String $name
+     * @return Object
      */
     public function disableRule($name)
     {
@@ -193,7 +193,7 @@ class Ruleset
 
     /**
      * Alias for disableRule
-     * @return Ruleset
+     * @return Object
      */
     public function without($name){
         return $this->disableRule($name);
@@ -202,8 +202,8 @@ class Ruleset
     /**
      * Validate only with one rule
      *
-     * @param string $name
-     * @return Ruleset
+     * @param String $name
+     * @return Object
      */
     public function useOnly($name){
         foreach($this->rules as $k => $rule){
@@ -218,7 +218,7 @@ class Ruleset
     /**
      * Check if rule is disabled
      *
-     * @param string $name
+     * @param String $name
      * @return Boolean
      */
     private function isEnabled($name){
@@ -228,7 +228,7 @@ class Ruleset
     /**
      * Updates parameter count if exists in rules
      *
-     * @return Ruleset
+     * @return Object
      */
     private function updateParamCount(){
         if(isset($this->rules['_param_count'])){

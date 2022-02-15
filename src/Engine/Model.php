@@ -62,7 +62,7 @@ class Model
      * 
      * This variable is to be setted internally using the funcions
      * 
-     * @var integer
+     * @var Integer
      */
     private static $query_mode = 0;
 
@@ -128,9 +128,18 @@ class Model
     }
 
     /**
+     * Alias of makeBasicSelect()
+     *
+     * @return Object
+     */
+    public function prepareStatement(){
+        return $this->makeBasicSelect();
+    }
+
+    /**
      * Makes the query string with the internal parted SQL object
      *
-     * @return object
+     * @return Object
      */
     public function makeBasicSelect()
     {
@@ -165,8 +174,8 @@ class Model
     /**
      * Sets the parts that Model will use to make the query string
      *
-     * @param array $parted_sql
-     * @return object
+     * @param Array $parted_sql
+     * @return Object
      */
     public function setPartedSql(Array $parted_sql)
     {
@@ -186,7 +195,7 @@ class Model
     /**
      * Prepares the where part of query
      *
-     * @return string
+     * @return String
      */
     protected function prepareWhere(){
         $w = '';
@@ -200,7 +209,7 @@ class Model
     /**
      * Prepares the order by part of query
      *
-     * @return string
+     * @return String
      */
     protected function prepareOrderBy(){
         $o = '';
@@ -218,7 +227,7 @@ class Model
     /**
      * Sets the field array as select only to be flatten at query prepare time
      * 
-     * @return object
+     * @return Object
      */
     protected function prepareMapping()
     {

@@ -584,14 +584,24 @@ class Request
         return self::$ownURI;
     }
 
+    /**
+     * Remove any / left in the end of the requested url.
+     * This function is automatically called by init after read
+     * relax_route configuration.
+     *
+     * @return void
+     */
     public static function fixPath()
     {
-        return self::fix(self::$path);
-        /*
-        if(!in_array(self::$path, ['','/']) && substr(self::$path, -1) =='/')
-            self::$path = substr(self::$path, 0, strlen(self::$path)-1);*/
+        self::$path = self::fix(self::$path);
     }
 
+    /**
+     * Removes the / from the given text
+     *
+     * @param String $text
+     * @return String
+     */
     private static function fix($text){
         if(!in_array($text, ['','/']) && substr($text, -1) =='/')
             return substr($text, 0, strlen($text)-1);

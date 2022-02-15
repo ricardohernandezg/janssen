@@ -23,7 +23,7 @@ class Parameter implements \Countable
      *
      * @return Integer
      */
-    public function count()
+    public function count() : Int
     {
         return count($this->members);
     }
