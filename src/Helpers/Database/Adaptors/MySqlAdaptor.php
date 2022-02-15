@@ -1,127 +1,102 @@
 <?php 
 
-namespace Janssen\Helpers;
+namespace Janssen\Helpers\Database\Adaptors;
 
 use Janssen\Helpers\Database\Adaptor;
+use Janssen\Helpers\Exception;
+use mysqli;
 
-class Database
+class MySqlAdaptor extends Adaptor
 {
 
-    /**
-     * Connection variable
-     *
-     * @var Object
-     */
-    protected static $_adaptor = false;
+    protected $_config_fields = [
+        'host' => '',
+        'user' => '',
+        'pwd' => '',
+        'db' => ''
+    ];
 
-    private static $_valid_engines = ['mysqli', 'pgsql'];
-
-    private static $_connected = false;
-
-    /**
-     * Database engine to be used
-     */
-    protected static $_engine = false;
-
-    /**
-     * Internal configurations
-     */
-    protected static $_internal_config = [];
-
-    /**
-     * No map return arrays (instead return zero-based arrays)
-     */
-    protected static $_nomap_return = false;
-
-    /**
-     * Checks if there is connection object set
-     */
-    public static function isConnected()
-    {
-        return (self::$_adaptor->isConnected());
-    }
-
-    /**
-     * Sets up the database adaptor to be used 
-     * during the request
-     *
-     * @param Adaptor $adaptor
-     * @return void
-     */
-    public static function setAdaptor(Adaptor $adaptor)
-    {
-        self::$_adaptor = $adaptor;
-    }
-
-    /**
-     * Sets fields for adaptor
-     */
-    public static function setAdaptorConfigField($field, $value)
-    {
-        self::$_adaptor->setConfigField($field, $value);
-    }
-
-    /**
-     * Makes a query and returns mapped array with data
-     *
-     * @param String $sql
-     * @return Array|Bool
-     */
-    public static function query($sql)
-    {
-        $ret = self::$_adaptor->query($sql);
-        self::setFieldMapping();
-        return $ret;
-    }
-  
-    /**
-     * Makes a database query and returns the last inserted id
+    /** 
+     * Connects to database
      * 
-     * Running other than a INSERT INTO statement here will have the 
-     * effect that the engine throws
-     *
-     * @param String $sql
-     * @return Integer|Bool
+     * @return mysqli 
      */
-    public static function insert($sql)
+    public function connect() : mysqli
     {
-        return self::$_adaptor->insert($sql);
+        if($this->isConnected())
+            return $this->_cnx;
+        
+        $cnx = mysqli_connect($this->_config_fields['host'], $this->_config_fields['user'], $this->_config_fields['pwd'], $this->_config_fields['db']);
+
+        /**
+         * @todo remove this query when in production!
+         * mysqli_query($cnx, "SET sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'");
+         */        
+        if($cnx){
+            mysqli_set_charset($cnx, "utf8");
+            $this->_cnx = $cnx;
+            return $cnx;
+        }else
+            throw new Exception('Unable to connect to database', 500);
+        
+    }    
+
+    public function query($sql)
+    {
+        $res = mysqli_query($this->connect(), $sql);
+        if ($res) 
+            $ret = (is_bool($res)) ? true : mysqli_fetch_all($res, $this->_map_return_fields);
+         else 
+            $ret = false;
+            
+        return $ret;
+        
     }
 
-    /**
-     * Makes a query and returns only the first row
-     *
-     * @param String $sql
-     * @return Array|Bool
-     */
-    public static function queryOne($sql)
+    public function statement($sql)
     {
-        $r = self::query($sql);
-        if ($r && isset($r[0])) {
-            return $r[0];
-        } else {
-            return false;
+        $res = mysqli_query($this->connect(), $sql);
+        if ($res) {
+            $ret = (is_bool($res));
+            return $ret;
         }
+        return $res;
     }
 
     /**
-     * Destroys connection object
+     * Returns number of rows
+     *
+     * @param String $sql
+     * @return Integer
      */
-    public static function disconnect()
+    public function howMany($sql)
     {
-        self::$_adaptor = null;
-        self::$_connected = false;
+        $res = mysqli_query($this->connect(), $sql);
+        if ($res) {
+            $row = mysqli_num_rows($res);
+        } else {
+            $row = "0";
+        }
+        return $row;
     }
 
-    public static function setFieldMapping($value = true)
+    public function insert($sql)
     {
-        return self::$_adaptor->setAutoFieldMapping($value);
-    }
-
-    
-    public static function getLastError()
-    {
-        return self::$_adaptor->getLastError();
+        $c = $this->connect();
+        $res = mysqli_query($c, $sql);
+        if($res){
+            $res2 = mysqli_query($c, 'SELECT LAST_INSERT_ID()');
+            if($res2){
+                $ar_id = mysqli_fetch_row($res2);
+                return $ar_id[0];
+            }else{
+                $this->setLastError(mysqli_errno($c),mysqli_error($c), mysqli_sqlstate($c), $sql);
+                return false;
+            }
+        }else{
+            $this->setLastError(mysqli_errno($c),mysqli_error($c), mysqli_sqlstate($c), $sql);
+            return false;
+        }         
     }
 
 }
