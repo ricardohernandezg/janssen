@@ -5,6 +5,7 @@ namespace Janssen\Engine;
 use Janssen\Engine\Mapper;
 use Janssen\Helpers\Exception;
 use Janssen\Helpers\Database;
+use Janssen\Traits\SQLWhere;
 use Throwable;
 
 /**
@@ -21,6 +22,7 @@ class Model
     use \Janssen\Traits\ForceDefinition;
     use \Janssen\Traits\InstanceGetter;
     use \Janssen\Traits\StaticCall;
+    USE \Janssen\Traits\SQLWhere;
 
     private static $defaults = [
         'orderBy' => [],
@@ -127,6 +129,15 @@ class Model
         return $this;
     }
 
+    public function debug()
+    {
+        if(empty(self::$parted_sql))
+                $this->makeBasicSelect();
+
+        $sql = $this->prepareSelect(self::$parted_sql);
+        return $sql;
+    }
+
     /**
      * Alias of makeBasicSelect()
      *
@@ -201,8 +212,11 @@ class Model
         $w = '';
         if(self::$query_mode > 0)
             $w = $this->primaryKey . " = '" . self::$pk_value_for_query . "'";
-        else 
-            $w = '';
+        else{
+            // query mode 0 is all(), that can be all rows or all using where statement
+            $w = self::flatWhere();
+        } 
+            
         return $w;
     }
 
@@ -269,7 +283,6 @@ class Model
         
         return $lo;
     }
-
 
     protected function prepareSelect(Array $parted_sql)
     {
@@ -468,5 +481,5 @@ class Model
         self::$offset = $rows_skip;
         return self::me();
     }
-
+   
 }
