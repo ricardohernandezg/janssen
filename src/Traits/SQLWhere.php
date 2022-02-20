@@ -107,16 +107,21 @@ trait SQLWhere
         $operator = strtoupper(trim($operator));
         if (empty($operator) || $operator == false || $operator == '=')  return '=';
 
-        if (in_array($operator, ['>','<','>=','<=','IN','BETWEEN','LIKE']))
+        if (in_array($operator, ['>','<','>=','<=','IN','BETWEEN','LIKE','NULL','NOT NULL']))
             return $operator;
         else
             return false;
     }
     
+    private static function criteriaRequiresArray($operator)
+    {
+        return in_array($operator, ['IN', 'BETWEEN']);
+    }
+
     private static function makeComplexCriteriaSyntax($operator, $values)
     {
         
-        if(!is_array($values))
+        if(!is_array($values) && self::criteriaRequiresArray($operator))
             throw new Exception('operators IN and BETWEEN expects Array as parameter',500);
 
         switch($operator){
@@ -130,6 +135,12 @@ trait SQLWhere
             case 'BETWEEN':
                 $ret = " BETWEEN {$values[0]} AND {$values[1]} ";
                 break;
+            case 'NULL':
+                $ret = " IS NULL ";
+                break;
+            case 'NOT NULL':
+                $ret = " IS NOT NULL ";
+                break;                
             default:
                 $ret = '';
         }
@@ -152,7 +163,7 @@ trait SQLWhere
             if($v['relation'] !== '') $ret .= " {$v['relation']} ";
             $ret .= "(";
             foreach($v['members'] as $member){
-                if(in_array($member['operator'], ['IN','BETWEEN'])){
+                if(in_array($member['operator'], ['IN','BETWEEN','NULL','NOT NULL'])){
                     $ret .= "{$member['field']} " . self::makeComplexCriteriaSyntax($member['operator'], $member['value']) . " AND ";
                 }else
                     $ret .= " {$member['field']} {$member['operator']} " . self::processValue($member['value']) . " AND ";
