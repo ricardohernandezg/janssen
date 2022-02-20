@@ -56,6 +56,8 @@ class Model
 
     private static $parted_sql = [];
 
+    private static $debug_and_wait = false;
+
     /**
      * Mode of query, defined by the last call to all, allById or one
      * 0 - all (default)
@@ -79,6 +81,10 @@ class Model
     public function go()
     {
         try{
+
+            if(self::$debug_and_wait)
+                return $this->debug();
+
             if(empty(self::$parted_sql))
                 $this->makeBasicSelect();
 
@@ -126,9 +132,16 @@ class Model
         self::$parted_sql = [];
         // clean me() instance
         self::notMe();
+        // set debugMode off
+        self::$debug_and_wait = false;
         return $this;
     }
 
+    /**
+     * Returns the SQL intended to be used in query
+     *
+     * @return String
+     */
     public function debug()
     {
         if(empty(self::$parted_sql))
@@ -136,6 +149,17 @@ class Model
 
         $sql = $this->prepareSelect(self::$parted_sql);
         return $sql;
+    }
+
+    /**
+     * Sets debug mode on to return the SQL syntax intended to be used 
+     *
+     * @return Object
+     */
+    public function debugMode()
+    {
+        self::$debug_and_wait = true;
+        return $this;
     }
 
     /**
