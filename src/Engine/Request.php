@@ -548,6 +548,12 @@ class Request
         return self::$protocol;
     }
 
+    /** Alias for getRealScheme */
+    public static function getProtocol()
+    {
+        return self::getRealScheme();
+    }
+
     public static function getPath()
     {
         return self::$path;
