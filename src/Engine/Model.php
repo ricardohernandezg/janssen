@@ -103,7 +103,7 @@ class Model
             }
             
             $this->clean();
-            return $ret;
+            return $ret ?? false;
         }catch(Throwable $e){
             $this->clean();
             throw new Exception($e->getMessage(), $e->getCode(), 'Contact administrator', $e->getTrace());

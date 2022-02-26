@@ -99,6 +99,8 @@ class Database
         $r = self::query($sql);
         if ($r && isset($r[0])) {
             return $r[0];
+        } elseif (is_array($r) && count($r) == 0){
+            return $r;
         } else {
             return false;
         }
