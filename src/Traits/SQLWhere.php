@@ -11,6 +11,10 @@ trait SQLWhere
     
     private static $_where = [];
 
+    private static $accepted_operators = [
+        '=','!=','<>','>','<','>=','<=','IN','BETWEEN','LIKE','IS NULL','NULL','NOT NULL'
+    ];
+
     /**
      * Initializes the $_where variable and adds the first criteria
      *
@@ -107,7 +111,7 @@ trait SQLWhere
         $operator = strtoupper(trim($operator));
         if (empty($operator) || $operator == false || $operator == '=')  return '=';
 
-        if (in_array($operator, ['>','<','>=','<=','IN','BETWEEN','LIKE','NULL','NOT NULL']))
+        if (in_array($operator, self::$accepted_operators))
             return $operator;
         else
             return false;
@@ -136,6 +140,7 @@ trait SQLWhere
                 $ret = " BETWEEN {$values[0]} AND {$values[1]} ";
                 break;
             case 'NULL':
+            case 'IS NULL':
                 $ret = " IS NULL ";
                 break;
             case 'NOT NULL':
@@ -163,7 +168,7 @@ trait SQLWhere
             if($v['relation'] !== '') $ret .= " {$v['relation']} ";
             $ret .= "(";
             foreach($v['members'] as $member){
-                if(in_array($member['operator'], ['IN','BETWEEN','NULL','NOT NULL'])){
+                if(in_array($member['operator'], ['IN','BETWEEN','IS NULL','NULL','NOT NULL'])){
                     $ret .= "{$member['field']} " . self::makeComplexCriteriaSyntax($member['operator'], $member['value']) . " AND ";
                 }else
                     $ret .= " {$member['field']} {$member['operator']} " . self::processValue($member['value']) . " AND ";
