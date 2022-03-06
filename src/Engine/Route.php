@@ -2,12 +2,13 @@
 
 namespace Janssen\Engine;
 
+use Countable;
 use Janssen\Helpers\Regexer;
 use Janssen\Helpers\Exception;
 use Janssen\Helpers\Encrypt;
 use Janssen\Engine\Request;
 
-class Route
+class Route 
 {
     /**
      * Saves the last succesfully found route to avoid searching it 
@@ -42,6 +43,21 @@ class Route
         }else
             throw new Exception("Path '$path' not routed", 404);
             
+    }
+
+    public static function getAllByPath($path)
+    {
+        $max = count(self::$routes);
+        $res = [];
+        $i = 0;
+        do{
+            $i = self::findByPath($path, $i);
+            if($i){
+                $res[$i] = self::$routes[$i];
+                $i++;
+            } 
+        }while($i !== false); 
+        return $res;
     }
 
     /**
@@ -117,14 +133,21 @@ class Route
      * route when user doesn't provide a route name
      * 
      */
-    private static function findByPath($path)
+    private static function findByPath($path, $offset = 0)
     {
         $found = $ret = false;
-        foreach(self::$routes as $k=>$v)
+
+        for($i = $offset; $i < count(self::$routes); $i++)
         {
+            if(isset(self::$routes[$i]))
+                $v = self::$routes[$i];
+            else
+                break;
+
+            /*
             if($k === 'default'){
                 continue;
-            }    
+            } */   
 
             if(!self::isWellFormed($v))
                 throw new Exception('Error in route', 500);
@@ -137,7 +160,7 @@ class Route
                 // evaluate
                 $r = preg_match($pte, $path);
                 if($r === FALSE)
-                    throw new Exception("Regex to route $k not well formed");
+                    throw new Exception("Regex to route $i not well formed");
                 $found = ($r > 0);
             }else{
                 // make direct match
@@ -145,7 +168,7 @@ class Route
             }
             
             if($found){
-                $ret = $k;
+                $ret = $i;
                 break;
             }       
         }
