@@ -12,6 +12,7 @@ use Janssen\Engine\Session;
 use Janssen\Engine\Validator;
 use Janssen\Helpers\Database;
 use Janssen\Helpers\Database\Adaptor;
+use Janssen\Helpers\Auth;
 use Janssen\Helpers\Exception;
 use Janssen\Helpers\Response\ErrorResponse;
 use Janssen\Helpers\Response\JsonResponse;
@@ -31,7 +32,7 @@ class App
      * objects
      */
 
-    private $version = '0.7.5';
+    private $version = '0.8.2';
     private $name = 'Janssen Core';
     private $app_path;
     private static $s_app_path;
@@ -103,8 +104,6 @@ class App
         if(self::$engine_config['relax_route'])
             self::$request::fixPath();
     }
-
-    
 
     // we'll put the running logic here, but is possible to modify this to
     // move it to another class
@@ -481,11 +480,6 @@ class App
         $h->setMessage($message, $code, true);
         $er->setHeader($h);
         return $er;
-        /*
-        $ej = self::$request->expectsJSON();
-        $r = ($ej)?new JsonResponse:new RawResponse;
-        $r->setContent($message)->setHeader($h);
-        */
     }    
 
     public function getCurrentHeader()

@@ -203,4 +203,8 @@ abstract class Guard
         Session::removeField(self::$guard_var_name);
     }
 
+    public function __toString()
+    {
+        return $this->getName();
+    }
 }

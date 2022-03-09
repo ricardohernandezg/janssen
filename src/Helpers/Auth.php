@@ -5,6 +5,8 @@ namespace Janssen\Helpers;
 //use Janssen\Helpers\Exception;
 use Janssen\Engine\Request;
 use Janssen\Engine\Session;
+use Janssen\Engine\Config;
+
 class Auth 
 {
 
@@ -81,29 +83,43 @@ class Auth
         return self::$guard_reasons;
     }
 
-    /*
-    protected $guard;
-
-    public function __construct($guard = null)
-    {
-        // guard name is null, use the default
-        if(empty($guard))
-            $guard = \Janssen\App::getConfig('default_guard');
-        if(trim(strtolower($guard)) == 'nobody')
-            throw new Exception('Invalid guard configuration', 500);
-
-        $this->guard($guard);
-    }
-    */
-    
     public static function guard($guard)
     {
-        // the class must be in \App\Auth
-        $guard_class = '\App\Auth\\' . transform_to_class_name($guard) . 'Guard';
+        $guard_class = '\App\Auth\\' . transform_to_class_name($guard) . 
+            ((substr($guard, -5, 5) !== 'Guard') ? 'Guard' :'');
+
         if(class_exists($guard_class))
             return new $guard_class;
         else
             throw new Exception('Guard class doesn\'t exist', 500);
     }
 
+    private static function getConfigAuthSettings($guard, $submember = "")
+    {
+        $g = (string) $guard;
+        $g = strtolower($g);
+        if(substr($g, -5, 5) == 'guard')
+            $g = substr($g,0, strlen($g)-5);
+
+        $s = "auth.$g" . (($submember) ? ".$submember" : '');
+
+        return Config::get($s, false);
+    }
+
+
+    public static function who(Request $request)
+    {
+        $res = [];
+        $wa = self::guard($request->whoAuthorizes());
+        $c = self::getConfigAuthSettings($wa, 'who');
+        
+        if(!$c) return [];
+        
+        $g = Guard::resolve($wa);
+        $data = $g->getData();
+        foreach($c as $v){
+            $res[$v] = $data[$v] ?? null;
+        }
+        return $res;
+    }
 }

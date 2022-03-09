@@ -50,13 +50,24 @@ class Config
      *
      * @param String $name
      * @param String $default
-     * @return String
+     * @return String|Array
      */
     public static function get($name = null, $default = null)
     {
         if(empty($name))
             return self::$settings;
-        return isset(self::$settings[$name])?self::$settings[$name]:$default;
+
+        $ud = self::undot($name);
+        if(count($ud) > 1){
+            $s = self::$settings;
+            foreach($ud as $v){
+                $s =  $s[$v] ?? $default;
+            }
+            return $s;
+        }else
+            return self::$settings[$name] ?? $default;
+
+        //return isset(self::$settings[$name])?self::$settings[$name]:$default;
     }
 
     /**
@@ -68,7 +79,27 @@ class Config
      */
     public static function set($name, $value)
     {
-        self::$settings[$name] = $value;
+        $ud = self::undot($name);
+
+        if(count($ud) > 1){
+            $s = [];
+            $p = &$s;
+            
+            for($i = 0; $i < count($ud); $i++){
+                if($i == 0){
+                    $s[$ud[$i]] = [];
+                    $p = &$s[$ud[$i]];
+                    continue;
+                }
+                $p[$ud[$i]] = [];
+                $p = &$p[$ud[$i]];
+
+            }
+            $p = $value;
+            self::$settings = $s + self::$settings;
+        }else
+            self::$settings[$name] = $value;
+        
     }
 
     /**
@@ -91,5 +122,10 @@ class Config
     public static function getEvents()
     {
         return isset(self::$settings['events'])?self::$settings['events']:false;   
+    }
+
+    private static function undot($text)
+    {
+        return explode('.', $text);
     }
 }
