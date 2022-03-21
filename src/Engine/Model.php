@@ -276,8 +276,16 @@ class Model
             // check if there are mapping to that fields
             foreach(self::$fields as $v)
             {
-                if (!empty(self::$external_mapping) && array_key_exists($v,self::$external_mapping))
-                    $r[] = "$v as '" . self::$external_mapping[$v] . "'";
+
+                $mmfa = $this->manualMappingFromAlias($v);
+                if($mmfa) 
+                    $v = $mmfa[1];
+                $em = $this->getExternalMapping($v);
+
+                if($mmfa){
+                    $r[] = "{$mmfa[0]} as '$em'";
+                }elseif ($em)
+                    $r[] = "$v as '$em'";
                 else
                     $r[] = $v;
                         
@@ -294,6 +302,31 @@ class Model
             }
         }
         return $this;
+    }
+
+    private function getExternalMapping($field_name)
+    {
+        return (!empty(self::$external_mapping) && array_key_exists($field_name,self::$external_mapping)) ?
+            self::$external_mapping[$field_name] : $field_name;
+    }
+
+    private function manualMappingFromAlias($field_name)
+    {
+        $field_name = trim($field_name);
+        if(!strpos($field_name, ' ')) 
+            return false;
+        else{
+            $found = false;
+            do{
+                $field_name = str_replace('  ', ' ', $field_name);
+                $found = strpos($field_name, '  ');
+            }while($found);
+        }
+            
+        $er = '/(.+)\sas\s([a-zA-Z0-9_\-#@$]+)$/mi';
+        $a = [];
+        $i = preg_match($er,$field_name,$a);
+        return ($i > 0) ? [$a[1],$a[2]] : false;
     }
 
     protected function prepareLimitOffset()
