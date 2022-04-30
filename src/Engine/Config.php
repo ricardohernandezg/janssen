@@ -35,7 +35,11 @@ class Config
      */
     public static function loadConfigFromEnv($path)
     {
-        if(file_exists("$path/.env")){
+        $path = trim($path);
+        if(substr($path,-1,1) !== '/')
+            $path .= '/';
+
+        if(file_exists("$path.env")){
             try{
                 $dotenv = \Dotenv\Dotenv::create($path);
                 $dotenv->load();

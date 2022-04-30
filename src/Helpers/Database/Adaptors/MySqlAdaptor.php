@@ -16,6 +16,8 @@ class MySqlAdaptor extends Adaptor
         'db' => ''
     ];
 
+    private $last_result;
+
     /** 
      * Connects to database
      * 
@@ -43,7 +45,8 @@ class MySqlAdaptor extends Adaptor
 
     public function query($sql)
     {
-        $res = mysqli_query($this->connect(), $sql);
+        $this->freeResult();
+        $res = $this->last_result = mysqli_query($this->connect(), $sql);
         if ($res) 
             $ret = (is_bool($res)) ? true : mysqli_fetch_all($res, $this->_map_return_fields);
          else 
@@ -99,4 +102,11 @@ class MySqlAdaptor extends Adaptor
         }         
     }
 
+    private function freeResult()
+    {
+        if($this->last_result){
+            mysqli_free_result($this->last_result);
+            mysqli_next_result($this->connect());
+        }
+    }
 }

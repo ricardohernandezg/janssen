@@ -41,7 +41,8 @@ class Exception extends \Exception
          */
         $request = new Request;
 
-        $h = current_header();
+        //$h = \current_header();
+        $h = new Header;
         if(!headers_sent())
             $h->setMessage('', 500, true)
                 ->send();
