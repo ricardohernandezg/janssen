@@ -59,6 +59,17 @@ class Parameter implements \Countable
         return isset($this->members[$name])?$this->members[$name]:$default;
     }
 
+    /**
+     * Allow to call parameter as array
+     *
+     * @param string $name
+     * @return void
+     */
+    public function __get(String $name)
+    {
+        return $this->getMember($name, null);
+    }
+
     public function getQuotedOrNull($name)
     {
         $member = $this->getMember($name, '');
@@ -104,6 +115,17 @@ class Parameter implements \Countable
     {
         $this->members[$name] = $value;
         return $this;
+    }
+
+    /**
+     * Allow set parameter members as attribute style
+     *
+     * @param string $name
+     * @param any $value
+     */
+    public function __set(String $name, $value)
+    {
+        return $this->setMember($name, $value);
     }
 
     /**
