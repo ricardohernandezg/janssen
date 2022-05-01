@@ -18,6 +18,15 @@ class Parameter implements \Countable
         ['>', '&gt;'],
     ];
 
+    public function __construct(Array $init_vals = null)
+    {
+        if($init_vals){
+            foreach($init_vals as $k=>$v){
+                $this->members[$k] = $v;
+            }
+        }
+    }
+
     /**
      * Returns how many members has the parameter object
      *
