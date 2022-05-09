@@ -5,6 +5,7 @@ namespace Janssen\Helpers\Database\Adaptors;
 use Janssen\Helpers\Database\Adaptor;
 use Janssen\Helpers\Exception;
 use mysqli;
+use mysqli_result;
 
 class MySqlAdaptor extends Adaptor
 {
@@ -104,7 +105,7 @@ class MySqlAdaptor extends Adaptor
 
     private function freeResult()
     {
-        if($this->last_result){
+        if($this->last_result && $this->last_result instanceof mysqli_result){
             mysqli_free_result($this->last_result);
             mysqli_next_result($this->connect());
         }
