@@ -178,11 +178,8 @@ abstract class Guard
         $sg = Session::getValue($gvn);
         if(is_null($sg))
             return false;
-        $data = $sg[$this->getName()];
-        if(is_null($key))
-            return $data;
-        else
-            return isset($data[$key])?$data[$key]:null;
+        $data = $sg[$this->getName()] ?? null;
+        return (is_null($key)) ?  ($data ?? null) : ($data[$key] ?? null);
     }
 
     
