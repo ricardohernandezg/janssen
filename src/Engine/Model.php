@@ -99,6 +99,7 @@ class Model
                     $ret = Database::query($sql);
                     break;                
                 case 2:
+                case 3:
                     $ret = Database::queryOne($sql);
             }
             
@@ -234,12 +235,15 @@ class Model
      */
     protected function prepareWhere(){
         $w = '';
-        if(self::$query_mode > 0)
-            $w = $this->primaryKey . " = '" . self::$pk_value_for_query . "'";
-        else{
-            // query mode 0 is all(), that can be all rows or all using where statement
-            $w = self::flatWhere();
-        } 
+        // query mode 0 is all(), that can be all rows or all using where statement
+        switch (self::$query_mode){
+            case 0:
+            case 3:
+                $w = self::flatWhere();
+                break;
+            default:
+                $w = $this->primaryKey . " = '" . self::$pk_value_for_query . "'";
+        }
             
         return $w;
     }
@@ -390,6 +394,14 @@ class Model
         self::$query_mode = 2;
         self::$pk_value_for_query = $id;
         return self::me()->go();
+    }
+
+    public static function count()
+    {
+        self::$query_mode = 3;
+        self::$fields = ['count(*) as count'];
+        $r = self::me()->go();
+        return $r['count'];
     }
 
     // - - - - STATIC QUERY MODIFIERS  - - - -  //
