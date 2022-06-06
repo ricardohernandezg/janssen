@@ -431,7 +431,6 @@ class Model
         return self::me();
     }
 
-
     /**
      * Add specific field mapping to the next query
      *
