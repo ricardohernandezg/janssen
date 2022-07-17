@@ -63,6 +63,7 @@ class Model
      * 0 - all (default)
      * 1 - allById 
      * 2 - one
+     * 3 - count
      * 
      * This variable is to be setted internally using the funcions
      * 
@@ -402,6 +403,12 @@ class Model
         self::$fields = ['count(*) as count'];
         $r = self::me()->go();
         return $r['count'];
+    }
+
+    public static function first(){
+        self::$query_mode = 0;
+        $r = self::me()->go();
+        return $r[0] ?? false;
     }
 
     // - - - - STATIC QUERY MODIFIERS  - - - -  //
