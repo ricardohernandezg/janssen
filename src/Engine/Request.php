@@ -467,6 +467,7 @@ class Request
             }
         }else{
             $map = $mapper->getMap();
+            self::parameters()->clear();
             foreach($input as $k=>$v){
                 // find in map the correspondent name
                 $kk = array_search($k, $map, true);

@@ -10,7 +10,7 @@ class Parameter implements \Countable
     private $members = [];
     private $original_map = null;
 
-    private $blanks_as_null = false;
+    private $empty_treatment = false;
     private $process_value = true;
 
     private static $normalizers = [
@@ -73,8 +73,11 @@ class Parameter implements \Countable
     public function getQuotedOrNull($name)
     {
         $member = $this->getMember($name, '');
+
+        if($member == '' && $this->empty_treatment == 'quote') return "''";
+
         if(empty($member) && $member !== '0')
-            $r  = ($this->blanks_as_null) ? 'null' : $member;
+            $r  = ($this->empty_treatment == 'null') ? 'null' : $member;
         else{
             $v = $this->members[$name];
             if(is_numeric($v) || is_bool($v))
@@ -114,6 +117,17 @@ class Parameter implements \Countable
     public function setMember($name, $value)
     {
         $this->members[$name] = $value;
+        return $this;
+    }
+
+    /**
+     * Clears all parameters in object
+     *
+     * @return void
+     */
+    public function clear()
+    {
+        $this->members = [];
         return $this;
     }
 
@@ -170,7 +184,6 @@ class Parameter implements \Countable
     /**
      * Returns the parameters as string delimited with $delimiter
      * $fields must be a comma separated list of the paramters to get.
-     * If empty the full object wi
      * 
      */
     public function stringify(String $fields = null, $delimiter = ',')
@@ -232,15 +245,21 @@ class Parameter implements \Countable
      * 
      * @return object
      */
-    public function TreatBlanksAsNull($v = true)
+    public function TreatBlanksAsNull()
     {
-        $this->blanks_as_null = $v;
+        $this->empty_treatment = 'null';
         return $this;
     }
 
-    public function disableProcessValue(){
-        $this->process_value = false;
+    /**
+     * Make empty or blank quoted empties
+     */
+    public function respectEmpties()
+    {
+        $this->empty_treatment = 'quote';
+        return $this;
     }
+
 
     /**
      * Process value to substitute values before send to string

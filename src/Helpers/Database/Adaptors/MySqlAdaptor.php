@@ -50,8 +50,13 @@ class MySqlAdaptor extends Adaptor
         $res = $this->last_result = mysqli_query($this->connect(), $sql);
         if ($res) 
             $ret = (is_bool($res)) ? true : mysqli_fetch_all($res, $this->_map_return_fields);
-         else 
+         else{
+            $e = $this->_cnx->error_list;
+            if(count($e)){
+                $this->setLastError($e[0]['errno'], $e[0]['error'],$e[0]['sqlstate'],$sql);
+            }
             $ret = false;
+        }
             
         return $ret;
         

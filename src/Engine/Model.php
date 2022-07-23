@@ -142,14 +142,20 @@ class Model
     /**
      * Returns the SQL intended to be used in query
      *
+     * @param bool $stop Stops the execution of program and shows the query
+     * 
      * @return String
      */
-    public function debug()
+    public function debug($stop = false)
     {
         if(empty(self::$parted_sql))
                 $this->makeBasicSelect();
 
         $sql = $this->prepareSelect(self::$parted_sql);
+
+        if($stop)
+            throw new Exception('Query: ' . $sql);
+
         return $sql;
     }
 
