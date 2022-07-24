@@ -110,7 +110,16 @@ class Ruleset
      */
     public function getMapping()
     {
-        return $this->mapping;
+
+        if(!empty($this->disabled)){
+            $ret = [];
+            foreach($this->mapping as $k => $map){
+                if($this->isEnabled($k))
+                    $ret[$k] = $map;
+            }
+            return $ret;
+        }else
+            return $this->mapping;
     }
 
     /**
