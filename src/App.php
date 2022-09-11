@@ -346,10 +346,10 @@ class App
                 }
 
             } else {
-                throw new Exception("Method $method doesn't exists!", 0);
+                throw new Exception("Method $method doesn't exists in class " . get_class_name($class), 0);
             }
         } else {
-            throw new Exception("Controller $class doesn't exists!", 0);
+            throw new Exception("Controller " . get_class_name($class) . " doesn't exists", 0);
         }
 
         return $ret;
