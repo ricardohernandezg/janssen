@@ -116,7 +116,7 @@ function custom_exception_handler(\Exception $e)
  * @todo handle the exceptions more flawlessly!! Catching an exception
  * to throw another???
  */
-function custom_error_handler($code, $message, $file, $line, $o)
+function custom_error_handler($code, $message, $file, $line, $o = null)
 {
     $msg = "$message in $file@$line";
     error_log($msg);
