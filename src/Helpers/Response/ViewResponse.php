@@ -49,7 +49,10 @@ class ViewResponse extends Response
             throw new Exception('No template defined for this response!');
 
         $r = Event::invoke('ViewResponse.BeforeRender', $this);
-        $template = new Engine($this->template_path);
+        $engine = new Engine($this->template_path);
+
+        if(!$engine->exists($this->template))
+            throw new Exception("The template {$this->template} doesn't exists!");
 
         // inject all the assets variables to each template
         $ec_assets = App::getConfig('assets');
@@ -62,7 +65,7 @@ class ViewResponse extends Response
 
         $data = array_merge($assets, $this->data, $data);
 
-        $r = $template->render($this->template, $data);
+        $r = $engine->render($this->template, $data);
         if(empty($r))
             throw new Exception("The template {$this->template} is empty!", 500);
         $this->content = $r;
