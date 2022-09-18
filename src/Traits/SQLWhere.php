@@ -85,7 +85,7 @@ trait SQLWhere
                     'members' => $s_where];
             
         }else
-            throw new Exception('Parameter fields must be Array', 500);
+            throw new Exception('Fields criteria must be Array', 500);
 
         return self::me();
 
