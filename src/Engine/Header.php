@@ -23,6 +23,12 @@ class Header
         return $this;
     }
 
+    public function setRedirect(String $to)
+    {
+        $this->setMessage('Location:' . $to, 302);
+        return $this;
+    }
+
     public function hasRedirect()
     {
         $redirect_codes = [301,302,303,307,308];
