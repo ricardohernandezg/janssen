@@ -18,6 +18,9 @@ namespace Janssen\Engine;
 use Janssen\Engine\Parameter;
 use Janssen\Engine\Mapper;
 use Janssen\Engine\Config;
+use Janssen\Engine\Session;
+use Janssen\Helpers\Auth;
+use Janssen\Helpers\Guard;
 
 class Request
 {
@@ -157,6 +160,8 @@ class Request
         self::calculateFrom();
         // expecting json?
         self::setExpectsJSON();
+        // fill authentication
+        self::setAuthGuards();
         // fill parameter
         self::$_parameters = new Parameter();   
     }
@@ -650,6 +655,19 @@ class Request
                 break;
         }
         self::$expects_json = boolval($found);
+    }
+
+    /**
+     * Fills guards from $_SESSION at request init
+     * based in Request HTTP header
+     *
+     * return void
+     */
+    private static function setAuthGuards()
+    {
+        $g = Session::getValue(Guard::getGuardVarName());
+        if($g)
+            self::authorizedBy(key($g));
     }
 
 }

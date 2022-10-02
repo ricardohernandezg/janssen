@@ -91,7 +91,7 @@ abstract class Guard
      */
     public function setData($key, $value = null)
     {
-        $gvn = $this->getGuardVarName();
+        $gvn = self::getGuardVarName();
         $g = Session::getValue($gvn, []);
         $guard_name = get_class_name(get_class($this));
         if(is_array($key)){
@@ -107,7 +107,7 @@ abstract class Guard
 
     public function revoke()
     {
-        $gvn = $this->getGuardVarName();
+        $gvn = self::getGuardVarName();
         $g = Session::getValue($gvn, []);
         $granted_by = get_class_name(get_class($this));
         unset($g[$granted_by]);
@@ -141,7 +141,7 @@ abstract class Guard
     }
 
 
-    private function getGuardVarName()
+    public static function getGuardVarName()
     {
         return Config::get('guard_var_name', self::$guard_var_name);
     }
@@ -174,7 +174,7 @@ abstract class Guard
    
     public function getData($key = null)
     {
-        $gvn = $this->getGuardVarName();
+        $gvn = self::getGuardVarName();
         $sg = Session::getValue($gvn);
         if(is_null($sg))
             return false;

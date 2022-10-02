@@ -12,7 +12,7 @@ use Janssen\Engine\Session;
 use Janssen\Engine\Validator;
 use Janssen\Helpers\Database;
 use Janssen\Helpers\Database\Adaptor;
-use Janssen\Helpers\Auth;
+//use Janssen\Helpers\Auth;
 use Janssen\Helpers\Exception;
 use Janssen\Helpers\Response\ErrorResponse;
 use Janssen\Helpers\Response\JsonResponse;
@@ -54,8 +54,7 @@ class App
     {
         return $this->version;
     }
-
-    
+   
     public function init(String $app_path)
     {
         $app_path = trim($app_path);
@@ -92,12 +91,16 @@ class App
         // create a header to the response
         $this->header = new Header;            
 
-        // the only way to know what user want? the request
-        Request::fill();
-        self::$request = new Request;
-
         // start session
         Session::start();
+
+        // the only way to know what user want? the request
+        Request::fill();
+
+        // set self request
+        self::$request = new Request;
+        
+        // load previous messages from session
         FlashMessage::bulkLoadFromSession();
 
         // fix path if engine needed

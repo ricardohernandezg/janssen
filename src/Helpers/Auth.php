@@ -2,9 +2,7 @@
 
 namespace Janssen\Helpers;
 
-//use Janssen\Helpers\Exception;
 use Janssen\Engine\Request;
-use Janssen\Engine\Session;
 use Janssen\Engine\Config;
 
 class Auth 
