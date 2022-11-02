@@ -19,7 +19,7 @@ use Janssen\Engine\Parameter;
 use Janssen\Engine\Mapper;
 use Janssen\Engine\Config;
 use Janssen\Engine\Session;
-use Janssen\Helpers\Auth;
+//use Janssen\Helpers\Auth;
 use Janssen\Helpers\Guard;
 
 class Request
@@ -110,6 +110,14 @@ class Request
      * @var String
      */    
     private static $authorized_by = '';
+
+    /**
+     * The current route
+     * 
+     * @var Array
+     */
+    private static $current_route;
+
 
     /**
      * Fill out the bags with all the data. This function is ran
@@ -563,6 +571,20 @@ class Request
     public static function getPath()
     {
         return self::$path;
+    }
+
+    
+    public static function setMatchedRoute($route)
+    {
+        self::$current_route = $route;
+    }
+
+    /**
+     * @return Array
+     */
+    public static function getMatchedRoute()
+    {
+        return self::$current_route;
     }
 
     /**
