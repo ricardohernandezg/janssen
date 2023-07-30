@@ -42,10 +42,10 @@ abstract class Preprocessor
             if($h instanceof Preprocessor){
 
                 //@todo here we need to check access method and look for exceptions
-                $rp = (is_array($h->except) && !empty($h->except) && self::isThisRequestExcepted($request, $h->except));
-
+                //$rp = (is_array($h->except) && !empty($h->except) && self::isThisRequestExcepted($request, $h->except));
+                /*
                 if($rp)
-                    return true;
+                    return true;*/
 
                 $r = $h->handle($request);
                 if($r instanceof Response) // response returns control directly to app

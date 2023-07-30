@@ -19,7 +19,7 @@ class Encrypt
          * that can help revert the cipher
          *
          * @param String $text
-         * @return void
+         * @return String
          */
         private static function safe_b64encode($text) {
             $data = base64_encode($text);
@@ -47,7 +47,7 @@ class Encrypt
          * Gets the key for encryption
          * 
          * @todo Read config instead of env file
-         * @return void
+         * @return String
          */
         private static function getKey()
         {
@@ -74,7 +74,7 @@ class Encrypt
 
             $iv_length = openssl_cipher_iv_length($method);
             $iv = openssl_random_pseudo_bytes($iv_length);
-            $crypted = openssl_encrypt($text, $method, self::getKey(), null, $iv);
+            $crypted = openssl_encrypt($text, $method, self::getKey(), 0, $iv);
             $iv_b64 = self::safe_b64encode($iv);
             $payload = $iv_b64 . '$' . $crypted;
             return trim(self::safe_b64encode($payload)); 
@@ -100,7 +100,7 @@ class Encrypt
             {   
                 $iv_b64 = $a[0];
                 $payload = $a[1];
-                $text = openssl_decrypt($payload, $method, self::getKey(), null, self::safe_b64decode($iv_b64));
+                $text = openssl_decrypt($payload, $method, self::getKey(), 0, self::safe_b64decode($iv_b64));
                 return trim($text);
             }else
                 return false;

@@ -110,7 +110,7 @@ class MySqlAdaptor extends Adaptor
 
     private function freeResult()
     {
-        if($this->last_result && $this->last_result instanceof mysqli_result){
+        if($this->last_result && $this->last_result instanceof mysqli_result && mysqli_more_results($this->_cnx)){
             mysqli_free_result($this->last_result);
             mysqli_next_result($this->connect());
         }
