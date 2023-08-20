@@ -68,6 +68,11 @@ trait SQLWhere
                 // if criteria is an array, it should come in key/value pair, if the don't exists, = will be applied 
                 // if criteria is not array but string the same criteria will be applied to all fields in this
                 // operation
+                if (!self::isValidFieldName($s_name)){
+                    $s_name = $s_value;
+                    $s_value = null;
+                } 
+
                 if (is_array($operator)) {
                     if (array_key_exists($s_name, $operator))
                         $s_operator = self::prepareCriteria($operator[$s_name]);    
@@ -157,6 +162,12 @@ trait SQLWhere
             return $value;
         else
             return "'$value'";
+    }
+
+    private static function isValidFieldName($name)
+    {
+        $er = '/^[A-Za-z\$\#\_]{1}[A-Za-z\$\#\_0-9]*/';
+        return preg_match($er, $name) == 1;
     }
 
     protected static function flatWhere()
