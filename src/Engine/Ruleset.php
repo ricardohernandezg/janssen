@@ -193,7 +193,8 @@ class Ruleset
     public function disableRule($name)
     {
         if ($this->ruleExists($name))
-            $this->disabled[] = $name;
+            if(!in_array($name, $this->disabled))
+                $this->disabled[] = $name;
         else
             throw new Exception('Malformed validation rule', 500);
 
@@ -211,16 +212,27 @@ class Ruleset
     /**
      * Validate only with one rule
      *
-     * @param String $name
+     * @param String|Array $names
      * @return Object
      */
-    public function useOnly($name){
-        foreach($this->rules as $k => $rule){
-            if($k !== $name && $k !== '_param_count'){
-                $this->disableRule($k);
+    public function useOnly($names){
+        if(is_array($names)){
+            foreach($this->rules as $k => $r){
+                if(!in_array($k, $names) && $k !== '_param_count'){
+                    $this->disableRule($k);
+                }
+            }                
+            $this->updateParamCount();
+        }elseif(is_string($names)){
+            foreach($this->rules as $k => $r){
+                if($k !== $names && $k !== '_param_count'){
+                    $this->disableRule($k);
+                }
             }
-        }
-        $this->rules['_param_count'] = 1;
+            $this->rules['_param_count'] = 1;
+        }else
+            throw new Exception('UseOnly accepts string or array parameter');
+
         return $this;
     }
 
