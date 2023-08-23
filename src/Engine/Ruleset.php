@@ -196,7 +196,7 @@ class Ruleset
             if(!in_array($name, $this->disabled))
                 $this->disabled[] = $name;
         else
-            throw new Exception('Malformed validation rule', 500);
+            throw new Exception("Rule doesn't exists!", 500);
 
         return $this->updateParamCount();
     }
