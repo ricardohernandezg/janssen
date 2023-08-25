@@ -445,11 +445,12 @@ class Request
      * 
      * @param String $name
      * @param String|Integer|Boolean $value
-     * @return void
+     * @return Object
      */
     public static function registerParameter($name, $value)
     {
         self::$_parameters->setMember($name, $value);
+        return self::me();
     }
 
 
@@ -489,7 +490,6 @@ class Request
             }
         }
         self::parameters()->setMapping($mapper);
-
         return self::me();
     }
 
@@ -520,7 +520,6 @@ class Request
         // remove the /index.php if was sent by user request
         $r = trim(preg_replace($er, '', $r));
         self::$path = ($r == '')?'/':$r;
-        //self::$path = $ru;
     }
 
     private static function calculateFrom()
@@ -623,11 +622,12 @@ class Request
      * This function is automatically called by init after read
      * relax_route configuration.
      *
-     * @return void
+     * @return Object
      */
     public static function fixPath()
     {
         self::$path = self::fix(self::$path);
+        return self::me();
     }
 
     /**
