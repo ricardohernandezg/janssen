@@ -5,7 +5,6 @@ namespace Janssen\Engine;
 use Janssen\Engine\Mapper;
 use Janssen\Helpers\Exception;
 use Janssen\Helpers\Database;
-use Janssen\Traits\SQLWhere;
 use Throwable;
 
 /**
@@ -22,7 +21,7 @@ class Model
     use \Janssen\Traits\ForceDefinition;
     use \Janssen\Traits\InstanceGetter;
     use \Janssen\Traits\StaticCall;
-    USE \Janssen\Traits\SQLWhere;
+    use \Janssen\Traits\SQLWhere;
 
     private static $defaults = [
         'orderBy' => [],
