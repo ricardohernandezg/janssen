@@ -11,7 +11,8 @@ class PostgresAdaptor extends Adaptor
         'host' => '',
         'user' => '',
         'pwd' => '',
-        'db' => ''
+        'db' => '',
+        'port' => 5432
     ];
 
     public function connect(){

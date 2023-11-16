@@ -11,10 +11,11 @@ class MySqlAdaptor extends Adaptor
 {
 
     protected $_config_fields = [
-        'host' => '',
-        'user' => '',
-        'pwd' => '',
-        'db' => ''
+        'host'  => '',
+        'user'  => '',
+        'pwd'   => '',
+        'db'    => '',
+        'port'  => 3306
     ];
 
     private $last_result;
@@ -29,7 +30,7 @@ class MySqlAdaptor extends Adaptor
         if($this->isConnected())
             return $this->_cnx;
         
-        $cnx = mysqli_connect($this->_config_fields['host'], $this->_config_fields['user'], $this->_config_fields['pwd'], $this->_config_fields['db']);
+        $cnx = mysqli_connect($this->_config_fields['host'], $this->_config_fields['user'], $this->_config_fields['pwd'], $this->_config_fields['db'],$this->_config_fields['port']);
 
         /**
          * @todo remove this query when in production!

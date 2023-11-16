@@ -6,9 +6,11 @@ abstract class Adaptor
 {
 
     protected $_config_fields = [
-        'host' => '',
-        'user' => '',
-        'pwd' => ''
+        'host'  => '',
+        'user'  => '',
+        'pwd'   => '',
+        'port'  => '',
+        'db'    => ''
     ];
 
     /**
