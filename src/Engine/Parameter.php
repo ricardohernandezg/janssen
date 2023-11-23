@@ -76,7 +76,9 @@ class Parameter implements \Countable
 
         if($member == '' && $this->empty_treatment == 'quote') return "''";
 
-        if(empty($member) && $member !== '0')
+        if(is_bool($member))
+            $r = "'" . intval($member) . "'";
+        elseif(empty($member) && $member !== '0')
             $r  = ($this->empty_treatment == 'null') ? 'null' : $member;
         else{
             $v = $this->members[$name];
