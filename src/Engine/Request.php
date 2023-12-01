@@ -118,6 +118,12 @@ class Request
      */
     private static $current_route;
 
+    /**
+     * The pretended host in the route
+     * 
+     * @var String
+     */
+    private static $pretended_host = '';
 
     /**
      * Fill out the bags with all the data. This function is ran
@@ -166,6 +172,8 @@ class Request
         self::calculatePath();
         // fill back
         self::calculateFrom();
+        // fill to
+        self::calculateTo();        
         // expecting json?
         self::setExpectsJSON();
         // fill authentication
@@ -536,6 +544,21 @@ class Request
         self::$from = $t;
     }
 
+    private static function calculateTo()
+    {
+        $t = self::server('HTTP_HOST');
+        if(!empty($t)){
+            $er = '/^(.*)\./mU';
+            $a = [];
+            $i = preg_match_all($er, $t, $a);
+            if($i){
+                self::$pretended_host = $a[1][0];
+            }
+
+        }
+        
+    }
+
     private static function determineProtocol()
     {
         $proto = $_SERVER['HTTP_X_FORWARDED_PROTO'] ??
@@ -594,6 +617,16 @@ class Request
     public static function getPrevious()
     {
         return self::$from;
+    }
+
+    /**
+     * Returns the subdomain in case it exists
+     *
+     * @return String
+     */
+    public static function getPretendedHost()
+    {
+        return self::$pretended_host;
     }
 
     /**
