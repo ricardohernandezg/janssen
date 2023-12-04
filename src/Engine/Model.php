@@ -133,6 +133,8 @@ class Model
         self::$parted_sql = [];
         // clean me() instance
         self::notMe();
+        // clean where
+        self::cleanWhere();
         // set debugMode off
         self::$debug_and_wait = false;
         return $this;
