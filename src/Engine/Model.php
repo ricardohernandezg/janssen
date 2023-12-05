@@ -131,10 +131,10 @@ class Model
         self::$query_mode = self::$defaults['queryMode'];
         // clear parted_sql
         self::$parted_sql = [];
-        // clean me() instance
-        self::notMe();
         // clean where
         self::cleanWhere();
+        // clean me() instance
+        self::notMe();
         // set debugMode off
         self::$debug_and_wait = false;
         return $this;
