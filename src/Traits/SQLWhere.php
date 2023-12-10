@@ -190,4 +190,9 @@ trait SQLWhere
         return $ret;
     }
 
+    public static function cleanWhere()
+    {
+        self::$_where = [];
+        return self::me();
+    }
 }
