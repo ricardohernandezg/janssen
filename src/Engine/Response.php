@@ -141,7 +141,7 @@ abstract class Response
         
         if($this->content_type){
             $t = $this->getContentType();
-            $this->header->setMessage('Content: ' . $t);
+            $this->header->setMessage('Content-Type: ' . $t);
         }
 
         $this->header->send();            
