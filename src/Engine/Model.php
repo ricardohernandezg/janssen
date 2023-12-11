@@ -132,7 +132,7 @@ class Model
         // clear parted_sql
         self::$parted_sql = [];
         // clean where
-        self::cleanWhere();
+        self::cleanWhere(); 
         // clean me() instance
         self::notMe();
         // set debugMode off
