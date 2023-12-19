@@ -156,8 +156,9 @@ class Validator
                 return is_array($value);
                 break;
             case Rule::RULE_TYPE_DECIMAL:
-                // check if value is an array
-                return is_numeric( $value ) && floor( $value ) != $value;
+                // check if value is a number, we don't need to check if it a strict decimal
+                // return is_numeric( $value ) && floor( $value ) != $value;
+                return is_numeric($value);
                 break;
             default:
                 return false;                
