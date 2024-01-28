@@ -2,11 +2,12 @@
 
 namespace Janssen\Engine;
 
-use Countable;
+// use Countable;
 use Janssen\Helpers\Regexer;
 use Janssen\Helpers\Exception;
 use Janssen\Helpers\Encrypt;
 use Janssen\Engine\Request;
+use Janssen\Engine\Config;
 
 class Route 
 {
@@ -145,11 +146,6 @@ class Route
             else
                 break;
 
-            /*
-            if($k === 'default'){
-                continue;
-            } */   
-
             if(!self::isWellFormed($v))
                 throw new Exception('Error in route', 500);
 
@@ -240,7 +236,11 @@ class Route
         if(substr($dst, 0,1) == '/'){
             // if dest starts with slash means its a path
             $ddst = substr($dst, 1);
-            return Request::getURI() . $ddst;
+            $uri = Request::getURI();
+            if(strtolower($uri) == 'http' && Config::get('force_https', true)){
+                $uri = str_replace('http://', 'https://', $uri);
+            }
+            return $uri . $ddst;
         }else{
             // if dest doesn't start with slash means its a named path
             /**  @todo this feature is pending!! */
