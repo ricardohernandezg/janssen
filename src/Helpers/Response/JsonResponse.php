@@ -4,6 +4,7 @@ namespace Janssen\Helpers\Response;
 
 use Janssen\Engine\Header;
 use Janssen\Engine\Response;
+use Janssen\Engine\Config;
 
 class JsonResponse extends Response
 {
@@ -23,7 +24,7 @@ class JsonResponse extends Response
         if(!is_array($content))
             $content = [$this->content];
             
-        $this->setContent(json_encode($content));
+        $this->setContent(json_encode($content, Config::get('json_encode_options')));
         return $this;
     }
 
