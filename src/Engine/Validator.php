@@ -85,6 +85,21 @@ class Validator
     }
 
     /**
+     * Sets new error to validation errors array from an array
+     *
+     * @param Array $errors key-value array with the errors to report
+     * @return Validator
+     */
+    protected function setValidationErrors(Array $errors)
+    {
+        foreach($errors as $k=>$error)
+        {
+            $this->setValidationError($k, $error);
+        }
+        return $this;
+    }
+
+    /**
      * Indicate if there are errors to report
      *
      * @return Boolean

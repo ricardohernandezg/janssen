@@ -196,7 +196,7 @@ class App
                 $validator_fullname = "App\\Validator\\" . $validator_name;
                 $validator_method = 'validate' . transform_to_class_name($method);
                 $v = $this->makeTheCall($validator_fullname, $validator_method);
-                if ($v) {
+                if ($v === true) {
                     $controller_name = transform_to_class_name($ua['controller']) . 'Controller';
                     $controller_fullname = "App\\Controller\\" . $controller_name;
                     // call the function
