@@ -369,9 +369,9 @@ class Request
      * @param String $name
      * @return String|null
      */    
-    public static function header($name){
+    public static function header($name, $default = null){
         $name = strtolower($name);
-        return isset(self::$bags['HEADER'][$name])?self::$bags['HEADER'][$name]:null;
+        return isset(self::$bags['HEADER'][$name])?self::$bags['HEADER'][$name]:$default;
     }
 
     /**
@@ -700,7 +700,7 @@ class Request
     private static function setExpectsJSON()
     {
         $json_headers = ['application/json'];
-        $accept = self::header('accept');
+        $accept = self::header('accept', '*/*');
         $found = false;
         foreach($json_headers as $v){
             $f = str_replace('/', '\/', $v);
