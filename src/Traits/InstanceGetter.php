@@ -16,6 +16,7 @@ trait InstanceGetter
     /**
      * Returns concrete instance of own class from static call
      *
+     * @return Object
      */
     protected static function getOwnInstance()
     {
@@ -24,6 +25,9 @@ trait InstanceGetter
         return $class;
     }
 
+    /**
+     * @return Object
+     */
     private static function me()
     {
         if(!is_object(self::$me))
