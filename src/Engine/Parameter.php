@@ -52,7 +52,7 @@ class Parameter implements \Countable
      *
      * @param String $name
      * @param String $default
-     * @return String
+     * @return mixed
      */
     public function getMember($name, $default = '')
     {
