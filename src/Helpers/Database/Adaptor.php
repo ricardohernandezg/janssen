@@ -153,4 +153,13 @@ abstract class Adaptor
         return $this;
     }
 
+    /**
+     * Returs the connection native object
+     * 
+     * @return Object
+     */
+    public function getConnector(){
+        return $this->_cnx;
+    }
+
 }
