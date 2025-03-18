@@ -54,6 +54,17 @@ class Database
     }
 
     /**
+     * Gets an instance of database adaptor to be used 
+     * during the request
+     *
+     * @return Adaptor
+     */
+    public static function getAdaptor()
+    {
+        return self::$_adaptor;
+    }
+
+    /**
      * Sets fields for adaptor
      */
     public static function setAdaptorConfigField($field, $value)
