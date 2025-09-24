@@ -116,6 +116,14 @@ abstract class Response
         return $this;
     }
     
+    /**
+     * Alias for withMessageSet
+     */
+    public function withData(Array $data)
+    {
+        return self::withMessageSet($data);
+    }    
+    
     protected function isEmpty()
     {
         $c = $this->getContent();
