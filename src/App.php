@@ -34,8 +34,7 @@ class App
 
     private $version = '0.8.2';
     private $name = 'Janssen Core';
-    private $app_path;
-    private static $s_app_path;
+    private static $app_path;
     private static $s_assets_path;
 
     private static $request;
@@ -63,8 +62,7 @@ class App
         if(substr($app_path,-1,1) == '/') 
             $app_path = substr($app_path,0,strlen($app_path) -1);
 
-        $this->app_path = $app_path;
-        self::$s_app_path = $this->app_path;
+        self::$app_path = $app_path;
 
         // load external aliases
         $ca_candidate = $this->getPathCandidate('aliases');
@@ -409,14 +407,14 @@ class App
         return empty(self::$engine_config[$config]) ? false : self::$engine_config[$config];
     }
 
-    private function getPathCandidate($which = 'engine')
+    public static function getPathCandidate($which = 'engine')
     {
-        return $this->app_path . "/../app/Config/$which.php";
+        return self::appPath() . "/../app/Config/$which.php";
     }
 
     public static function appPath()
     {
-        return self::$s_app_path . '/';
+        return self::$app_path . '/';
     }
 
     public static function url()
