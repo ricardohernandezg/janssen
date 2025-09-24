@@ -12,7 +12,6 @@ use Janssen\Engine\Session;
 use Janssen\Engine\Validator;
 use Janssen\Helpers\Database;
 use Janssen\Helpers\Database\Adaptor;
-//use Janssen\Helpers\Auth;
 use Janssen\Helpers\Exception;
 use Janssen\Helpers\Response\ErrorResponse;
 use Janssen\Helpers\Response\JsonResponse;
@@ -32,8 +31,8 @@ class App
      * objects
      */
 
-    private $version = '0.8.2';
-    private $name = 'Janssen Core';
+    private static $version = '0.8.2';
+    private static $name = 'Janssen Core';
     private static $app_path;
     private static $s_assets_path;
 
@@ -44,14 +43,14 @@ class App
 
     private static $engine_config;
 
-    public function name()
+    public static function name()
     {
-        return $this->name;
+        return self::$name;
     }
 
-    public function version()
+    public static function version()
     {
-        return $this->version;
+        return self::$version;
     }
    
     public function init(String $app_path)
