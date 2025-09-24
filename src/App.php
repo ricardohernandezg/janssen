@@ -64,14 +64,14 @@ class App
         self::$app_path = $app_path;
 
         // load external aliases
-        $ca_candidate = $this->getPathCandidate('aliases');
+        $ca_candidate = self::getPathCandidate('aliases');
         $external_aliases = (is_file($ca_candidate)) ? (include $ca_candidate) : [];
         if(!empty($external_aliases))
             DefaultResolver::loadExternal($external_aliases);
 
         // make the global functions mapped to aliases to be called
         // from everywhere in the app
-        $ugf_conf_candidate = $this->getPathCandidate('functions');
+        $ugf_conf_candidate = self::getPathCandidate('functions');
         $user_global_functions = (is_file($ugf_conf_candidate)) ? (include $ugf_conf_candidate) : [];
         create_global_functions($user_global_functions);
 
@@ -79,7 +79,7 @@ class App
         Config::loadConfigFromEnv($app_path . '/..');
     
         // load app config
-        $engine_conf_candidate = $this->getPathCandidate();
+        $engine_conf_candidate = self::getPathCandidate();
         Config::setAll((is_file($engine_conf_candidate)) ? (include $engine_conf_candidate) : []);
         self::$engine_config = Config::get();
 
@@ -123,7 +123,7 @@ class App
             // as we process routing only for GET requests but the preprocessing is
             // for all types of requests, we need to check the routes before preprocessing
             if ($rm == 'GET') {
-                $routes_conf_candidate = $this->getPathCandidate('routes');
+                $routes_conf_candidate = self::getPathCandidate('routes');
                 $routes = (is_file($routes_conf_candidate)) ? (include $routes_conf_candidate) : [];
                 Route::setRoutes($routes);
             }

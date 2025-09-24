@@ -119,6 +119,14 @@ class Config
     }
 
     /**
+     * Append options to settings 
+     */
+    public static function append($settings)
+    {
+        self::$settings += $settings;
+    }
+
+    /**
      * Special function that will retrieve only the events part of the config
      *
      * @return Array|Boolean
