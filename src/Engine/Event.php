@@ -7,6 +7,21 @@ use Janssen\Helpers\Exception;
 abstract class Event
 {
 
+    private static $callables = [
+        'app.afterinit' => [],
+        'viewresponse.beforerender' => []
+    ];
+
+    public static function register(string $event, callable $callable)
+    {
+        if(!in_array(strtolower($event), self::$callables, 1)){
+            throw new Exception("This event is not available");
+        }
+
+        self::$callables[$event][] = $callable;
+
+    }
+
     /**
      * Each event must have this function that will be called
      *
