@@ -47,15 +47,16 @@ abstract class Event
      * @param String $event_name
      * @return void
      */
-    public static function invoke($event, ...$args)
+    public static function invoke($event, $invoker, ...$args)
     {
+        $event = strtolower($event);
 
         if(!self::exists($event)){
             throw new Exception("This event is not available");
         }        
 
         foreach(self::$callables[$event] as $k=>$callable){
-            $callable($args);
+            $callable($invoker, $args);
         }
 
         return null;

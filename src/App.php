@@ -105,7 +105,7 @@ class App
         if(self::$engine_config['relax_route'])
             self::$request::fixPath();
 
-        Event::invoke('app.afterinit', ['invoker' => $this]);
+        Event::invoke('app.afterinit', $this);
     }
 
     // we'll put the running logic here, but is possible to modify this to
