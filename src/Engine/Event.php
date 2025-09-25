@@ -9,12 +9,20 @@ abstract class Event
 
     private static $callables = [
         'app.afterinit' => [],
-        'viewresponse.beforerender' => []
+        'viewresponse.beforerender' => [],
+        'jsonresponse.beforerender' => [],
+        'rawresponse.beforerender' => []
     ];
 
-    public static function register(string $event, callable $callable)
+    private static function exists(string $event)
     {
-        if(!in_array(strtolower($event), self::$callables, 1)){
+        return array_key_exists(strtolower($event), self::$callables);
+    }
+    
+    public static function listen(string $event, callable $callable)
+    {
+        
+        if(!self::exists($event)){
             throw new Exception("This event is not available");
         }
 
@@ -40,19 +48,24 @@ abstract class Event
      * @param String $event_name
      * @return void
      */
-    public static function invoke($event_name, ...$args)
+    public static function invoke($event, ...$args)
     {
         /*
         $events = Config::getEvents();
         if(empty($events))
             return $args;*/
 
+        if(!self::exists($event)){
+            throw new Exception("This event is not available");
+        }        
+
+        /*
         $a = explode('.',$event_name, 2); // name shouldn't have more than 2 members class.event
         if(is_array($a) && !empty($a[0]) && !empty($a[1]))
             $event_path = $a[0] . "\\" . $a[1] . 'Event';
         else
             throw new Exception("Invalid Event name to invoke");
-
+        
         $class = "\\App\\Event\\" . $event_path;
         if(class_exists($class)){
             $i = new $class;
@@ -63,6 +76,21 @@ abstract class Event
         }
         
         return $args;
+        */
+
+        foreach(self::$callables[$event] as $k=>$callable){
+            $callable($args);
+        }
+
+        return null;
     }
 
+    /**
+     * create a new event to be listened
+     */
+    public static function create($event_name)
+    {
+        $event_name = strtolower($event_name);
+        self::$callables[$event_name] = [];
+    }
 }

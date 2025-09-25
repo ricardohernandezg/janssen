@@ -48,7 +48,7 @@ class ViewResponse extends Response
         if(empty($this->template))
             throw new Exception('No template defined for this response!');
 
-        $r = Event::invoke('ViewResponse.BeforeRender', $this);
+        $r = Event::invoke('ViewResponse.BeforeRender', ['invoker' => $this]);
         $engine = new Engine($this->template_path);
 
         if(!$engine->exists($this->template))

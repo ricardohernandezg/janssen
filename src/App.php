@@ -3,6 +3,7 @@
 namespace Janssen;
 
 use Janssen\Engine\Config;
+use Janssen\Engine\Event;
 use Janssen\Engine\Header;
 use Janssen\Engine\Preprocessor;
 use Janssen\Engine\Request;
@@ -80,7 +81,7 @@ class App
     
         // load app config
         $engine_conf_candidate = self::getPathCandidate();
-        Config::setAll((is_file($engine_conf_candidate)) ? (include $engine_conf_candidate) : []);
+        Config::append((is_file($engine_conf_candidate)) ? (include $engine_conf_candidate) : []);
         self::$engine_config = Config::get();
 
         error_reporting(Config::get('php_error_reporting', 0));
@@ -103,6 +104,8 @@ class App
         // fix path if engine needed
         if(self::$engine_config['relax_route'])
             self::$request::fixPath();
+
+        Event::invoke('app.afterinit', ['invoker' => $this]);
     }
 
     // we'll put the running logic here, but is possible to modify this to
