@@ -50,6 +50,12 @@ abstract class Adaptor
      */
     public abstract function insert($sql);
 
+    /**
+     * Runs a query and returns the row count
+     * 
+     * @param String $sql
+     * @return Integer|Bool
+     */
     public abstract function howMany($sql);
 
     /**
@@ -120,7 +126,6 @@ abstract class Adaptor
         return $this->_config_fields;
     }
 
-
     /**
      * Sets the value for the configuration field 
      * Fields MUST BE already a member of $_config_fields
@@ -161,5 +166,12 @@ abstract class Adaptor
     public function getConnector(){
         return $this->_cnx;
     }
+
+    // DATABASE INFORMATION SECTION
+
+    public abstract function tableExists($name, $schema = null);
+    public abstract function viewExists($name, $schema = null);
+    public abstract function procedureExists($name, $schema = null);
+    public abstract function functionExists($name, $schema = null);
 
 }

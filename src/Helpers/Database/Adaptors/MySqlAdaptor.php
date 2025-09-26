@@ -45,6 +45,36 @@ class MySqlAdaptor extends Adaptor
         
     }    
 
+    public function tableExists($table_name, $schema = null){
+        $sql = "SELECT TABLE_NAME 
+            FROM information_schema.tables 
+            WHERE table_schema = '$schema' 
+            AND TABLE_NAME = '$table_name'";
+    }
+
+    public function viewExists($view_name, $schema = null){
+        $sql = "SELECT TABLE_NAME 
+            FROM information_schema.views 
+            WHERE table_schema = '$schema' 
+            AND TABLE_NAME = '$view_name'";
+    }
+
+    public function procedureExists($procedure_name, $schema = null){
+        $sql = "SELECT ROUTINE_NAME 
+            FROM information_schema.routines 
+            WHERE routine_schema = '$schema' 
+            AND ROUTINE_TYPE = 'PROCEDURE'
+            AND ROUTINE_NAME = '$procedure_name'";
+    }
+    
+    public function functionExists($function_name, $schema = null){
+        $sql = "SELECT ROUTINE_NAME 
+            FROM information_schema.routines 
+            WHERE routine_schema = '$schema' 
+            AND ROUTINE_TYPE = 'FUNCTION'
+            AND ROUTINE_NAME = '$function_name'";
+    } 
+
     public function query($sql)
     {
         $this->freeResult();
@@ -116,4 +146,13 @@ class MySqlAdaptor extends Adaptor
             mysqli_next_result($this->connect());
         }
     }
+
+    /**
+     * Try to find the default schema from configuration
+     */
+    private function resolveDefaultSchema()
+    {
+
+    }
+
 }

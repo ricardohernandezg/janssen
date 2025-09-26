@@ -35,4 +35,20 @@ class PostgresAdaptor extends Adaptor
         // the last insert id here is mad attaching 
         // RETURNING id field statement to the query
     }
+
+    public function tableExists($name, $schema = null){}
+
+    public function viewExists($name, $schema = null){}
+
+    public function procedureExists($name, $schema = null){}
+    
+    public function functionExists($name, $schema = null){} 
+
+    /**
+     * Try to find the default schema from configuration
+     */
+    private function resolveDefaultSchema()
+    {
+
+    }
 }
