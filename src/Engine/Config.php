@@ -136,7 +136,10 @@ class Config
         return isset(self::$settings['events'])?self::$settings['events']:false;   
     }
 
-    private static function undot($text)
+    /**
+     * Returns the dotted value as array
+     */
+    public static function undot($text)
     {
         return explode('.', $text);
     }

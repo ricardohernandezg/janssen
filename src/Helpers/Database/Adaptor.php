@@ -59,6 +59,11 @@ abstract class Adaptor
     public abstract function howMany($sql);
 
     /**
+     * Returns the EXISTS statement of a query
+     */
+    public abstract function exists($sql);
+
+    /**
      * Set the last error in a internal variable to allow the user 
      * to know what happened if the statement returns false
      * 

@@ -84,28 +84,33 @@ class App
         Config::append((is_file($engine_conf_candidate)) ? (include $engine_conf_candidate) : []);
         self::$engine_config = Config::get();
 
-        error_reporting(Config::get('php_error_reporting', 0));
-
+        
         // create a header to the response
         $this->header = new Header;            
-
+        
         // start session
         Session::start();
-
+        
         // the only way to know what user want? the request
         Request::fill();
-
+        
         // set self request
         self::$request = new Request;
         
         // load previous messages from session
         FlashMessage::bulkLoadFromSession();
-
+        
         // fix path if engine needed
         if(self::$engine_config['relax_route'])
             self::$request::fixPath();
-
+        
+        // instanciate database if setted up
+        $this->load_database_connections();
+        
         Event::invoke('app.afterinit', $this);
+
+        // we are ready to start!! turn off errors
+        error_reporting(Config::get('php_error_reporting', 0));
     }
 
     // we'll put the running logic here, but is possible to modify this to
@@ -118,10 +123,6 @@ class App
          */
         
         try {
-
-            // instanciate database if setted up
-            $this->load_database_connections();
-
             $rm = self::$request->method();
             // as we process routing only for GET requests but the preprocessing is
             // for all types of requests, we need to check the routes before preprocessing

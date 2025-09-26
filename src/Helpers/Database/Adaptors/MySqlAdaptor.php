@@ -45,11 +45,24 @@ class MySqlAdaptor extends Adaptor
         
     }    
 
+    public function exists($sql){
+        $sql = "SELECT EXISTS($sql) as e";
+        $r = $this->query($sql);
+        if ($r && isset($r[0])) 
+            $e = $r[0]['e'];
+        else 
+            $e = 0;
+
+        return ($e === 1);
+    }
+
     public function tableExists($table_name, $schema = null){
         $sql = "SELECT TABLE_NAME 
             FROM information_schema.tables 
             WHERE table_schema = '$schema' 
             AND TABLE_NAME = '$table_name'";
+        
+        return $this->exists($sql);
     }
 
     public function viewExists($view_name, $schema = null){
@@ -57,6 +70,8 @@ class MySqlAdaptor extends Adaptor
             FROM information_schema.views 
             WHERE table_schema = '$schema' 
             AND TABLE_NAME = '$view_name'";
+
+        return $this->exists($sql);
     }
 
     public function procedureExists($procedure_name, $schema = null){
@@ -65,6 +80,8 @@ class MySqlAdaptor extends Adaptor
             WHERE routine_schema = '$schema' 
             AND ROUTINE_TYPE = 'PROCEDURE'
             AND ROUTINE_NAME = '$procedure_name'";
+
+        return $this->exists($sql);
     }
     
     public function functionExists($function_name, $schema = null){
@@ -73,6 +90,8 @@ class MySqlAdaptor extends Adaptor
             WHERE routine_schema = '$schema' 
             AND ROUTINE_TYPE = 'FUNCTION'
             AND ROUTINE_NAME = '$function_name'";
+
+        return $this->exists($sql);
     } 
 
     public function query($sql)

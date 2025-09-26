@@ -137,9 +137,5 @@ class Database
         return self::$_adaptor->getLastError();
     }
 
-    /**
-     * Info functions from Database
-     * 
-     */
-
+ 
 }
