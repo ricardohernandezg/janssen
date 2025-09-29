@@ -10,6 +10,7 @@ abstract class Event
     private static $callables = [
         'app.beforeinit' => [],
         'app.afterinit' => [],
+        'app.onvalidationerror' => [],
         'viewresponse.beforerender' => [],
         'jsonresponse.beforerender' => [],
         'rawresponse.beforerender' => []
