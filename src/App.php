@@ -56,6 +56,9 @@ class App
    
     public function init(String $app_path)
     {
+
+        Event::invoke('app.beforeinit', $this);
+
         $app_path = trim($app_path);
         if (empty($app_path)) 
             throw new Exception("App configuration is corrupt", 500, 'Contact administrator');
@@ -84,7 +87,6 @@ class App
         Config::append((is_file($engine_conf_candidate)) ? (include $engine_conf_candidate) : []);
         self::$engine_config = Config::get();
 
-        
         // create a header to the response
         $this->header = new Header;            
         
@@ -105,7 +107,7 @@ class App
             self::$request::fixPath();
         
         // instanciate database if setted up
-        $this->load_database_connections();
+        $this->load_database_connection();
         
         Event::invoke('app.afterinit', $this);
 
@@ -265,7 +267,7 @@ class App
         return $ret;
     }
 
-    private function load_database_connections()
+    private function load_database_connection()
     {
         $dc = self::getConfig('connections')[self::getConfig('default_connection')];
         $dbe = $dc['driver'];

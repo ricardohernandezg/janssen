@@ -8,6 +8,7 @@ abstract class Event
 {
 
     private static $callables = [
+        'app.beforeinit' => [],
         'app.afterinit' => [],
         'viewresponse.beforerender' => [],
         'jsonresponse.beforerender' => [],
