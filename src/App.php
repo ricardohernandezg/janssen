@@ -71,7 +71,7 @@ class App
         $ca_candidate = self::getPathCandidate('aliases');
         $external_aliases = (is_file($ca_candidate)) ? (include $ca_candidate) : [];
         if(!empty($external_aliases))
-            DefaultResolver::loadExternal($external_aliases);
+            DefaultResolver::append($external_aliases);
 
         // make the global functions mapped to aliases to be called
         // from everywhere in the app
@@ -207,6 +207,7 @@ class App
                 } else {
                     // the validation didn't pass. Make a response with that
                     $ve = $this->validator->getValidationErrors();
+                    Event::invoke('app.onvalidationerror', $this, $ve);
                     if(self::$request->expectsJSON()){
                         $this->header->setMessage('',400, true);
                         if (self::getConfig('detail_validator_error'))

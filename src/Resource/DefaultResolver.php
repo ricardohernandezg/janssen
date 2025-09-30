@@ -24,8 +24,8 @@ class DefaultResolver
      * @param Array $external_aliases
      * @return Bool
      */
-    public static function loadExternal($external_aliases){
-        if(!empty($external_aliases) && is_array($external_aliases))
+    public static function append(array $external_aliases = []){
+        if(!empty($external_aliases))
         {
             self::$aliased_defaults += $external_aliases;
             return true;
