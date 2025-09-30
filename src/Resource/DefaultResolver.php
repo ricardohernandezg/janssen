@@ -11,7 +11,6 @@ class DefaultResolver
         'ViewResponse' => '\Janssen\Helpers\Response\ViewResponse',
         'JsonResponse' => '\Janssen\Helpers\Response\JsonResponse',
         ];
-
     
     public static function resolve($alias)
     {
