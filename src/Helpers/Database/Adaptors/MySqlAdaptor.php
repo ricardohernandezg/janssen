@@ -25,27 +25,36 @@ class MySqlAdaptor extends Adaptor
      * 
      * @return mysqli 
      */
-    public function connect() : mysqli
+    public function connect(): mysqli
     {
-        if($this->isConnected())
+        if ($this->isConnected())
             return $this->_cnx;
         
-        $cnx = mysqli_connect($this->_config_fields['host'], $this->_config_fields['user'], $this->_config_fields['pwd'], $this->_config_fields['db'],$this->_config_fields['port']);
-
-        /**
-         * @todo remove this query when in production!
-         * mysqli_query($cnx, "SET sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'");
-         */        
-        if($cnx){
+        $cnx = mysqli_connect(
+            $this->_config_fields['host'],
+            $this->_config_fields['user'],
+            $this->_config_fields['pwd'],
+            $this->_config_fields['db'],
+            $this->_config_fields['port']
+        );
+        
+        // mysqli_query($cnx, "SET sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'");
+        if ($cnx) {
             mysqli_set_charset($cnx, "utf8");
             $this->_cnx = $cnx;
             return $cnx;
-        }else
+        } else
             throw new Exception('Unable to connect to database', 500);
-        
-    }    
+    }
 
-    public function exists($sql){
+    /**
+     * Check if query returns at least one row
+     * 
+     * @param String $sql
+     * @return Bool
+     */
+    public function exists($sql): Bool
+    {
         $sql = "SELECT EXISTS($sql) as e";
         $r = $this->query($sql);
         if ($r && isset($r[0])) 
@@ -112,6 +121,12 @@ class MySqlAdaptor extends Adaptor
         
     }
 
+    /**
+     * Executes a statement and returns bool 
+     * 
+     * @param String $sql
+     * @return Bool
+     */
     public function statement($sql)
     {
         $res = mysqli_query($this->connect(), $sql);
@@ -132,15 +147,26 @@ class MySqlAdaptor extends Adaptor
     {
         $res = mysqli_query($this->connect(), $sql);
         if ($res) {
-            $row = mysqli_num_rows($res);
+            $rows = mysqli_num_rows($res);
         } else {
-            $row = "0";
+            $rows = "0";
         }
-        return $row;
+        return $rows;
     }
 
+    /**
+     * Inserts a record and returns the corresponding Id
+     * 
+     * @param String $sql
+     * @return Int 
+     */
     public function insert($sql)
     {
+
+        // mysql not supports LAST_INSERT_ID() in other sentences other than INSERT
+        if (!preg_match('/^INSERT\s.+$/im', $sql)) 
+            throw new Exception('Insert requires an INSERT SQL statement', 500);
+
         $c = $this->connect();
         $res = mysqli_query($c, $sql);
         if($res){
@@ -163,15 +189,8 @@ class MySqlAdaptor extends Adaptor
         if($this->last_result && $this->last_result instanceof mysqli_result && mysqli_more_results($this->_cnx)){
             mysqli_free_result($this->last_result);
             mysqli_next_result($this->connect());
+            $this->last_result = false;
         }
-    }
-
-    /**
-     * Try to find the default schema from configuration
-     */
-    private function resolveDefaultSchema()
-    {
-
     }
 
 }

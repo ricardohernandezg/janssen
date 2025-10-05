@@ -46,7 +46,7 @@ abstract class Adaptor
      * It must be developed the way for each driver. 
      * 
      * @param String $sql
-     * @return Integer|Bool
+     * @return Integer|Array|Bool
      */
     public abstract function insert($sql);
 
