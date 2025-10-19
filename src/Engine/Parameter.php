@@ -18,7 +18,7 @@ class Parameter implements \Countable
         ['>', '&gt;'],
     ];
 
-    public function __construct(Array $init_vals)
+    public function __construct(Array $init_vals = [])
     {
         if($init_vals){
             foreach($init_vals as $k=>$v){
