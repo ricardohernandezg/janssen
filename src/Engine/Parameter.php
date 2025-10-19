@@ -18,7 +18,7 @@ class Parameter implements \Countable
         ['>', '&gt;'],
     ];
 
-    public function __construct(Array $init_vals = null)
+    public function __construct(Array $init_vals)
     {
         if($init_vals){
             foreach($init_vals as $k=>$v){
@@ -188,7 +188,7 @@ class Parameter implements \Countable
      * $fields must be a comma separated list of the paramters to get.
      * 
      */
-    public function stringify(String $fields = null, $delimiter = ',')
+    public function stringify(String $fields = "", $delimiter = ',')
     {
         $ar_f = explode(",", $fields);
 
@@ -232,7 +232,7 @@ class Parameter implements \Countable
         return $ret;
     }
 
-    public function updatefy(String $fields = null, $delimiter = ',', $ignore_absents = false)
+    public function updatefy(String $fields = "", $delimiter = ',', $ignore_absents = false)
     {
         $ar_f = explode(",", $fields);
 
