@@ -247,7 +247,7 @@ class Parameter implements \Countable
      * 
      * @return object
      */
-    public function TreatBlanksAsNull()
+    public function treatBlanksAsNull()
     {
         $this->empty_treatment = 'null';
         return $this;
@@ -261,7 +261,6 @@ class Parameter implements \Countable
         $this->empty_treatment = 'quote';
         return $this;
     }
-
 
     /**
      * Process value to substitute values before send to string
