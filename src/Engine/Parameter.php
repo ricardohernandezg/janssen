@@ -80,7 +80,10 @@ class Parameter implements \Countable
             $r = "'" . intval($member) . "'";
         elseif(empty($member) && $member !== '0')
             $r  = ($this->empty_treatment == 'null') ? 'null' : $member;
-        else{
+        elseif(is_array($member)){
+            $jc = Config::get('json_encode_options', 0);
+            $r  = "'" . json_encode($member, $jc) . "'";
+        }else{
             $v = $this->members[$name];
             if(is_numeric($v) || is_bool($v))
                 $mc = ($this->process_value) ? $this->processNumericValue($v) : $v;    
