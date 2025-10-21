@@ -93,6 +93,10 @@ class App
         // start session
         Session::start();
         
+        // fix path if engine needed
+        if(self::$engine_config['relax_route'])
+            Request::fixPath();
+        
         // the only way to know what user want? the request
         Request::fill();
         
@@ -101,10 +105,6 @@ class App
         
         // load previous messages from session
         FlashMessage::bulkLoadFromSession();
-        
-        // fix path if engine needed
-        if(self::$engine_config['relax_route'])
-            self::$request::fixPath();
         
         // instanciate database if setted up
         $this->load_database_connection();

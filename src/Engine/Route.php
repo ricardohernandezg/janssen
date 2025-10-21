@@ -164,7 +164,7 @@ class Route
                 $found = ($r > 0);
             }else{
                 // make direct match
-                $found = ($v[0] === $path);
+                $found = (($v[0] ?? '') === $path);
             }
             
             if($found){

@@ -43,31 +43,32 @@ class Request
      * @var string
      */
     private static $method;
-
-    /**
-     * The current calculated path
-     *
-     * @var string
-     */
-    private static $path;
-
+    
     /**
      * The referrer of the request
-     *
-     * @var String
-     */
+    *
+    * @var String
+    */
     private static $from;
-
+    
     /**
      * Base URI calculated at start of request
-     *
-     * @var String
+    *
+    * @var URL
+    */
+    private static $url;
+
+    /**
+     * The path must be fixed at construct
      */
-    private static $ownURI;
+    private static $fix_path = false;
 
-    private static $payload;
-
-    private static $protocol;
+    /**
+     * The request is to an IP address instead of domain
+     * 
+     * @var bool
+     */
+    private static $host_is_domain = true;
 
     /**
      * Stores the user called action when decrypted
@@ -164,16 +165,11 @@ class Request
             self::$bags['HEADER'][strtolower($k)] = $v;
         }
         
-        // determine the protocol used
-        self::determineProtocol();
+
         // fill Uri and payload
-        self::calculateURIAndPayload();
-        // fill path 
-        self::calculatePath();
+        self::$url = new URL(self::getFullUrl(), self::$fix_path);        
         // fill back
         self::calculateFrom();
-        // fill to
-        self::calculateTo();        
         // expecting json?
         self::setExpectsJSON();
         // fill authentication
@@ -250,24 +246,22 @@ class Request
         return self::$authorized_by;
     }
 
-    private static function calculateURIAndPayload()
+    /**
+     * Returns true if the request was made to a domain false if IP address
+     *
+     * @return String
+     */
+    public static function isValidDomain()
     {
-        // check if request uri comes with scheme
-        $scheme = self::getScheme();
-        $look_for = "$scheme://";
-        $rqst_uri = str_replace($look_for, '/', self::server('REQUEST_URI'));
-        // get the path w/o file name
-        $sn = self::server('SCRIPT_NAME');
-        $path = str_replace(basename($sn), '', $sn);
-        self::$path = $look_for . self::server('HTTP_HOST') . $path;
-        // extract the path from the request
-        if($path !== '/'){
-            self::$payload = str_replace($path, '', $rqst_uri);        
-        }else
-            self::$payload = substr($rqst_uri, 1);        
+        return self::$host_is_domain;
+    }
 
-        self::$payload = self::fix(self::$payload);
-        self::$ownURI = self::$path;
+    private static function getFullUrl()
+    {
+        $protocolo = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+        $host = $_SERVER['HTTP_HOST'];
+        $requestUri = $_SERVER['REQUEST_URI'];
+        return $protocolo . $host . $requestUri;
     }
 
     /**
@@ -279,15 +273,7 @@ class Request
      */
     public static function getQueryStringPayload()
     {
-        return self::$payload;
-        /*
-        $p = self::$path;
-        $a = explode('/', $p);
-        if(is_array($a) && count($a) > 1 && !empty($a[count($a)-1]))
-            return $a[count($a)-1];
-        else
-            return false;
-            */
+        return self::$url->payload();
     }
 
     public static function setUserAction($class, $method)
@@ -321,8 +307,6 @@ class Request
         else
             return "";
     }
-
-
 
     /**
      * Indicates if a bag is valid to use
@@ -386,7 +370,6 @@ class Request
     public static function post($name, $default = null){
         return isset(self::$bags['POST'][$name])?self::$bags['POST'][$name]:$default;
     }
-
 
     /**
      * Allos to alter a post value or add a new one
@@ -461,7 +444,6 @@ class Request
         return self::me();
     }
 
-
     /**
      * Returns the full mapping used to validate the request
      *
@@ -514,6 +496,7 @@ class Request
     /**
      * @todo try to determine how to change index.php, it could be another index file
      */
+    /*
     private static function calculatePath()
     {
         $ru = self::server('REQUEST_URI');
@@ -529,6 +512,7 @@ class Request
         $r = trim(preg_replace($er, '', $r));
         self::$path = ($r == '')?'/':$r;
     }
+    */
 
     private static function calculateFrom()
     {
@@ -544,6 +528,7 @@ class Request
         self::$from = $t;
     }
 
+    /*
     private static function calculateTo()
     {
         $t = self::server('HTTP_HOST');
@@ -558,7 +543,9 @@ class Request
         }
         
     }
+    */
 
+    /*
     private static function determineProtocol()
     {
         $proto = $_SERVER['HTTP_X_FORWARDED_PROTO'] ??
@@ -570,6 +557,7 @@ class Request
         else
             self::$protocol = 'http';
     }
+    */
 
     public static function getScheme()
     {
@@ -581,7 +569,7 @@ class Request
 
     public static function getRealScheme()
     {
-        return self::$protocol;
+        return self::$url->protocol();
     }
 
     /** Alias for getRealScheme */
@@ -592,9 +580,13 @@ class Request
 
     public static function getPath()
     {
-        return self::$path;
+        return self::$url->path();
     }
 
+    public static function getUrl()
+    {
+        return self::$url;
+    }
     
     public static function setMatchedRoute($route)
     {
@@ -626,7 +618,7 @@ class Request
      */
     public static function getPretendedHost()
     {
-        return self::$pretended_host;
+        return self::$url->host();
     }
 
     /**
@@ -647,33 +639,9 @@ class Request
      */
     public static function getURI()
     {
-        return self::$ownURI;
-    }
-
-    /**
-     * Remove any / left in the end of the requested url.
-     * This function is automatically called by init after read
-     * relax_route configuration.
-     *
-     * @return Object
-     */
-    public static function fixPath()
-    {
-        self::$path = self::fix(self::$path);
-        return self::me();
-    }
-
-    /**
-     * Removes the / from the given text
-     *
-     * @param String $text
-     * @return String
-     */
-    private static function fix($text){
-        if(!in_array($text, ['','/']) && substr($text, -1) =='/')
-            return substr($text, 0, strlen($text)-1);
-        
-        return $text;
+        return self::$url->protocol() . '://' . 
+            self::$url->hostPort() . '/' . 
+            self::$url->path() ;
     }
 
     /**
@@ -689,6 +657,11 @@ class Request
     public static function expectsJSON()
     {
         return self::$expects_json;
+    }
+
+    public static function fixPath($value = true)
+    {
+        self::$fix_path = $value;
     }
 
     /**
@@ -723,6 +696,129 @@ class Request
         $g = Session::getValue(Guard::getGuardVarName());
         if($g)
             self::authorizedBy(key($g));
+    }
+
+}
+
+class URL
+{
+
+    private $fullURL;
+    
+    private $protocol;
+    
+    private $host;
+    
+    private $port;
+
+    private $path;
+
+    private $queryString;
+
+    private $payload;
+
+    private $host_is_domain;
+
+    public function __construct($fullURL, $fixPath = false)
+    {
+        $parts = parse_url($fullURL);
+
+        $this->fullURL = $fullURL;
+
+        // Protocolo
+        $this->protocol = $parts['scheme'] ?? '';
+
+        // Host y puerto
+        $this->host = $parts['host'] ?? '';
+        $this->port = $parts['port'] ?? '';
+
+        // Ruta
+        $this->path = $parts['path'] ?? '';
+        if($fixPath)
+            $this->path = $this->fix($this->path);
+
+        // Query string original
+        $this->queryString = $parts['query'] ?? '';
+
+        $this->payload = $this->queryStringToFriendlyPath($this->queryString);
+
+        // Verificar si host es IP o dominio
+        $this->host_is_domain = filter_var($this->host, FILTER_VALIDATE_IP) ? true : false;
+
+    }
+
+    // Convertir query string to friendly path
+    private static function queryStringToFriendlyPath($queryString)
+    {
+        parse_str($queryString, $params);
+        $friendlyPath = '';
+        foreach ($params as $key => $value) {
+            $friendlyPath .= '/' . urlencode($key) . '/' . urlencode($value);
+        }
+        return $friendlyPath;
+    }
+
+    /**
+     * Removes the / from the given text
+     *
+     * @param String $text
+     * @return String
+     */
+    private static function fix($text){
+        if(!in_array($text, ['','/']) && substr($text, -1) =='/')
+            return substr($text, 0, strlen($text)-1);
+        
+        return $text;
+    }
+
+    public function fullUrl()
+    {
+        return $this->fullURL;
+    }
+
+    public function hostPort()
+    {
+        return $this->host . ($this->port ? ':' . $this->port : '');
+    }
+
+    public function protocol()
+    {
+        return $this->protocol;
+    }
+
+    public function host()
+    {
+        return $this->host;
+    }
+
+    public function port()
+    {
+        return $this->port;
+    }
+
+    public function path()
+    {
+        return $this->path;
+    }
+
+    public function queryString()
+    {
+        return $this->queryString();
+    }
+
+    public function payload()
+    {
+        return $this->payload;
+    }
+
+    public function hostIsDomain()
+    {
+        return $this->host_is_domain;
+    }
+
+    public function __toString()
+    {
+        return $this->fullUrl();
     }
 
 }
