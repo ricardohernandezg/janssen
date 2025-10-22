@@ -765,6 +765,7 @@ class URL
      * @return String
      */
     private static function fix($text){
+        $text = trim($text);
         if(!in_array($text, ['','/']) && substr($text, -1) =='/')
             return substr($text, 0, strlen($text)-1);
         
