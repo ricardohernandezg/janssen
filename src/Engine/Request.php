@@ -520,7 +520,7 @@ class Request
         if(\is_null($t))
             $t = self::server('SCRIPT_URI');
         if(\is_null($t)){
-            $scheme = self::getScheme();
+            $scheme = self::getRealScheme();
             $host = self::server('HTTP_HOST');
             $sn = self::server('SCRIPT_NAME');
             $t = "$scheme://$host/$sn";
