@@ -98,6 +98,10 @@ function get_class_name($class)
 
 function transform_to_class_name($text)
 {
+    // check if the first character is slash
+    while (substr($text,0,1) == "\\" || substr($text,0,1) == "/"){
+        $text = substr($text,1);
+    }
     // determine if first letter of $text is lowercase, if so
     // make it uppercase.
     $ascii_code = ord($text); 
