@@ -37,8 +37,8 @@ trait SQLWhere
      */
     public static function andWhere($fields, $operator = '=')
     {
-        if(empty(self::$_where))
-            throw new Exception('AndWhere requires Where function to be called first!',500);
+        //if(empty(self::$_where))
+        //    throw new Exception('AndWhere requires Where function to be called first!',500);
 
         return self::whereReal($fields, $operator, 'AND');
     }
@@ -55,6 +55,15 @@ trait SQLWhere
             throw new Exception('OrWhere requires Where function to be called first!',500);
 
         return self::whereReal($fields, $operator, 'OR');
+    }
+
+    public static function where1equals1()
+    {
+        $m = [];
+        $m[] = self::makeWhereMember(1,1,'=');
+        self::$_where[] = ['relation' => '',
+            'members' => $m];
+        return self::me();
     }
 
     private static function whereReal($fields, $operator, $relation = '')
