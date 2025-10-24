@@ -258,10 +258,10 @@ class Request
 
     private static function getFullUrl()
     {
-        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+        $protocolo = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
         $host = $_SERVER['HTTP_HOST'];
         $requestUri = $_SERVER['REQUEST_URI'];
-        return $protocol . $host . $requestUri;
+        return $protocolo . $host . $requestUri;
     }
 
     /**
@@ -583,6 +583,11 @@ class Request
         return self::$url->path();
     }
 
+    public static function getFullPath()
+    {
+        return self::$url->path() . self::$url->payload();
+    }
+
     public static function getUrl()
     {
         return self::$url;
@@ -765,7 +770,6 @@ class URL
      * @return String
      */
     private static function fix($text){
-        $text = trim($text);
         if(!in_array($text, ['','/']) && substr($text, -1) =='/')
             return substr($text, 0, strlen($text)-1);
         

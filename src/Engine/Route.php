@@ -30,7 +30,7 @@ class Route
     {
         self::$routes = $routes;
         // try to get the route from path
-        self::getByPath(Request::getPath());
+        self::getByPath(Request::getFullPath());
     }
 
     public static function getByPath($path)
