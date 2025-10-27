@@ -244,7 +244,7 @@ class Route
         }else{
             // if dest doesn't start with slash means its a named path
             /**  @todo this feature is pending!! */
-            throw new Exception('Named routes are not implemented yet! Please use a path starting with \'/\'');
+            throw new Exception('Named routes are not implemented yet! Please use a path starting with \'/\'', 500);
         }
     }
 

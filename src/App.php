@@ -132,6 +132,10 @@ class App
                 $routes_conf_candidate = self::getPathCandidate('routes');
                 $routes = (is_file($routes_conf_candidate)) ? (include $routes_conf_candidate) : [];
                 Route::setRoutes($routes);
+                
+                if(empty($route))
+                    throw new Exception('Route not set', 404);
+                
                 $current_route = Route::getCurrent();
                 Request::setMatchedRoute($current_route);
             }
@@ -148,8 +152,6 @@ class App
             // if request method is POST, PUT or DELETE we will take the route from encrypted post
             if ($rm == 'GET') {
                 $route = Route::getCurrent();
-                if(empty($route))
-                    throw new Exception('Route not set', 404);
                 //$route = Route::getByPath($path);
                 $action = $route['resolver'];
                 

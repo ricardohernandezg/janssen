@@ -282,6 +282,8 @@ class Request
 
     public static function setUserAction($class, $method)
     {
+        $class = transform_to_class_name($class);
+
         self::$userAction = [
             'controller' => $class,
             'method' => $method
