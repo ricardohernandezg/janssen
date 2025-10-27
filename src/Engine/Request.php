@@ -19,6 +19,7 @@ use Janssen\Engine\Parameter;
 use Janssen\Engine\Mapper;
 use Janssen\Engine\Config;
 use Janssen\Engine\Session;
+use Janssen\Helpers\Exception;
 //use Janssen\Helpers\Auth;
 use Janssen\Helpers\Guard;
 
@@ -165,9 +166,12 @@ class Request
             self::$bags['HEADER'][strtolower($k)] = $v;
         }
         
-
         // fill Uri and payload
-        self::$url = new URL(self::getFullUrl(), self::$fix_path);        
+        $domain = Config::get('domain');
+        if(is_null($domain))
+            throw new Exception('Domain setting not set. We need this setting to continue', 500, 'Contact administrator to fix this issue');
+
+        self::$url = new URL(self::getFullUrl(), $domain, self::$fix_path);        
         // fill back
         self::calculateFrom();
         // expecting json?
@@ -621,6 +625,16 @@ class Request
      *
      * @return String
      */
+    public static function getPretendedSubdomain()
+    {
+        return self::$url->fullSubdomain();
+    }
+
+    /**
+     * Returns the host
+     *
+     * @return String
+     */
     public static function getPretendedHost()
     {
         return self::$url->host();
@@ -724,7 +738,13 @@ class URL
 
     private $host_is_domain;
 
-    public function __construct($fullURL, $fixPath = false)
+    private $domain;
+
+    private $fullSubdomain;
+
+    private $firstSubdomain;
+
+    public function __construct($fullURL, $domain, $fixPath = false)
     {
         $parts = parse_url($fullURL);
 
@@ -750,6 +770,9 @@ class URL
         // Verificar si host es IP o dominio
         $this->host_is_domain = filter_var($this->host, FILTER_VALIDATE_IP) ? true : false;
 
+        $si = $this->getSubdomainsInfo($this->host(), $domain);
+        $this->firstSubdomain = $si['first'];
+        $this->fullSubdomain = $si['full'];
     }
 
     // Convertir query string to friendly path
@@ -774,6 +797,34 @@ class URL
             return substr($text, 0, strlen($text)-1);
         
         return $text;
+    }
+
+    /**
+     * Calculate the subdomain
+     */
+    private function getSubdomainsInfo($fullDomain, $baseDomain)
+    {
+        $fullDomain = strtolower($fullDomain);
+        $baseDomain = strtolower($baseDomain);
+
+        if (substr($fullDomain, -strlen($baseDomain)) === $baseDomain) {
+            $subdomainPart = substr($fullDomain, 0, -strlen($baseDomain));
+            $subdomainPart = rtrim($subdomainPart, '.');
+
+            if (empty($subdomainPart)) {
+                return ['first' => null, 'full' => null]; // No hay subdominio
+            }
+
+            $parts = explode('.', $subdomainPart);
+
+            $firstSubdomain = $parts[0]; // el primer subdominio, puede ser "www"
+            $fullSubdomain = implode('.', $parts); // todo el subdominio completo
+
+            return ['first' => $firstSubdomain, 'full' => $fullSubdomain];
+        } else {
+            // Dominio base no coincide, retorna null
+            return ['first' => null, 'full' => null];
+        }
     }
 
     public function fullUrl()
@@ -820,6 +871,30 @@ class URL
     {
         return $this->host_is_domain;
     }
+
+    /**
+     * Returns the first level subdomain detected
+     */
+    public function firstSubdomain()
+    {
+        return $this->firstSubdomain;
+    }
+
+    /**
+     * Returns the full subdomain detected
+     */
+    public function fullSubdomain()
+    {
+        return $this->fullSubdomain;
+    }
+
+    /**
+     * Returns the nth level subdomain detected
+     */
+    public function nthSubdomain($level)
+    {
+        return $this->fullSubdomain;
+    }    
 
     public function __toString()
     {

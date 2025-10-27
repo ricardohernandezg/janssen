@@ -3,6 +3,7 @@
 namespace Janssen\Engine;
 
 use Exception;
+
 class Config
 {
     private static $settings = [];

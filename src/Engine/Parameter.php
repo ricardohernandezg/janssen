@@ -3,6 +3,7 @@
 namespace Janssen\Engine;
 
 use Janssen\Engine\Mapper;
+use Janssen\Engine\Config;
 
 class Parameter implements \Countable
 {

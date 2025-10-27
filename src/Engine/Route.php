@@ -36,7 +36,7 @@ class Route
     public static function getByPath($path)
     {
         // find a exclusive route, the first check will be returned
-        $pd = Request::getPretendedHost();
+        $pd = Request::getPretendedSubdomain();
         $i = self::findByPath($path, 0, $pd);
         
         if($i !== FALSE && !empty(self::$routes[$i])){
@@ -135,7 +135,7 @@ class Route
      * route when user doesn't provide a route name
      * 
      */
-    private static function findByPath($path, $offset = 0, $host = '')
+    private static function findByPath($path, $offset = 0, $subdomain = '')
     {
         $found = $ret = false;
 
@@ -149,7 +149,7 @@ class Route
             if(!self::isWellFormed($v))
                 throw new Exception('Error in route', 500);
 
-            if(isset($v['domain']) && !empty($host) && $v['domain'] !== $host)
+            if(isset($v['domain']) && !empty($subdomain) && $v['domain'] !== $subdomain)
                 continue;
 
             // take each bracketed sentence in $v and transform it
