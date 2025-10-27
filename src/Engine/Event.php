@@ -23,13 +23,13 @@ abstract class Event
     
     public static function listen(string $event, callable $callable)
     {
+        $event = strtolower($event);
         
         if(!self::exists($event)){
             throw new Exception("This event is not available");
         }
 
         self::$callables[$event][] = $callable;
-
     }
 
     /**
