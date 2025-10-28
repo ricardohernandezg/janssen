@@ -133,10 +133,10 @@ class App
                 $routes = (is_file($routes_conf_candidate)) ? (include $routes_conf_candidate) : [];
                 Route::setRoutes($routes);
                 
-                if(empty($route))
+                $current_route = Route::getCurrent();
+                if(empty($current_route))
                     throw new Exception('Route not set', 404);
                 
-                $current_route = Route::getCurrent();
                 Request::setMatchedRoute($current_route);
             }
 
