@@ -660,9 +660,7 @@ class Request
      */
     public static function getURI()
     {
-        return self::$url->protocol() . '://' . 
-            self::$url->hostPort() . '/' . 
-            self::$url->path() ;
+        return self::$url->baseUrl();
     }
 
     /**
@@ -832,6 +830,13 @@ class URL
     public function fullUrl()
     {
         return $this->fullURL;
+    }
+
+    public function baseUrl()
+    {
+        return $this->protocol . '://' .
+            $this->host . 
+            ($this->port ? ':' . $this->port : '');
     }
 
     public function hostPort()
