@@ -237,7 +237,8 @@ class Route
             // if dest starts with slash means its a path
             $ddst = substr($dst, 1);
             $uri = Request::getURI();
-            if(strtolower($uri) == 'http' && Config::get('force_https', true)){
+            $proto = Request::getProtocol();
+            if(strtolower($proto) == 'http' && Config::get('force_https', true)){
                 $uri = str_replace('http://', 'https://', $uri);
             }
             return $uri . $ddst;
