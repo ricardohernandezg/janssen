@@ -100,6 +100,16 @@ class Database
     }
 
     /**
+     * Run a statement with no return
+     * 
+     * @return Bool
+     */
+    public static function statement($sql)
+    {
+        return self::$_adaptor->statement($sql);
+    }
+
+    /**
      * Makes a query and returns only the first row
      *
      * @param String $sql
@@ -137,5 +147,4 @@ class Database
         return self::$_adaptor->getLastError();
     }
 
- 
 }
