@@ -413,12 +413,17 @@ class Model
         return self::me()->go();
     }
 
+    /**
+     * Make the query as count(*)
+     * 
+     * @return int
+     */
     public static function count()
     {
         self::$query_mode = 3;
         self::$fields = ['count(*) as count'];
         $r = self::me()->go();
-        return $r['count'];
+        return (int) $r['count'];
     }
 
     public static function first(){
