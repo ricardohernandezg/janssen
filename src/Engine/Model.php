@@ -57,6 +57,11 @@ class Model
 
     private static $debug_and_wait = false;
 
+    /** 
+     * Don't clean after this query
+     */
+    private static $keep = false;
+
     /**
      * Mode of query, defined by the last call to all, allById or one
      * 0 - all (default)
@@ -103,7 +108,11 @@ class Model
                     $ret = Database::queryOne($sql);
             }
             
-            $this->clean();
+            if(self::$keep)
+                self::$keep = false;
+            else 
+                $this->clean();
+            
             return $ret ?? false;
         }catch(Throwable $e){
             $this->clean();
@@ -564,4 +573,14 @@ class Model
         return self::me();
     }
    
+    /**
+     * Don't clean after the current query, useful to reuse same settings. It only
+     * works for the next call, you can use succesive calls to keep the same object
+     * settings
+     */
+    public static function keep()
+    {
+        self::$keep = true;
+        return self::me();
+    }
 }
