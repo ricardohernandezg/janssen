@@ -143,6 +143,7 @@ class MySqlAdaptor extends Adaptor
      * @param String $sql
      * @return Integer
      */
+    /*
     public function howMany($sql)
     {
         $res = mysqli_query($this->connect(), $sql);
@@ -153,6 +154,7 @@ class MySqlAdaptor extends Adaptor
         }
         return $rows;
     }
+    */
 
     /**
      * Inserts a record and returns the corresponding Id
@@ -191,6 +193,11 @@ class MySqlAdaptor extends Adaptor
             mysqli_next_result($this->connect());
             $this->last_result = false;
         }
+    }
+
+    public function translate($parted_sql)
+    {
+        return "";
     }
 
 }

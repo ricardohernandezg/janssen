@@ -55,13 +55,21 @@ abstract class Adaptor
      * 
      * @param String $sql
      * @return Integer|Bool
+     * @deprecated
      */
-    public abstract function howMany($sql);
+    // public abstract function howMany($sql);
 
     /**
      * Returns the EXISTS statement of a query
      */
     public abstract function exists($sql);
+
+    /**
+     * Run query. 
+     * 
+     * MUST RETURN BOOL
+     */
+    protected abstract function statement($sql);
 
     /**
      * Set the last error in a internal variable to allow the user 
@@ -104,13 +112,6 @@ abstract class Adaptor
     {
         $this->setAutoFieldMapping();
     }
-
-    /**
-     * Run query. 
-     * 
-     * MUST RETURN BOOL
-     */
-    protected abstract function statement($sql);
 
     /**
      * Checks if there is connection object set
@@ -171,6 +172,13 @@ abstract class Adaptor
     public function getConnector(){
         return $this->_cnx;
     }
+
+    /**
+     * Translate query object to SQL. 
+     * 
+     * @return string
+     */
+    protected abstract function translate(array $parted_sql);
 
     // DATABASE INFORMATION SECTION
 

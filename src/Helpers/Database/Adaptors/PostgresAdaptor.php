@@ -94,6 +94,7 @@ class PostgresAdaptor extends Adaptor
      * @param String $sql
      * @return Integer
      */
+    /*
     public function howMany($sql)
     {
         $res = pg_query($this->connect(), $sql);
@@ -104,6 +105,7 @@ class PostgresAdaptor extends Adaptor
         }
         return $rows;
     }
+    */
 
     /**
      * Check if query returns at least one row
@@ -200,6 +202,11 @@ class PostgresAdaptor extends Adaptor
     {
         if($this->last_result) pg_free_result($this->last_result);
         $this->last_result = false;
+    }
+
+    public function translate($parted_sql)
+    {
+        return "";
     }
 
 }
