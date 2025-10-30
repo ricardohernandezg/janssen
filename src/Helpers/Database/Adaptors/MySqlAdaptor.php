@@ -142,24 +142,47 @@ class MySqlAdaptor extends Adaptor
         return $res;
     }
 
-    /**
-     * Returns number of rows
-     *
-     * @param String $sql
-     * @return Integer
-     */
-    /*
-    public function howMany($sql)
+    protected function prepareSelect(Array $parted_sql)
     {
-        $res = mysqli_query($this->connect(), $sql);
-        if ($res) {
-            $rows = mysqli_num_rows($res);
-        } else {
-            $rows = "0";
-        }
-        return $rows;
+        $parted_sql['select'] = $this->flatFields();
+        return $this->flatSQL($parted_sql);
     }
-    */
+
+    private function flatFields()
+    {
+        if(!empty(self::$fields))
+            return implode(', ', self::$fields);
+        else
+            return '*';
+    }
+
+    private function flatSQL($parted_sql)
+    {
+        $sql = 'SELECT ' . (self::$distinct?'DISTINCT ':'') . $parted_sql['select'] . ' FROM ' . $parted_sql['from'];
+        if(!empty(trim($parted_sql['where'])))
+            $sql .= ' WHERE ' . trim($parted_sql['where']);
+             
+        if(!empty(trim($parted_sql['orderby'])))
+            $sql .= ' ORDER BY ' . trim($parted_sql['orderby']);            
+
+        if(!empty(trim($parted_sql['limit'])))
+            $sql .= ' LIMIT ' . trim($parted_sql['limit']);
+            
+        return $sql;
+    }    
+
+
+    protected function prepareLimitOffset()
+    {
+        // sql doesn't allow use only offset
+        $lo = '';
+        if(self::$limit > -1 && self::$offset > -1)
+            $lo = self::$limit . ' OFFSET ' . self::$offset; 
+        elseif (self::$limit > -1)
+            $lo = self::$limit; 
+        
+        return $lo;
+    }
 
     /**
      * Inserts a record and returns the corresponding Id

@@ -3,9 +3,15 @@
 namespace Janssen\Helpers;
 
 use Janssen\Helpers\Database\Adaptor;
+use Janssen\Traits\SQLStatement;
+use Throwable;
 
 class Database
 {
+
+    use \Janssen\Traits\InstanceGetter;
+    use \Janssen\Traits\StaticCall;    
+    use SQLStatement;
 
     /**
      * Connection variable
@@ -17,6 +23,11 @@ class Database
     private static $_valid_engines = ['mysqli', 'pgsql'];
 
     private static $_connected = false;
+
+    /** 
+     * Don't clean after this query
+     */
+    private static $keep = false;    
 
     /**
      * Database engine to be used
@@ -127,6 +138,50 @@ class Database
         }
     }
 
+    public static function first(){
+        self::$query_mode = 0;
+        $r = self::me()->go();
+        return $r[0] ?? false;
+    }
+
+    public function go()
+    {
+        try{
+
+            if(self::$debug_and_wait)
+                return $this->debug();
+
+            if(empty(self::$parted_sql))
+                $this->makeBasicSelect();
+
+            $sql = $this->prepareSelect(self::$parted_sql);
+
+            if(self::$zero_based_mapping)
+                Database::setFieldMapping(false); 
+            
+            switch(self::$query_mode){
+                case 0:
+                case 1:
+                    $ret = Database::query($sql);
+                    break;                
+                case 2:
+                case 3:
+                    $ret = Database::queryOne($sql);
+            }
+            
+            if(self::$keep)
+                self::$keep = false;
+            else 
+                $this->clean();
+            
+            return $ret ?? false;
+        }catch(Throwable $e){
+            $this->clean();
+            throw new Exception($e->getMessage(), $e->getCode(), 'Contact administrator', $e->getTrace());
+        }
+        
+    }
+
     /**
      * Destroys connection object
      */
@@ -145,6 +200,48 @@ class Database
     public static function getLastError()
     {
         return self::$_adaptor->getLastError();
+    }
+
+/**
+     * Returns the SQL intended to be used in query
+     *
+     * @param bool $stop Stops the execution of program and shows the query
+     * 
+     * @return String
+     */
+    public function debug($stop = false)
+    {
+        if(empty(self::$parted_sql))
+                $this->makeBasicSelect();
+
+        $sql = $this->prepareSelect(self::$parted_sql);
+
+        if($stop)
+            throw new Exception('Query: ' . $sql);
+
+        return $sql;
+    }
+
+    /**
+     * Sets debug mode on to return the SQL syntax intended to be used 
+     *
+     * @return Object
+     */
+    public function debugMode()
+    {
+        self::$debug_and_wait = true;
+        return $this;
+    }
+
+    /**
+     * Don't clean after the current query, useful to reuse same settings. It only
+     * works for the next call, you can use succesive calls to keep the same object
+     * settings
+     */
+    public static function keep()
+    {
+        self::$keep = true;
+        return self::me();
     }
 
 }

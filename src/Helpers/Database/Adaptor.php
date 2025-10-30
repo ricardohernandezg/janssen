@@ -2,6 +2,8 @@
 
 namespace Janssen\Helpers\Database;
 
+use Janssen\Helpers\Exception;
+
 abstract class Adaptor
 {
 
@@ -19,6 +21,8 @@ abstract class Adaptor
     protected $_cnx;
 
     protected $last_error;
+
+    private static $parted_sql = [];
 
     /**
      * Map automatically fields when return array. False means
@@ -166,12 +170,16 @@ abstract class Adaptor
         return $this->_cnx;
     }
 
+    
+
     /**
      * Translate query object to SQL. 
      * 
      * @return string
      */
     protected abstract function translate(array $parted_sql);
+
+    
 
     // DATABASE INFORMATION SECTION
 
