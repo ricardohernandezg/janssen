@@ -47,6 +47,11 @@ class MySqlAdaptor extends Adaptor
             throw new Exception('Unable to connect to database', 500);
     }
 
+    public function disconnect()
+    {
+        $this->_cnx = null;
+    }
+
     /**
      * Check if query returns at least one row
      * 
@@ -193,6 +198,12 @@ class MySqlAdaptor extends Adaptor
             mysqli_next_result($this->connect());
             $this->last_result = false;
         }
+    }
+
+    public function setAutoFieldMapping($value = true)
+    {
+        $this->_map_return_fields = ($value == true)?MYSQLI_ASSOC:MYSQLI_NUM;
+        return $this;
     }
 
     public function translate($parted_sql)
