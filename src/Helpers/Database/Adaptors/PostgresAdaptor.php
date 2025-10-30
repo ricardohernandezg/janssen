@@ -50,6 +50,11 @@ class PostgresAdaptor extends Adaptor
         }
     }
 
+    public function disconnect()
+    {
+        $this->_cnx = null;
+    }    
+
     public function query($sql)
     {
         $this->freeResult();
@@ -202,6 +207,12 @@ class PostgresAdaptor extends Adaptor
     {
         if($this->last_result) pg_free_result($this->last_result);
         $this->last_result = false;
+    }
+
+    public function setAutoFieldMapping($value = true)
+    {
+        $this->_map_return_fields = ($value == true)?PGSQL_ASSOC:PGSQL_NUM;
+        return $this;
     }
 
     public function translate($parted_sql)

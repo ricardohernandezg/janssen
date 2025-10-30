@@ -39,6 +39,13 @@ abstract class Adaptor
     public abstract function connect();
     
     /**
+     * Disconnect from database
+     *
+     * @return void
+     */
+    public abstract function disconnect();
+
+    /**
      * Run query. 
      * 
      * MUST RETURN THE ARRAY WITH RESULTS or FALSE
@@ -145,17 +152,10 @@ abstract class Adaptor
      * This map refers to make the fields return DB FIELD NAMES instead
      * of 0-based column ordering. Related config fields to this are model->no_map
      * 
-     * @todo this is not correct!!! You're putting mysql consts in
-     * parent Adaptor. This must be in mysql adaptor
-     *
      * @param boolean $value
-     * @return void
-     */
-    public function setAutoFieldMapping($value = true)
-    {
-        $this->_map_return_fields = ($value == true)?MYSQLI_ASSOC:MYSQLI_NUM;
-        return $this;
-    }
+     * @return Adaptor
+     */    
+    public abstract function setAutoFieldMapping($value = true);
 
     /**
      * Returs the connection native object
