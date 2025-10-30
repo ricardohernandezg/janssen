@@ -26,6 +26,11 @@ abstract class Adaptor
      */
     protected $_map_return_fields = true;
 
+    public function __construct()
+    {
+        $this->setAutoFieldMapping();
+    }
+
     /**
      * Connect to database using the php function
      *
@@ -69,7 +74,7 @@ abstract class Adaptor
      * 
      * MUST RETURN BOOL
      */
-    protected abstract function statement($sql);
+    public abstract function statement($sql);
 
     /**
      * Set the last error in a internal variable to allow the user 
@@ -99,18 +104,6 @@ abstract class Adaptor
     public function getLastError()
     {
         return $this->last_error;
-    }
-
-    /**
-     * Run query. 
-     * 
-     * MUST RETURN BOOL
-     */
-    //public abstract function statement($sql);
-
-    public function __construct()
-    {
-        $this->setAutoFieldMapping();
     }
 
     /**
