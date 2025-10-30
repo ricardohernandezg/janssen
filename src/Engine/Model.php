@@ -37,21 +37,17 @@ class Model
     protected $view;
 
     /*
-    protected static $zero_based_mapping = false;
     
-    protected static $external_mapping;
+    
+   
 
 
 
-    protected static $distinct = false;
 
-    protected static $order_by = [];
 
-    protected static $limit = -1;
+    
 
-    protected static $offset = -1;
 
-    protected static $fields = [];
     
     private static $debug_and_wait = false;
     */
