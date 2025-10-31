@@ -148,9 +148,6 @@ class Database
     {
         try{
 
-            if(self::$debug_and_wait)
-                return $this->debug();
-
             if(empty(self::$parted_sql))
                 $this->makeBasicSelect();
 
@@ -202,36 +199,7 @@ class Database
         return self::$_adaptor->getLastError();
     }
 
-/**
-     * Returns the SQL intended to be used in query
-     *
-     * @param bool $stop Stops the execution of program and shows the query
-     * 
-     * @return String
-     */
-    public function debug($stop = false)
-    {
-        if(empty(self::$parted_sql))
-                $this->makeBasicSelect();
 
-        $sql = $this->prepareSelect(self::$parted_sql);
-
-        if($stop)
-            throw new Exception('Query: ' . $sql);
-
-        return $sql;
-    }
-
-    /**
-     * Sets debug mode on to return the SQL syntax intended to be used 
-     *
-     * @return Object
-     */
-    public function debugMode()
-    {
-        self::$debug_and_wait = true;
-        return $this;
-    }
 
     /**
      * Don't clean after the current query, useful to reuse same settings. It only

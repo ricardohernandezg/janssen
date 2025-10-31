@@ -111,6 +111,10 @@ class MySqlAdaptor extends Adaptor
     public function query($sql)
     {
         $this->freeResult();
+
+        if(self::$debug_and_wait)
+            return $this->debug();
+
         $res = $this->last_result = mysqli_query($this->connect(), $sql);
         if ($res) 
             $ret = (is_bool($res)) ? true : mysqli_fetch_all($res, $this->_map_return_fields);

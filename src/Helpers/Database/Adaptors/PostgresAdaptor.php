@@ -59,6 +59,9 @@ class PostgresAdaptor extends Adaptor
     {
         $this->freeResult();
 
+        if(self::$debug_and_wait)
+            return $this->debug();
+
         $res = $this->last_result = pg_query($this->connect(), $sql);
         if ($res) {
             // Si $res es booleano verdadero (como TRUE), resulta en true

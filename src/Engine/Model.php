@@ -35,22 +35,6 @@ class Model
     protected $table;
     protected $primaryKey;
     protected $view;
-
-    /*
-    
-    
-   
-
-
-
-
-
-    
-
-
-    
-    private static $debug_and_wait = false;
-    */
     
     /**
      * Fields that must be defined in order to use the Model
