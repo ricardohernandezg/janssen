@@ -5,15 +5,15 @@ namespace Janssen\Traits;
 use Janssen\Engine\Mapper;
 use Janssen\Helpers\Exception;
 use Janssen\Traits\InstanceGetter;
-use Janssen\Traits\SQLWhere;
+// use Janssen\Traits\SQLWhere;
 use Janssen\Traits\StaticCall;   
 
 trait SQLStatement
 {
 
     use InstanceGetter;
-    use SQLWhere;
     use StaticCall;
+    // use SQLWhere;
 
     /**
      * Mode of query, defined by the last call to all, allById or one
@@ -40,10 +40,10 @@ trait SQLStatement
 
     protected static $zero_based_mapping = false;
 
-    protected static $external_mapping;
-
     /** sql modifiers  */
     protected static $fields = [];    
+    
+    protected static $external_mapping = [];
 
     protected static $distinct = false;
 
@@ -52,7 +52,6 @@ trait SQLStatement
     protected static $limit = -1;
 
     protected static $offset = -1;
-
 
     private static $parted_sql = [];
 
@@ -106,6 +105,7 @@ trait SQLStatement
      *
      * @return String
      */
+    /*
     protected function prepareWhere(){
         $w = '';
         // query mode 0 is all(), that can be all rows or all using where statement
@@ -120,12 +120,14 @@ trait SQLStatement
             
         return $w;
     }
+    */
 
     /**
      * Prepares the order by part of query
      *
      * @return String
      */
+    /*
     protected function prepareOrderBy(){
         $o = '';
         if(count(self::$order_by) > 0)
@@ -138,6 +140,7 @@ trait SQLStatement
         }
         return $o;
     }
+        */
     
     /**
      * Returns the SQL parts that will be used to make the query string
@@ -277,9 +280,10 @@ trait SQLStatement
     /**
      * Select fields
      */
-    public static function select(Array $fields, ?Array $map = null)
+    public static function select(Array $fields, ?Mapper $map = null)
     {
         self::$fields = $fields;
+        if($map) self::mapWith($map);
         return self::me();
     }
 
@@ -298,7 +302,7 @@ trait SQLStatement
 
     public static function noMap(){
         self::$zero_based_mapping = true;
-        self::$external_mapping = null;
+        self::$external_mapping = [];    
         return self::me();
     }
 

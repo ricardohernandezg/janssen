@@ -2,8 +2,9 @@
 
 namespace Janssen\Engine;
 
-use Janssen\Helpers\Exception;
-use Janssen\Engine\Request;
+// use Janssen\Helpers\Exception;
+// use Janssen\Engine\Request;
+use Janssen\Engine\Ruleset;
 
 class Mapper
 {

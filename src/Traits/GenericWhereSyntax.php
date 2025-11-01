@@ -5,7 +5,7 @@ namespace Janssen\Traits;
 use Janssen\Helpers\Exception;
 use Janssen\Traits\InstanceGetter;
 
-trait SQLWhere
+trait GenericWhereSyntax
 {
     use InstanceGetter;
     
