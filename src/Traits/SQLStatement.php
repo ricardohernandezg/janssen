@@ -43,6 +43,8 @@ trait SQLStatement
     protected static $external_mapping;
 
     /** sql modifiers  */
+    protected static $fields = [];    
+
     protected static $distinct = false;
 
     protected static $order_by = [];
@@ -51,7 +53,8 @@ trait SQLStatement
 
     protected static $offset = -1;
 
-    protected static $fields = [];    
+
+    private static $parted_sql = [];
 
     /**
      * Alias of makeBasicSelect()
@@ -79,7 +82,7 @@ trait SQLStatement
 
         self::$parted_sql = [
             'select' => ((self::$distinct)?'DISTINCT':'') . " * ", 
-            'from' => ((self::$use_view)?$this->view:$this->table),  
+            'from' => $this->table,  
             'where' => $w, 
             'orderby' => $o, 
             'limit' => $lo];
@@ -153,7 +156,7 @@ trait SQLStatement
     public function setPartedSql(Array $parted_sql)
     {
         //parted must be an Array and have all the members
-        $parts = ['select','from','where','orderby','limit'];
+        $parts = ['select','from','where','orderby','limit','offset'];
         $f = true;
         foreach($parts as $v){
             $f = ($f && isset($parted_sql[$v]));
@@ -164,7 +167,6 @@ trait SQLStatement
         }else
             throw new Exception('Parted sql needs all its parameter to be built correctly.', 500);
     }
-
 
     /**
      * Sets the field array as select only to be flatten at query prepare time
@@ -244,7 +246,7 @@ trait SQLStatement
         // clear specific field mapping
         self::clearMapping();
         // clear select fields created by mapping
-        self::selectOnly([]);
+        self::select([]);
         // clear limit and offset
         self::limit();
         self::offset();
@@ -256,14 +258,26 @@ trait SQLStatement
         self::cleanWhere(); 
         // clean me() instance
         self::notMe();
-        // set debugMode off
-        self::$debug_and_wait = false;
+
         return $this;
     }
 
     // - - - - STATIC QUERY MODIFIERS  - - - -  //
 
+    /**
+     * Alias of select
+     * 
+     * @deprecated 
+     */
     public static function selectOnly(Array $fields)
+    {
+        return self::select($fields);
+    }
+    
+    /**
+     * Select fields
+     */
+    public static function select(Array $fields, ?Array $map = null)
     {
         self::$fields = $fields;
         return self::me();

@@ -112,8 +112,10 @@ class MySqlAdaptor extends Adaptor
     {
         $this->freeResult();
 
+        /*
         if(self::$debug_and_wait)
             return $this->debug();
+        */
 
         $res = $this->last_result = mysqli_query($this->connect(), $sql);
         if ($res) 

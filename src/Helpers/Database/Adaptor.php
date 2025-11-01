@@ -15,9 +15,6 @@ abstract class Adaptor
         'db'    => ''
     ];
 
-        
-    protected static $debug_and_wait = false;
-
     /**
      * Connection instance
      */
@@ -25,7 +22,7 @@ abstract class Adaptor
 
     protected $last_error;
 
-    private static $parted_sql = [];
+    
 
     /**
      * Map automatically fields when return array. False means
@@ -173,45 +170,14 @@ abstract class Adaptor
         return $this->_cnx;
     }
 
-    
-
     /**
      * Translate query object to SQL. 
      * 
      * @return string
      */
-    protected abstract function translate(array $parted_sql);
+    public abstract function translate(array $parted_sql);
 
-    /**
-     * Returns the SQL intended to be used in query
-     *
-     * @param bool $stop Stops the execution of program and shows the query
-     * 
-     * @return String
-     */
-    public function debug($stop = false)
-    {
-        if(empty(self::$parted_sql))
-                $this->makeBasicSelect();
-
-        $sql = $this->prepareSelect(self::$parted_sql);
-
-        if($stop)
-            throw new Exception('Query: ' . $sql);
-
-        return $sql;
-    }
-
-    /**
-     * Sets debug mode on to return the SQL syntax intended to be used 
-     *
-     * @return Object
-     */
-    public function debugMode()
-    {
-        self::$debug_and_wait = true;
-        return $this;
-    }
+    
 
     // DATABASE INFORMATION SECTION
 

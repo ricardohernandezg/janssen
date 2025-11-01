@@ -3,6 +3,7 @@
 namespace Janssen\Engine;
 
 use Janssen\Engine\Mapper;
+use Janssen\Engine\Ruleset;
 use Janssen\Helpers\Exception;
 use Janssen\Helpers\Database;
 use Janssen\Traits\SQLStatement;
@@ -18,6 +19,10 @@ use Throwable;
  * @todo Members that mustbedefined should not be public by rule, we 
  * could implement public methods to access private members so they cannot
  * be written by mistake nor accessed directly and affect future queries
+ * 
+ * @todo create the list settings to autoload records to fill combos and lists
+ * from only one call. This method should allow where modifiers to make it
+ * more flexible
  * 
  */
 class Model
@@ -35,6 +40,7 @@ class Model
     protected $table;
     protected $primaryKey;
     protected $view;
+    protected ?Ruleset $mapping = null;
     
     /**
      * Fields that must be defined in order to use the Model
@@ -99,5 +105,10 @@ class Model
     public function getPrimaryKey()
     {
         return $this->primaryKey;
+    }
+
+    protected function map()
+    {
+        return $this->mapping;
     }
 }
