@@ -47,6 +47,14 @@ trait SQLStatement
 
     protected static $distinct = false;
 
+    protected static $from = '';
+
+    protected static $where = [];
+
+    protected static $accepted_operators = [
+        '=','!=','<>','>','<','>=','<=','IN', 'NOT IN', 'NOTIN','BETWEEN','LIKE','IS NULL','NULL','NOT NULL'
+    ];
+
     protected static $order_by = [];
 
     protected static $limit = -1;
@@ -171,6 +179,8 @@ trait SQLStatement
             throw new Exception('Parted sql needs all its parameter to be built correctly.', 500);
     }
 
+    // - - - - MAPPING - - - - -
+ 
     /**
      * Sets the field array as select only to be flatten at query prepare time
      * 
@@ -238,68 +248,6 @@ trait SQLStatement
         return ($i > 0) ? [$a[1],$a[2]] : false;
     }
 
-    protected function clean()
-    {
-        // disable use associated view
-        self::useView(self::$defaults['useView']);
-        // clear distinct select
-        self::distinct(self::$defaults['distinct']);
-        // clear order by
-        self::clearOrderBy();
-        // clear specific field mapping
-        self::clearMapping();
-        // clear select fields created by mapping
-        self::select([]);
-        // clear limit and offset
-        self::limit();
-        self::offset();
-        // make default query mode
-        self::$query_mode = self::$defaults['queryMode'];
-        // clear parted_sql
-        self::$parted_sql = [];
-        // clean where
-        self::cleanWhere(); 
-        // clean me() instance
-        self::notMe();
-
-        return $this;
-    }
-
-    // - - - - STATIC QUERY MODIFIERS  - - - -  //
-
-    /**
-     * Alias of select
-     * 
-     * @deprecated 
-     */
-    public static function selectOnly(Array $fields)
-    {
-        return self::select($fields);
-    }
-    
-    /**
-     * Select fields
-     */
-    public static function select(Array $fields, ?Mapper $map = null)
-    {
-        self::$fields = $fields;
-        if($map) self::mapWith($map);
-        return self::me();
-    }
-
-    /**
-     * Make the query as count(*)
-     * 
-     * @return int
-     */
-    public static function count()
-    {
-        self::$query_mode = 3;
-        self::$fields = ['count(*) as count'];
-        $r = self::me()->go();
-        return (int) $r['count'];
-    }
-
     public static function noMap(){
         self::$zero_based_mapping = true;
         self::$external_mapping = [];    
@@ -349,6 +297,57 @@ trait SQLStatement
         return self::me();
     }
 
+    // - - - - END MAPPING - - - - 
+
+    protected function clean()
+    {
+        // disable use associated view
+        self::useView(self::$defaults['useView']);
+        // clear distinct select
+        self::distinct(self::$defaults['distinct']);
+        // clear order by
+        self::clearOrderBy();
+        // clear specific field mapping
+        self::clearMapping();
+        // clear select fields created by mapping
+        self::select([]);
+        // clear limit and offset
+        self::limit();
+        self::offset();
+        // make default query mode
+        self::$query_mode = self::$defaults['queryMode'];
+        // clear parted_sql
+        self::$parted_sql = [];
+        // clean where
+        self::cleanWhere(); 
+        // clean me() instance
+        self::notMe();
+
+        return $this;
+    }
+
+    // - - - - STATIC QUERY MODIFIERS  - - - -  //
+
+    /**
+     * Alias of select
+     * 
+     * @deprecated 
+     */
+    public static function selectOnly(Array $fields)
+    {
+        return self::select($fields);
+    }
+    
+    /**
+     * Select part of statement
+     */
+    public static function select(Array $fields, ?Mapper $map = null)
+    {
+        self::$fields = $fields;
+        if($map) self::mapWith($map);
+        return self::me();
+    }
+
     /**
      * Sets or disables the use of DISTINCT clause in query
      *
@@ -361,6 +360,16 @@ trait SQLStatement
         return self::me();
     }
 
+    
+    /**
+     * From part of statement
+    */
+    public static function from(String $table_name)
+    {
+        self::$from = $table_name;
+        return self::me();
+    }
+    
     /**
      * Sets the order by fields in the query
      *
@@ -379,6 +388,49 @@ trait SQLStatement
     }
 
     /**
+     * Sets the limit of rows in query
+    *
+    * @param integer $rows_count
+    * @return object
+    */
+    public static function limit($rows_count = -1)
+    {
+        self::$limit = $rows_count;
+        return self::me();
+    }
+    
+    /**
+     * Sets the offset in query
+     * @todo Check the compatibility with engines. Actually offset works well 
+     * with Postgres
+    *
+    * @param integer $rows_skip
+    * @return object
+    */
+    public static function offset($rows_skip = -1)
+    {
+        self::$offset = $rows_skip;
+        return self::me();
+    }
+    
+    /**
+     * Make the query as count(*)
+     * 
+     * @return int
+     */
+    public static function count()
+    {
+        self::$query_mode = 3;
+        self::$fields = ['count(*) as count'];
+        $r = self::me()->go();
+        return (int) $r['count'];
+    }
+
+    
+
+    
+
+    /**
      * Cleans the order by clause
      *
      * @return object
@@ -389,29 +441,127 @@ trait SQLStatement
         return self::me();
     }
 
+    
+
+
+    /** WHERE MODIFIERS */
+
     /**
-     * Sets the limit of rows in query
+     * Initializes the $_where variable and adds the first criteria
      *
-     * @param integer $rows_count
-     * @return object
+     * @param Array $fields
+     * @param Array|String $operator
+     * @return Object
      */
-    public static function limit($rows_count = -1)
+    public static function where($fields, $operator = '=')
     {
-        self::$limit = $rows_count;
-        return self::me();
+        self::$where = [];
+        return self::whereReal($fields, $operator);
     }
 
     /**
-     * Sets the offset in query
-     * @todo Check the compatibility with engines. Actually offset works well 
-     * with Postgres
+     * Adds a criteria using the AND relation against prior criteria
      *
-     * @param integer $rows_skip
-     * @return object
+     * @param Array $fields
+     * @param Array|String $operator
+     * @return Object
      */
-    public static function offset($rows_skip = -1)
+    public static function andWhere($fields, $operator = '=')
     {
-        self::$offset = $rows_skip;
+        if(empty(self::$_where))
+            throw new Exception('AndWhere requires Where function to be called first!',500);
+
+        return self::whereReal($fields, $operator, 'AND');
+    }
+
+    /**
+     * Adds a criteria using the OR relation against prior criteria
+     *
+     * @param Array $fields
+     * @param Array|String $operator
+     * @return Object
+     */
+    public static function orWhere($fields, $operator = '='){
+        if(empty(self::$_where))
+            throw new Exception('OrWhere requires Where function to be called first!',500);
+
+        return self::whereReal($fields, $operator, 'OR');
+    }
+
+    private static function whereReal($fields, $operator, $relation = '')
+    {
+
+        $s_where = [];
+        if(is_array($fields)){
+            // array must be an key/value combination of field/value. Default criteria 
+            // is =, but it can be changed to any operator supported by SQL
+            foreach($fields as $s_name=>$s_value){
+                // if criteria is an array, it should come in key/value pair, if the don't exists, = will be applied 
+                // if criteria is not array but string the same criteria will be applied to all fields in this
+                // operation
+                if (!self::isValidFieldName($s_name)){
+                    $s_name = $s_value;
+                    $s_value = null;
+                } 
+
+                if (is_array($operator)) {
+                    if (array_key_exists($s_name, $operator))
+                        $s_operator = self::prepareCriteria($operator[$s_name]);    
+                    elseif(count($fields) == 1 && !is_array($operator))
+                        $s_operator = self::prepareCriteria($operator);    
+                    else
+                        $s_operator = self::prepareCriteria(false);    
+                }else
+                    $s_operator = self::prepareCriteria($operator);
+                    
+                $s_where[] = self::makeWhereMember($s_name, $s_value, $s_operator);
+
+            }
+            self::$where[] = ['relation' => $relation,
+                    'members' => $s_where];
+            
+        }else
+            throw new Exception('Fields criteria must be Array', 500);
+
+        return self::me();
+
+    }
+
+    private static function makeWhereMember($field, $value, $operator){
+        
+        return [
+            'field' => $field,
+            'value' => $value,
+            'operator' => $operator
+        ];
+
+    }
+
+    private static function parameterIsAcceptable($param)
+    {
+        return (!is_object($param) && !is_bool($param));
+    }
+
+    private static function prepareCriteria($operator)
+    {
+        $operator = strtoupper(trim($operator));
+        if (empty($operator) || $operator == false || $operator == '=')  return '=';
+
+        if (in_array($operator, self::$accepted_operators))
+            return $operator;
+        else
+            return false;
+    }
+
+    public static function cleanWhere()
+    {
+        self::$where = [];
+        return self::me();
+    }
+
+    public static function cleanSelect()
+    {
+        self::$fields = [];
         return self::me();
     }
 

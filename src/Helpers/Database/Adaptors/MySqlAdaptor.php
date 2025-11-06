@@ -148,19 +148,7 @@ class MySqlAdaptor extends Adaptor
         return $res;
     }
 
-    protected function prepareSelect(Array $parted_sql)
-    {
-        $parted_sql['select'] = $this->flatFields();
-        return $this->flatSQL($parted_sql);
-    }
-
-    private function flatFields()
-    {
-        if(!empty(self::$fields))
-            return implode(', ', self::$fields);
-        else
-            return '*';
-    }
+    
 
     private function flatSQL($parted_sql)
     {

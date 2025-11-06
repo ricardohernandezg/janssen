@@ -30,6 +30,7 @@ abstract class Adaptor
      */
     protected $_map_return_fields = true;
 
+
     public function __construct()
     {
         $this->setAutoFieldMapping();
@@ -179,7 +180,7 @@ abstract class Adaptor
 
     
 
-    // DATABASE INFORMATION SECTION
+    // - - - - - DATABASE INFORMATION SECTION
 
     public abstract function tableExists($name, $schema = null);
     public abstract function viewExists($name, $schema = null);
