@@ -42,6 +42,13 @@ class Model
     protected $view;
     protected ?Ruleset $mapping = null;
     
+    /** 
+     * Don't clean after this query
+     */
+    private static $keep = false;    
+
+    protected static $debug_and_wait = false;
+
     /**
      * Fields that must be defined in order to use the Model
      */
@@ -111,4 +118,73 @@ class Model
     {
         return $this->mapping;
     }
+
+
+    /**
+     * Alias for one
+     */
+    public static function queryOne($sql)
+    {
+        return self::one($sql);
+    }
+
+
+    public function go()
+    {
+        try{
+
+            if(empty(self::$parted_sql))
+                $this->makeBasicSelect();
+
+            $sql = $this->prepareSelect(self::$parted_sql);
+
+            if(self::$zero_based_mapping)
+                Database::setFieldMapping(false); 
+            
+            switch(self::$query_mode){
+                case 0:
+                case 1:
+                    $ret = Database::query($sql);
+                    break;                
+                case 2:
+                case 3:
+                    $ret = Database::queryOne($sql);
+            }
+            
+            if(self::$keep)
+                self::$keep = false;
+            else 
+                $this->clean();
+            
+            return $ret ?? false;
+        }catch(Throwable $e){
+            $this->clean();
+            throw new Exception($e->getMessage(), $e->getCode(), 'Contact administrator', $e->getTrace());
+        }
+        
+    }
+
+    /**
+     * Sets debug mode on to return the SQL syntax intended to be used 
+     *
+     * @return Object
+     */
+    public static function debugMode()
+    {
+        self::$debug_and_wait = true;
+        return self::me();
+    }
+
+    /**
+     * Don't clean after the current query, useful to reuse same settings. It only
+     * works for the next call, you can use succesive calls to keep the same object
+     * settings
+     */
+    public static function keep()
+    {
+        self::$keep = true;
+        return self::me();
+    }
+
+
 }

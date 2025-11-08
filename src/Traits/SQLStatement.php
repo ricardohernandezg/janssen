@@ -8,6 +8,12 @@ use Janssen\Traits\InstanceGetter;
 // use Janssen\Traits\SQLWhere;
 use Janssen\Traits\StaticCall;   
 
+/**
+ * This class only takes care of
+ * - Field mapping
+ * - Statement flatting through adaptor
+ * - Debug
+ */
 trait SQLStatement
 {
 
@@ -414,23 +420,6 @@ trait SQLStatement
     }
     
     /**
-     * Make the query as count(*)
-     * 
-     * @return int
-     */
-    public static function count()
-    {
-        self::$query_mode = 3;
-        self::$fields = ['count(*) as count'];
-        $r = self::me()->go();
-        return (int) $r['count'];
-    }
-
-    
-
-    
-
-    /**
      * Cleans the order by clause
      *
      * @return object
@@ -441,7 +430,30 @@ trait SQLStatement
         return self::me();
     }
 
-    
+ 
+    /** DEBUG */
+    /**
+     * Returns the SQL intended to be used in query
+     *
+     * @param bool $stop Stops the execution of program and shows the query
+     * 
+     * @return String
+     */
+    public static function debug($sql, ?Array $mapping = [], ?Array $bindings = [])
+    {
+        /*
+        if(empty(self::$parted_sql))
+                $this->makeBasicSelect();
+
+        $sql = $this->prepareSelect(self::$parted_sql);
+
+        if($stop)
+            throw new Exception('Query: ' . $sql);
+        */
+
+        return $sql;
+    }
+
 
 
     /** WHERE MODIFIERS */
