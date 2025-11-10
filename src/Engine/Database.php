@@ -85,7 +85,7 @@ class Database
      * @param String $sql
      * @return Array|Bool
      */
-    public static function query($sql, ?Array $mapping = [], ?Array $bindings = [])
+    public static function query($sql, ?Array $bindings = [], ?Array $mapping = [])
     {
         $ret = self::$adaptor->query($sql);
         self::setFieldMapping();
@@ -130,7 +130,7 @@ class Database
     * @param ?Array $bindings    
     * @return Array|Bool
     */
-    public static function first($sql, ?Array $mapping = [], ?Array $bindings = [])
+    public static function first($sql, ?Array $bindings = [], ?Array $mapping = [])
     {
         $r = self::query($sql);
         if ($r && isset($r[0])) {
@@ -201,7 +201,6 @@ class Database
         return self::$adaptor->setAutoFieldMapping($value);
     }
 
-    
     public static function getLastError()
     {
         return self::$adaptor->getLastError();

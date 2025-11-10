@@ -54,23 +54,23 @@ abstract class Adaptor
      * 
      * MUST RETURN THE ARRAY WITH RESULTS or FALSE
      */
-    public abstract function query($sql);
+    public abstract function query(string $sql, ?array $bindings = []);
 
     /**
      * Runs a query and returns last insert id
      *
      * It must be developed the way for each driver. 
      * 
-     * @param String $sql
-     * @return Integer|Array|Bool
+     * @param string $sql
+     * @return integer|array|bool
      */
-    public abstract function insert($sql);
+    public abstract function insert(string $sql, ?array $bindings = []);
 
     /**
      * Runs a query and returns the row count
      * 
-     * @param String $sql
-     * @return Integer|Bool
+     * @param string $sql
+     * @return integer|bool
      * @deprecated
      */
     // public abstract function howMany($sql);
@@ -78,14 +78,14 @@ abstract class Adaptor
     /**
      * Returns the EXISTS statement of a query
      */
-    public abstract function exists($sql);
+    public abstract function exists(string $sql, ?array $bindings = []);
 
     /**
      * Run query. 
      * 
      * MUST RETURN BOOL
      */
-    public abstract function statement($sql);
+    public abstract function statement(string $sql, ?array $bindings = []);
 
     /**
      * Set the last error in a internal variable to allow the user 

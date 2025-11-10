@@ -58,7 +58,7 @@ class MySqlAdaptor extends Adaptor
      * @param String $sql
      * @return Bool
      */
-    public function exists($sql): Bool
+    public function exists(string $sql, ?array $bindings = []): Bool
     {
         $sql = "SELECT EXISTS($sql) as e";
         $r = $this->query($sql);
@@ -108,7 +108,7 @@ class MySqlAdaptor extends Adaptor
         return $this->exists($sql);
     } 
 
-    public function query($sql)
+    public function query(string $sql, ?array $bindings = [])
     {
         $this->freeResult();
 
@@ -138,7 +138,7 @@ class MySqlAdaptor extends Adaptor
      * @param String $sql
      * @return Bool
      */
-    public function statement($sql)
+    public function statement(string $sql, ?array $bindings = [])
     {
         $res = mysqli_query($this->connect(), $sql);
         if ($res) {
@@ -171,7 +171,7 @@ class MySqlAdaptor extends Adaptor
      * @param String $sql
      * @return Int 
      */
-    public function insert($sql)
+    public function insert(string $sql, ?array $bindings = [])
     {
 
         // mysql not supports LAST_INSERT_ID() in other sentences other than INSERT
