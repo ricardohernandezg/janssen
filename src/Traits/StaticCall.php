@@ -1,5 +1,12 @@
 <?php 
 
+/**
+* Adds functionality to allow a static nethods to be called in concrete way to ease
+* chaining in classes with static methods
+* 
+* @package  Janssen\Traits
+*/
+
 namespace Janssen\Traits;
 
 use \ReflectionClass;

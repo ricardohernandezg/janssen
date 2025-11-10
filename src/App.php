@@ -3,6 +3,7 @@
 namespace Janssen;
 
 use Janssen\Engine\Config;
+use Janssen\Engine\Database;
 use Janssen\Engine\Event;
 use Janssen\Engine\Header;
 use Janssen\Engine\Preprocessor;
@@ -11,7 +12,6 @@ use Janssen\Engine\Response;
 use Janssen\Engine\Route;
 use Janssen\Engine\Session;
 use Janssen\Engine\Validator;
-use Janssen\Helpers\Database;
 use Janssen\Helpers\Database\Adaptor;
 use Janssen\Helpers\Exception;
 use Janssen\Helpers\Response\ErrorResponse;

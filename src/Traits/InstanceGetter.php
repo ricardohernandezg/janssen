@@ -1,8 +1,7 @@
 <?php 
 /**
-* Adds functionality to allow a static method to call concrete methods
+* Adds functionality to allow a static nethods to be chained
 * 
-*
 * @package  Janssen\Traits
 */
 

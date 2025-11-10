@@ -1,25 +1,23 @@
 <?php 
 
-namespace Janssen\Traits;
+namespace Janssen\Helpers;
 
 use Janssen\Engine\Mapper;
 use Janssen\Helpers\Exception;
-use Janssen\Traits\InstanceGetter;
-// use Janssen\Traits\SQLWhere;
-use Janssen\Traits\StaticCall;   
 
 /**
  * This class only takes care of
  * - Field mapping
  * - Statement flatting through adaptor
  * - Debug
+ * - Gives as product the parted sql to be translated by adaptor
  */
-trait SQLStatement
+class SQLStatement
 {
 
-    use InstanceGetter;
-    use StaticCall;
-    // use SQLWhere;
+    use \Janssen\Traits\InstanceGetter;
+    use \Janssen\Traits\StaticCall;
+    use \Janssen\Traits\GenericSQLSyntax\GenericFieldSyntax;
 
     /**
      * Mode of query, defined by the last call to all, allById or one
@@ -32,7 +30,7 @@ trait SQLStatement
      * 
      * @var Integer
      */
-    private static $query_mode = 0;
+    // private static $query_mode = 0;
 
     private static $defaults = [
         'orderBy' => [],
@@ -53,7 +51,7 @@ trait SQLStatement
 
     protected static $distinct = false;
 
-    protected static $from = '';
+    protected static $table = '';
 
     protected static $where = [];
 
@@ -307,8 +305,6 @@ trait SQLStatement
 
     protected function clean()
     {
-        // disable use associated view
-        self::useView(self::$defaults['useView']);
         // clear distinct select
         self::distinct(self::$defaults['distinct']);
         // clear order by
@@ -320,8 +316,6 @@ trait SQLStatement
         // clear limit and offset
         self::limit();
         self::offset();
-        // make default query mode
-        self::$query_mode = self::$defaults['queryMode'];
         // clear parted_sql
         self::$parted_sql = [];
         // clean where
@@ -372,7 +366,7 @@ trait SQLStatement
     */
     public static function from(String $table_name)
     {
-        self::$from = $table_name;
+        self::$table = $table_name;
         return self::me();
     }
     
@@ -576,5 +570,6 @@ trait SQLStatement
         self::$fields = [];
         return self::me();
     }
+
 
 }

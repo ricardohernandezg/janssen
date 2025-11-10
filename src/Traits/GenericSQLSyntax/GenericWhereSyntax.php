@@ -1,6 +1,6 @@
 <?php 
 
-namespace Janssen\Traits;
+namespace Janssen\Traits\GenericSQLSyntax;
 
 use Janssen\Helpers\Exception;
 use Janssen\Traits\InstanceGetter;
@@ -57,12 +57,6 @@ trait GenericWhereSyntax
             return $value;
         else
             return "'$value'";
-    }
-
-    private static function isValidFieldName($name)
-    {
-        $er = '/^[A-Za-z\$\#\_]{1}[A-Za-z\$\#\_0-9]*/';
-        return preg_match($er, $name) == 1;
     }
 
     protected static function flatWhere(Array $where = [])

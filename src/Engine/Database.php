@@ -1,9 +1,10 @@
 <?php 
 
-namespace Janssen\Helpers;
+namespace Janssen\Engine;
 
 use Janssen\Helpers\Database\Adaptor;
-use Janssen\Traits\SQLStatement;
+use Janssen\Helpers\SQLStatement;
+use Janssen\Helpers\Exception;
 use Throwable;
 
 class Database
@@ -11,40 +12,40 @@ class Database
 
     use \Janssen\Traits\InstanceGetter;
     use \Janssen\Traits\StaticCall;    
-    use SQLStatement;
+    use \Janssen\Traits\GenericSQLSyntax\GenericFieldSyntax;
 
     /**
      * Connection variable
      *
      * @var Object
      */
-    protected static $_adaptor = false;
+    protected static $adaptor = false;
 
     //private static $_valid_engines = ['mysqli', 'pgsql'];
 
-    private static $_connected = false;
+    private static $connected = false;
 
     /**
      * Database engine to be used
      */
-    protected static $_engine = false;
+    protected static $engine = false;
 
     /**
      * Internal configurations
      */
-    protected static $_internal_config = [];
+    protected static $internal_config = [];
 
     /**
      * No map return arrays (instead return zero-based arrays)
      */
-    protected static $_nomap_return = false;
+    protected static $nomap_return = false;
 
     /**
      * Checks if there is connection object set
      */
     public static function isConnected()
     {
-        return (self::$_adaptor->isConnected());
+        return (self::$adaptor->isConnected());
     }
 
     /**
@@ -56,7 +57,7 @@ class Database
      */
     public static function setAdaptor(Adaptor $adaptor)
     {
-        self::$_adaptor = $adaptor;
+        self::$adaptor = $adaptor;
     }
 
     /**
@@ -67,7 +68,7 @@ class Database
      */
     public static function getAdaptor()
     {
-        return self::$_adaptor;
+        return self::$adaptor;
     }
 
     /**
@@ -75,7 +76,7 @@ class Database
      */
     public static function setAdaptorConfigField($field, $value)
     {
-        self::$_adaptor->setConfigField($field, $value);
+        self::$adaptor->setConfigField($field, $value);
     }
 
     /**
@@ -86,7 +87,7 @@ class Database
      */
     public static function query($sql, ?Array $mapping = [], ?Array $bindings = [])
     {
-        $ret = self::$_adaptor->query($sql);
+        $ret = self::$adaptor->query($sql);
         self::setFieldMapping();
         return $ret;
     }
@@ -94,31 +95,39 @@ class Database
     /**
      * Makes a database query and returns the last inserted id
      * 
-     * Running other than a INSERT INTO statement here will have the 
-     * effect that the engine throws
+     * Running other than a INSERT INTO statement here will throw an exception
      *
      * @param String $sql
-     * @return Integer|Bool
+     * @param ?Array $bindings
+     * @return Any
      */
     public static function insert($sql, ?Array $bindings = [])
     {
-        return self::$_adaptor->insert($sql);
+        // check that the statement is a INSERT INTO
+        if (!strtoupper((substr(trim($sql), 0,11)) == 'INSERT INTO'))
+            throw new Exception('Wrong insert into statement', 500);
+
+        return self::$adaptor->insert($sql);
     }
 
     /**
      * Run a statement with no return
      * 
+     * @param String $sql
+     * @param ?Array $bindings
      * @return Bool
      */
     public static function statement($sql, ?Array $bindings = [])
     {
-        return self::$_adaptor->statement($sql);
+        return self::$adaptor->statement($sql);
     }
    
     /**
      * Makes a query and returns only the first row
     *
     * @param String $sql
+    * @param ?Array $mapping
+    * @param ?Array $bindings    
     * @return Array|Bool
     */
     public static function first($sql, ?Array $mapping = [], ?Array $bindings = [])
@@ -138,23 +147,44 @@ class Database
      * 
      * @return int
      */
-    public static function count($sql, ?Array $bindings = [])
+    public static function count($sql, ?Array $bindings = [], $count_alias = 'count')
     {
         if(!substr(strtoupper(trim($sql)),1,6) == 'SELECT')
-            throw new Exception('Count only works for SELECT statements',500);
+            throw new Exception('Count only works for SELECT statements', 500);
         
+        if(!self::isValidFieldName($count_alias))
+            throw new Exception('Invalid field name for count alias', 500);
+
         // use a regex to detect if $sql has fields and replace with count(*)
-        $re = '/^SELECT\s(.+)\sFROM.+$/igm';
+        $re = '/^SELECT\s(.+)\sFROM.+$/im';
         $m = [];
-        $i = preg_match($re, $sql, $m);
-        if($i !== false){
+        $i = preg_match($re, $sql, $m, PREG_OFFSET_CAPTURE);
+        if($i !== false && count($m) > 1){
             // find the start and end point in the fields part of sql statement
-            
-        }
-        //self::$query_mode = 3;
-        //self::$fields = ['count(*) as count'];
-        $r = self::me()->query($sql);
-        return (int) $r['count'];
+            $s = $m[1][1];
+            $e = $s + strlen($m[1][0]);
+            $fixed_sql = "SELECT count(*) as $count_alias " . substr($sql, $e+1);
+            $r = self::me()->first($fixed_sql);
+            return (int) $r[$count_alias];
+        }else
+            throw new Exception('Invalid SQL statement', 500);
+
+    }
+
+    /**
+     * Make the bindings and return the query translated
+     * by adaptor
+     * 
+     * @param string $sql
+     * @param ?Array $bindings
+     * @return string
+     */
+    public static function debug($sql, ?Array $bindings = []) : string
+    {
+        /**
+         * @todo before return, make the bindings and translate
+         */
+        return $sql;
     }
 
     /**
@@ -162,19 +192,19 @@ class Database
      */
     public static function disconnect()
     {
-        self::$_adaptor = null;
-        self::$_connected = false;
+        self::$adaptor = null;
+        self::$connected = false;
     }
 
     public static function setFieldMapping($value = true)
     {
-        return self::$_adaptor->setAutoFieldMapping($value);
+        return self::$adaptor->setAutoFieldMapping($value);
     }
 
     
     public static function getLastError()
     {
-        return self::$_adaptor->getLastError();
+        return self::$adaptor->getLastError();
     }
 
 }

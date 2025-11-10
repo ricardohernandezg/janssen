@@ -165,19 +165,6 @@ class MySqlAdaptor extends Adaptor
         return $sql;
     }    
 
-
-    protected function prepareLimitOffset()
-    {
-        // sql doesn't allow use only offset
-        $lo = '';
-        if(self::$limit > -1 && self::$offset > -1)
-            $lo = self::$limit . ' OFFSET ' . self::$offset; 
-        elseif (self::$limit > -1)
-            $lo = self::$limit; 
-        
-        return $lo;
-    }
-
     /**
      * Inserts a record and returns the corresponding Id
      * 

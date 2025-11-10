@@ -3,6 +3,7 @@
 namespace Janssen\Helpers\Database;
 
 use Janssen\Helpers\Exception;
+use Janssen\Helpers\SQLStatement;
 
 abstract class Adaptor
 {
@@ -21,8 +22,6 @@ abstract class Adaptor
     protected $_cnx;
 
     protected $last_error;
-
-    
 
     /**
      * Map automatically fields when return array. False means
@@ -176,10 +175,8 @@ abstract class Adaptor
      * 
      * @return string
      */
-    public abstract function translate(array $parted_sql);
-
+    public abstract function translate(SQLStatement $sql);
     
-
     // - - - - - DATABASE INFORMATION SECTION
 
     public abstract function tableExists($name, $schema = null);
