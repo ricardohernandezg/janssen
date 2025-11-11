@@ -19,7 +19,7 @@ class Database
      *
      * @var Object
      */
-    protected static $adaptor = false;
+    protected static ?Adaptor $adaptor = null;
 
     //private static $_valid_engines = ['mysqli', 'pgsql'];
 
@@ -85,9 +85,11 @@ class Database
      * @param String $sql
      * @return Array|Bool
      */
-    public static function query($sql, ?Array $bindings = [], ?Array $mapping = [])
+    public static function query(string $sql, ?array $bindings = [], ?array $mapping = [])
     {
-        $ret = self::$adaptor->query($sql);
+        // map the select part
+
+        $ret = self::$adaptor->query($sql, $bindings);
         self::setFieldMapping();
         return $ret;
     }
@@ -101,13 +103,13 @@ class Database
      * @param ?Array $bindings
      * @return Any
      */
-    public static function insert($sql, ?Array $bindings = [])
+    public static function insert(string $sql, ?array $bindings = [])
     {
         // check that the statement is a INSERT INTO
         if (!strtoupper((substr(trim($sql), 0,11)) == 'INSERT INTO'))
             throw new Exception('Wrong insert into statement', 500);
 
-        return self::$adaptor->insert($sql);
+        return self::$adaptor->insert($sql, $bindings);
     }
 
     /**
@@ -117,9 +119,9 @@ class Database
      * @param ?Array $bindings
      * @return Bool
      */
-    public static function statement($sql, ?Array $bindings = [])
+    public static function statement(string $sql, ?array $bindings = [])
     {
-        return self::$adaptor->statement($sql);
+        return self::$adaptor->statement($sql, $bindings);
     }
    
     /**
@@ -130,9 +132,9 @@ class Database
     * @param ?Array $bindings    
     * @return Array|Bool
     */
-    public static function first($sql, ?Array $bindings = [], ?Array $mapping = [])
+    public static function first(string $sql, ?array $bindings = [], ?array $mapping = [])
     {
-        $r = self::query($sql);
+        $r = self::query($sql, $bindings, $mapping);
         if ($r && isset($r[0])) {
             return $r[0];
         } elseif (is_array($r) && count($r) == 0){
@@ -147,7 +149,7 @@ class Database
      * 
      * @return int
      */
-    public static function count($sql, ?Array $bindings = [], $count_alias = 'count')
+    public static function count(string $sql, ?array $bindings = [], string $count_alias = 'count')
     {
         if(!substr(strtoupper(trim($sql)),1,6) == 'SELECT')
             throw new Exception('Count only works for SELECT statements', 500);
@@ -164,7 +166,7 @@ class Database
             $s = $m[1][1];
             $e = $s + strlen($m[1][0]);
             $fixed_sql = "SELECT count(*) as $count_alias " . substr($sql, $e+1);
-            $r = self::me()->first($fixed_sql);
+            $r = self::me()->first($fixed_sql, $bindings);
             return (int) $r[$count_alias];
         }else
             throw new Exception('Invalid SQL statement', 500);
@@ -176,10 +178,10 @@ class Database
      * by adaptor
      * 
      * @param string $sql
-     * @param ?Array $bindings
+     * @param ?array $bindings
      * @return string
      */
-    public static function debug($sql, ?Array $bindings = []) : string
+    public static function debug(string $sql, ?array $bindings = []) : string
     {
         /**
          * @todo before return, make the bindings and translate
@@ -196,10 +198,12 @@ class Database
         self::$connected = false;
     }
 
-    public static function setFieldMapping($value = true)
+    /*
+    public static function setFieldMapping(bool $value = true)
     {
         return self::$adaptor->setAutoFieldMapping($value);
     }
+    */
 
     public static function getLastError()
     {
