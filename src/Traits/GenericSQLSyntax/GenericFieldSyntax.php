@@ -28,11 +28,11 @@ trait GenericFieldSyntax
         // get all the fields from the select part
         $re1 = "/SELECT\s+(.*?)\s+FROM/im";
         $m1 = $m2 = [];
-        $i = preg_match($re1, $sql, $m1);
+        $i = preg_match($re1, $sql, $m1, PREG_OFFSET_CAPTURE);
         if($i){
             // extract each field from the select part
             $re2 = "/" . self::$field_regex . "/im";
-
+            $j = preg_match_all($re2, $m1[0][0], $m2);
         }
 
         return $ret;
