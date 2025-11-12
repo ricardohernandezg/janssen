@@ -24,6 +24,9 @@ trait GenericFieldSyntax
      */
     public static function createMappedString(string $sql, array $mapping) : string
     {
+
+        if (empty($mapping)) return $sql;
+
         $ret = "";
         // get all the fields from the select part
         $re1 = "/SELECT\s+(.*?)\s+FROM/im";
@@ -32,7 +35,10 @@ trait GenericFieldSyntax
         if($i){
             // extract each field from the select part
             $re2 = "/" . self::$field_regex . "/im";
-            $j = preg_match_all($re2, $m1[0][0], $m2);
+            $j = preg_match_all($re2, $m1[1][0], $m2);
+            if($j !== false){
+
+            }
         }
 
         return $ret;

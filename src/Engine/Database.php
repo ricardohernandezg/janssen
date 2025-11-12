@@ -88,9 +88,9 @@ class Database
     public static function query(string $sql, ?array $bindings = [], ?array $mapping = [])
     {
         // map the select part
-
-        $ret = self::$adaptor->query($sql, $bindings);
-        self::setFieldMapping();
+        $mapped = self::createMappedString($sql, $mapping);
+        $ret = self::$adaptor->query($mapped, $bindings);
+        //self::setFieldMapping();
         return $ret;
     }
   
