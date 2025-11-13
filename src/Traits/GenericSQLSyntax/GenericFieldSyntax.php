@@ -22,7 +22,7 @@ trait GenericFieldSyntax
     /**
      * 
      */
-    public static function createMappedString(string $sql, array $mapping) : string
+    protected static function createMappedString(string $sql, array $mapping) : string
     {
 
         if (empty($mapping)) return $sql;
@@ -31,13 +31,21 @@ trait GenericFieldSyntax
         // get all the fields from the select part
         $re1 = "/SELECT\s+(.*?)\s+FROM/im";
         $m1 = $m2 = [];
+        $aliases = [];
         $i = preg_match($re1, $sql, $m1, PREG_OFFSET_CAPTURE);
         if($i){
             // extract each field from the select part
             $re2 = "/" . self::$field_regex . "/im";
             $j = preg_match_all($re2, $m1[1][0], $m2);
-            if($j !== false){
-
+            if($j !== false && $m2[0]){
+                $aliases = $m2[0];
+                foreach($aliases as &$v){
+                    // search in mapping by key the corresponding map
+                    $alias = $mapping[$v] ?? false;
+                    if($alias){
+                        $v = "$v as $alias";
+                    }
+                }
             }
         }
 
