@@ -28,8 +28,8 @@ abstract class Event
             throw new Exception("This event is not available");
         }
 
+        $event = strtolower($event);
         self::$callables[$event][] = $callable;
-
     }
 
     /**
@@ -51,16 +51,15 @@ abstract class Event
      */
     public static function invoke($event, $invoker, ...$args)
     {
-        $event = strtolower($event);
-
+        
         if(!self::exists($event)){
             throw new Exception("This event is not available");
         }        
 
+        $event = strtolower($event);
         foreach(self::$callables[$event] as $k=>$callable){
             $callable($invoker, $args);
         }
-
         return null;
     }
 
@@ -70,6 +69,20 @@ abstract class Event
     public static function create($event_name)
     {
         $event_name = strtolower($event_name);
-        self::$callables[$event_name] = [];
+        if(!self::exists($event_name)){
+            self::$callables[$event_name] = [];
+        }        
     }
+
+    /**
+     * Destroy event from list
+     */
+    public static function destroy($event_name)
+    {
+        $event_name = strtolower($event_name);
+        if(self::exists($event_name)){
+            self::$callables[$event_name] = null;
+        }        
+    }
+
 }
