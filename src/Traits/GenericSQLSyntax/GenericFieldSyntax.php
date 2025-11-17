@@ -46,6 +46,11 @@ trait GenericFieldSyntax
                         $v = "$v as $alias";
                     }
                 }
+                // replace fields in $sql for aliased
+                $aliased_fields = implode(', ', $aliases);
+                $start = $m1[1][1];
+                $end = $start + strlen($m1[1][0]);      
+                $ret = substr($sql, 0, $start) . $aliased_fields . substr($sql, $end);          
             }
         }
 
