@@ -4,9 +4,9 @@ namespace Janssen\Engine;
 
 use Janssen\Engine\Mapper;
 use Janssen\Engine\Ruleset;
+use Janssen\Engine\Database;
 use Janssen\Helpers\Exception;
-use Janssen\Helpers\Database;
-use Janssen\Traits\SQLStatement;
+use Janssen\Helpers\SQLStatement;
 use Janssen\Traits\ForceDefinition;
 use Janssen\Traits\InstanceGetter;
 use Janssen\Traits\StaticCall;
