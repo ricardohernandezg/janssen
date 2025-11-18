@@ -4,8 +4,9 @@ namespace Janssen\Helpers\Database\Adaptors;
 
 use Janssen\Helpers\Database\Adaptor;
 use Janssen\Helpers\Exception;
-use mysqli;
-use mysqli_result;
+use PDO;
+use PDOException;
+use PDOStatement;
 
 class MySqlAdaptor extends Adaptor
 {
@@ -23,28 +24,31 @@ class MySqlAdaptor extends Adaptor
     /** 
      * Connects to database
      * 
-     * @return mysqli 
+     * @return PDO 
      */
-    public function connect(): mysqli
+    public function connect(): PDO
     {
         if ($this->isConnected())
             return $this->_cnx;
-        
-        $cnx = mysqli_connect(
-            $this->_config_fields['host'],
-            $this->_config_fields['user'],
-            $this->_config_fields['pwd'],
-            $this->_config_fields['db'],
-            $this->_config_fields['port']
-        );
-        
-        // mysqli_query($cnx, "SET sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'");
-        if ($cnx) {
-            mysqli_set_charset($cnx, "utf8");
+               
+        $dsn = "mysql:host={$this->_config_fields['host']};dbname={$this->_config_fields['db']};port={$this->_config_fields['port']};charset=utf8mb4";
+
+        try {
+            $cnx = new PDO($dsn, $this->_config_fields['user'], $this->_config_fields['pwd'],
+                [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_EMULATE_PREPARES   => false,  
+                    PDO::MYSQL_ATTR_FOUND_ROWS => true
+                ]);
             $this->_cnx = $cnx;
             return $cnx;
-        } else
-            throw new Exception('Unable to connect to database', 500);
+
+        } catch (PDOException $e) {
+
+            $this->disconnect();
+            throw new Exception("Unable to connect to database (" . $e->getMessage() . ")", 500);
+        }
     }
 
     public function disconnect()
@@ -61,7 +65,7 @@ class MySqlAdaptor extends Adaptor
     public function exists(string $sql, ?array $bindings = []): Bool
     {
         $sql = "SELECT EXISTS($sql) as e";
-        $r = $this->query($sql);
+        $r = $this->query($sql, $bindings);
         if ($r && isset($r[0])) 
             $e = $r[0]['e'];
         else 
@@ -73,63 +77,58 @@ class MySqlAdaptor extends Adaptor
     public function tableExists($table_name, $schema = null){
         $sql = "SELECT TABLE_NAME 
             FROM information_schema.tables 
-            WHERE table_schema = '$schema' 
-            AND TABLE_NAME = '$table_name'";
+            WHERE table_schema = ? 
+            AND TABLE_NAME = ?";
         
-        return $this->exists($sql);
+        return $this->exists($sql, [$schema, $table_name]);
     }
 
     public function viewExists($view_name, $schema = null){
         $sql = "SELECT TABLE_NAME 
             FROM information_schema.views 
-            WHERE table_schema = '$schema' 
-            AND TABLE_NAME = '$view_name'";
+            WHERE table_schema = ? 
+            AND TABLE_NAME = ?";
 
-        return $this->exists($sql);
+        return $this->exists($sql, [$schema, $view_name]);
     }
 
     public function procedureExists($procedure_name, $schema = null){
         $sql = "SELECT ROUTINE_NAME 
             FROM information_schema.routines 
-            WHERE routine_schema = '$schema' 
+            WHERE routine_schema = ? 
             AND ROUTINE_TYPE = 'PROCEDURE'
-            AND ROUTINE_NAME = '$procedure_name'";
+            AND ROUTINE_NAME = ?";
 
-        return $this->exists($sql);
+        return $this->exists($sql, [$schema, $procedure_name]);
     }
     
     public function functionExists($function_name, $schema = null){
         $sql = "SELECT ROUTINE_NAME 
             FROM information_schema.routines 
-            WHERE routine_schema = '$schema' 
+            WHERE routine_schema = ? 
             AND ROUTINE_TYPE = 'FUNCTION'
-            AND ROUTINE_NAME = '$function_name'";
+            AND ROUTINE_NAME = ?";
 
-        return $this->exists($sql);
+        return $this->exists($sql, [$schema, $function_name]);
     } 
 
     public function query(string $sql, ?array $bindings = [])
     {
         $this->freeResult();
 
-        /*
-        if(self::$debug_and_wait)
-            return $this->debug();
-        */
+        try {
+            $cnx = $this->connect();
+            $stmt = $cnx->prepare($sql);
+    
+            self::bind($stmt, $bindings);
+    
+            $res = $stmt->execute();
 
-        $res = $this->last_result = mysqli_query($this->connect(), $sql);
-        if ($res) 
-            $ret = (is_bool($res)) ? true : mysqli_fetch_all($res, $this->_map_return_fields);
-         else{
-            $e = $this->_cnx->error_list;
-            if(count($e)){
-                $this->setLastError($e[0]['errno'], $e[0]['error'],$e[0]['sqlstate'],$sql);
-            }
-            $ret = false;
+            return ($res) ? $stmt->fetchAll() : false;     
+
+        } catch (PDOException $e) {
+            throw new Exception($e->getMessage(), 500);
         }
-            
-        return $ret;
-        
     }
 
     /**
@@ -140,12 +139,27 @@ class MySqlAdaptor extends Adaptor
      */
     public function statement(string $sql, ?array $bindings = [])
     {
-        $res = mysqli_query($this->connect(), $sql);
-        if ($res) {
-            $ret = (is_bool($res));
-            return $ret;
-        }
-        return $res;
+
+        $this->freeResult();
+
+        try {
+            $cnx = $this->connect();
+            $stmt = $cnx->prepare($sql);
+    
+            self::bind($stmt, $bindings);
+    
+            $res = $stmt->execute();
+            
+            if($res){
+                $this->affected_rows = $stmt->rowCount();
+                return true;
+
+            }else return false;
+            
+
+        } catch (PDOException $e) {
+            throw new Exception($e->getMessage(), 500);
+        }        
     }
 
     
@@ -174,39 +188,44 @@ class MySqlAdaptor extends Adaptor
     public function insert(string $sql, ?array $bindings = [])
     {
 
-        // mysql not supports LAST_INSERT_ID() in other sentences other than INSERT
-        if (!preg_match('/^INSERT\s.+$/im', $sql)) 
-            throw new Exception('Insert requires an INSERT SQL statement', 500);
+        try {
+            $cnx = $this->connect();
+            $stmt = $cnx->prepare($sql);
+    
+            self::bind($stmt, $bindings);
+    
+            // execute para select preparados
+            $res = $stmt->execute();
+            
+            $this->affected_rows = -1;
+            if($res){
+                $res2 = self::query("SELECT LAST_INSERT_ID();");
+                if ($res2 && isset($res2[0]['LAST_INSERT_ID()'])) {
+                    return $res2[0]['LAST_INSERT_ID()'];
+                } else return false;
+                
 
-        $c = $this->connect();
-        $res = mysqli_query($c, $sql);
-        if($res){
-            $res2 = mysqli_query($c, 'SELECT LAST_INSERT_ID()');
-            if($res2){
-                $ar_id = mysqli_fetch_row($res2);
-                return $ar_id[0];
-            }else{
-                $this->setLastError(mysqli_errno($c),mysqli_error($c), mysqli_sqlstate($c), $sql);
-                return false;
-            }
-        }else{
-            $this->setLastError(mysqli_errno($c),mysqli_error($c), mysqli_sqlstate($c), $sql);
-            return false;
-        }         
+            }else return false;            
+
+        } catch (PDOException $e) {
+            throw new Exception($e->getMessage(), 500);
+        }   
     }
 
     private function freeResult()
     {
+        /*
         if($this->last_result && $this->last_result instanceof mysqli_result && mysqli_more_results($this->_cnx)){
             mysqli_free_result($this->last_result);
             mysqli_next_result($this->connect());
             $this->last_result = false;
         }
+        */
     }
 
     public function setAutoFieldMapping($value = true)
     {
-        $this->_map_return_fields = ($value == true)?MYSQLI_ASSOC:MYSQLI_NUM;
+        $this->_map_return_fields = ($value == true) ? MYSQLI_ASSOC:MYSQLI_NUM;
         return $this;
     }
 
@@ -215,4 +234,16 @@ class MySqlAdaptor extends Adaptor
         return "";
     }
 
+    /**
+     * Prepare the bindings 
+     */
+    private static function bind(PDOStatement &$stmt, array $bindings = [])
+    {
+        // itera los bindings
+        $j = 1;
+        foreach ($bindings as $v){
+            $stmt->bindValue($j, $v, self::determineType($v));
+            $j++;
+        }
+    }
 }

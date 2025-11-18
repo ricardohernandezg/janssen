@@ -4,6 +4,7 @@ namespace Janssen\Helpers\Database;
 
 use Janssen\Helpers\Exception;
 use Janssen\Helpers\SQLStatement;
+use PDO;
 
 abstract class Adaptor
 {
@@ -22,6 +23,8 @@ abstract class Adaptor
     protected $_cnx;
 
     protected $last_error;
+
+    protected $affected_rows;
 
     /**
      * Map automatically fields when return array. False means
@@ -91,10 +94,10 @@ abstract class Adaptor
      * Set the last error in a internal variable to allow the user 
      * to know what happened if the statement returns false
      * 
-     * @param String $code
-     * @param String $message
-     * @param String $sqlstate
-     * @return $this
+     * @param string $code
+     * @param string $message
+     * @param string $sqlstate
+     * @return object
      */
     public function setLastError($code, $message, $sqlstate, $query)
     {
@@ -110,11 +113,21 @@ abstract class Adaptor
     /**
      * Return the user an array with the last error data
      *
-     * @return Array
+     * @return array
      */
     public function getLastError()
     {
         return $this->last_error;
+    }
+
+    /**
+     * Return the count of affected rows in last statement
+     *
+     * @return int
+     */
+    public function affectedRows()
+    {
+        return $this->affected_rows;
     }
 
     /**
@@ -169,6 +182,41 @@ abstract class Adaptor
     public function getConnector(){
         return $this->_cnx;
     }
+
+    /**
+     * Determines the var type to ease the binding functions. Returns 
+     * the PDO correspondent constant
+     * 
+     * @param any $var
+     */
+    protected static function determineType($var)
+    {
+        // Detectar nulo
+        if (is_null($var)) return PDO::PARAM_NULL;
+
+        // Primero verificamos booleano
+        if (is_bool($var)) return PDO::PARAM_BOOL;
+
+        // Si es entero exacto (y no cadena)
+        if (is_int($var)) return PDO::PARAM_INT;
+
+        // Si es flotante (y no cadena)
+        if (is_float($var)) return PDO::PARAM_STR;
+
+        // Si es cadena, debemos diferenciar texto "numérico" de número real (como texto)
+        if (is_string($var)) {
+            // Si la cadena es numérica pero no queremos considerarla número (según criterio)
+            // Por ejemplo, si queremos que cadenas numéricas siempre se consideren texto:
+            return PDO::PARAM_STR;
+        }
+
+        // Si ha llegado aquí, y es numérico (string numérico), consideramos texto según requerimiento
+        if (is_numeric($var)) return PDO::PARAM_STR;
+
+        // Por defecto, cualquier otro caso lo consideramos texto
+        return PDO::PARAM_STR;
+    }
+
 
     /**
      * Translate query object to SQL. 
