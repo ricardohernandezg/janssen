@@ -7,6 +7,7 @@ use Janssen\Engine\Ruleset;
 use Janssen\Engine\Database;
 use Janssen\Helpers\Exception;
 use Janssen\Helpers\SQLStatement;
+use Janssen\Helpers\Database\Adaptor;
 use Janssen\Traits\ForceDefinition;
 use Janssen\Traits\InstanceGetter;
 use Janssen\Traits\StaticCall;
@@ -28,7 +29,6 @@ use Throwable;
 class Model
 {
 
-    use SQLStatement;
     use ForceDefinition;
     use InstanceGetter;
     use StaticCall;
@@ -42,20 +42,44 @@ class Model
     protected $view;
     protected ?Ruleset $mapping = null;
     
+    /**
+     * Statement object
+     */
+    private static SQLStatement $stmt;
+
     /** 
-     * Don't clean after this query
+     * Don't clear after this query
      */
     private static $keep = false;    
 
-    protected static $debug_and_wait = false;
+    private static $debug_and_wait = false;
 
     /**
      * Fields that must be defined in order to use the Model
      */
-    protected $mustBeDefined = [
+    private $mustBeDefined = [
         'table',
         'primaryKey'
     ];
+
+    /**
+     * Connection in settings that will be used to query
+     * the model interactions
+     */
+    protected $connection_name = "";
+
+    /**
+     * Mode of query, defined by the last call to all, allById or one
+     * 0 - all (default)
+     * 1 - allById 
+     * 2 - one
+     * 3 - count
+     * 
+     * This variable is to be setted internally using the funcions
+     * 
+     * @var Integer
+     */
+    private static $query_mode = 0;
 
     // - - - - - STATIC QUERY RUNNERS  - - - - - //
 
@@ -82,7 +106,7 @@ class Model
     private function checkView()
     {
         if(self::$use_view && empty($this->view))
-            throw new Exception('Query trying to use a view but no view attribute was defined in model',0, 'Contact administrator');
+            throw new Exception('Query trying to use a view but no view attribute was defined in model', 500, 'Contact administrator');
 
         return $this;
     }
@@ -120,6 +144,39 @@ class Model
     }
 
 
+    // - - - - - - QUERY MODIFIERS - - - - - -
+
+    /**
+     * Alias of select
+     * 
+     * @deprecated 
+     */
+    public static function selectOnly(Array $fields)
+    {
+        return self::select($fields);
+    }
+    
+    /**
+     * Select part of statement
+     */
+    public static function select(Array $fields, ?Mapper $map = null)
+    {
+        self::$stmt->select($fields, $map);
+        return self::me();
+    }
+
+    /**
+     * Sets or disables the use of DISTINCT clause in query
+     *
+     * @param boolean $value
+     * @return object
+     */
+    public static function distinct($value = true)
+    {
+        self::$distinct = $value;
+        return self::me();
+    }
+
     /**
      * Alias for one
      */
@@ -133,14 +190,9 @@ class Model
     {
         try{
 
-            if(empty(self::$parted_sql))
-                $this->makeBasicSelect();
-
-            $sql = $this->prepareSelect(self::$parted_sql);
-
-            if(self::$zero_based_mapping)
-                Database::setFieldMapping(false); 
-            
+            $sql = $this->prepareStatement()
+                ->makeStatement();
+          
             switch(self::$query_mode){
                 case 0:
                 case 1:
@@ -148,17 +200,17 @@ class Model
                     break;                
                 case 2:
                 case 3:
-                    $ret = Database::queryOne($sql);
+                    //$ret = Database::queryOne($sql);
             }
             
             if(self::$keep)
                 self::$keep = false;
             else 
-                $this->clean();
+                $this->clearQuery();
             
             return $ret ?? false;
         }catch(Throwable $e){
-            $this->clean();
+            $this->clearQuery();
             throw new Exception($e->getMessage(), $e->getCode(), 'Contact administrator', $e->getTrace());
         }
         
@@ -169,14 +221,14 @@ class Model
      *
      * @return Object
      */
-    public static function debugMode()
+    public static function debug()
     {
         self::$debug_and_wait = true;
         return self::me();
     }
 
     /**
-     * Don't clean after the current query, useful to reuse same settings. It only
+     * Don't clear after the current query, useful to reuse same settings. It only
      * works for the next call, you can use succesive calls to keep the same object
      * settings
      */
@@ -186,5 +238,44 @@ class Model
         return self::me();
     }
 
+    /**
+     * clear all the query modifiers
+     */
+    private function clearQuery()
+    {
+        return $this;
+    }
+
+    private function prepareStatement()
+    {
+        
+        switch(self::$query_mode){
+            case 1:
+                $ret = Database::query($sql);
+                break;                
+            case 2:
+                break;
+            case 3:
+            //$ret = Database::queryOne($sql);
+                break;
+            case 0:
+            default:
+                self::$stmt->clearSelect();
+                    
+        }
+        return $this;
+    }
+
+    private function makeStatement() : string
+    {
+        // get the parted_sql from statement and translate
+        // using the adaptor to run it
+        if($this->connection_name !== ""){
+            // resuelve el adaptador correcto y setealo en database
+            
+        }
+
+        return "";
+    }
 
 }

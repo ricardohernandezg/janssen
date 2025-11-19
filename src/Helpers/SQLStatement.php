@@ -319,52 +319,28 @@ class SQLStatement
         // clear parted_sql
         self::$parted_sql = [];
         // clean where
-        self::cleanWhere(); 
+        self::clearWhere(); 
         // clean me() instance
         self::notMe();
 
         return $this;
     }
 
-    // - - - - STATIC QUERY MODIFIERS  - - - -  //
-
-    /**
-     * Alias of select
-     * 
-     * @deprecated 
-     */
-    public static function selectOnly(Array $fields)
-    {
-        return self::select($fields);
-    }
     
     /**
-     * Select part of statement
-     */
-    public static function select(Array $fields, ?Mapper $map = null)
-    {
-        self::$fields = $fields;
-        if($map) self::mapWith($map);
-        return self::me();
-    }
-
-    /**
-     * Sets or disables the use of DISTINCT clause in query
-     *
-     * @param boolean $value
-     * @return object
-     */
-    public static function distinct($value = true)
+     * From part of statement
+    */
+    public function distinct(bool $value = false)
     {
         self::$distinct = $value;
-        return self::me();
+        return $this;
     }
 
     
     /**
      * From part of statement
     */
-    public static function from(String $table_name)
+    public function from(String $table_name)
     {
         self::$table = $table_name;
         return self::me();
@@ -559,16 +535,16 @@ class SQLStatement
             return false;
     }
 
-    public static function cleanWhere()
+    public static function clearWhere()
     {
         self::$where = [];
         return self::me();
     }
 
-    public static function cleanSelect()
+    public static function clearSelect()
     {
         self::$fields = [];
-        return self::me();
+        return self::noMap();
     }
 
 

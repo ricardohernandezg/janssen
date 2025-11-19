@@ -271,21 +271,13 @@ class App
     private function load_database_connection()
     {
         $dc = self::getConfig('connections')[self::getConfig('default_connection')];
-        $dbe = $dc['driver'];
-        if ($dbe) {
-            $adaptor = DefaultResolver::resolve($dbe);
-            if ($adaptor && $adaptor instanceof Adaptor){ 
-                $cf = $adaptor->getAllConfigFields();
-                foreach ($cf as $k => $v) {
-                    $adaptor->setConfigField($k, empty($dc[$k]) ? null : $dc[$k]);
-                }
-                Database::setAdaptor($adaptor);
-            } else {
-                throw new Exception('Database class not implemented or inexistent', 500);
-            }
+        $dbe = $dc['driver'] ?? false;
+        if ($dc && $dbe) {
+            $adaptor = self::getDatabaseAdaptor($dc);
+            Database::setAdaptor($adaptor);
         }
     }
-
+    
     /**
      * Make a map of method parameters with RequestHelper
      * variables passed and validated. Intended only for internal
@@ -488,6 +480,21 @@ class App
         $er->setHeader($h);
         return $er;
     }    
+
+    public static function getDatabaseAdaptor(array $connection) : Adaptor
+    {
+        $adaptor = DefaultResolver::resolve($connection['driver']);
+        if ($adaptor && $adaptor instanceof Adaptor){ 
+            $cf = $adaptor->getAllConfigFields();
+            foreach ($cf as $k => $v) {
+                $adaptor->setConfigField($k, empty($dc[$k]) ? null : $connection[$k]);
+            }
+        } else {
+            throw new Exception('Database class not implemented or inexistent', 500);
+        }
+
+        return $adaptor;
+    }
 
     public function getCurrentHeader()
     {

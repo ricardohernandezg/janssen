@@ -12,7 +12,7 @@ class DefaultResolver
         'JsonResponse' => '\Janssen\Helpers\Response\JsonResponse',
         ];
     
-    public static function resolve($alias)
+    public static function resolve($alias) : Object
     {
         return (empty(self::$aliased_defaults[$alias])? false : new self::$aliased_defaults[$alias]);
     }
