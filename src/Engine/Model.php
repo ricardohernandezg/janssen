@@ -145,7 +145,13 @@ class Model
 
     protected function map()
     {
-        return $this->mapping;
+        return self::$stmt->getMap();
+    }
+
+    protected function mapWith(Mapper $mapper)
+    {
+        self::$stmt->mapWith($mapper);
+        return $this;
     }
 
 
@@ -286,7 +292,8 @@ class Model
         }else
             $adaptor = Database::getAdaptor();
 
-        
+        $parted_sql = self::$stmt->getPartedSql();
+        $sql = $adaptor::translate($parted_sql);
         return "";
     }
 

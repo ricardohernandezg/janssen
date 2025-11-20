@@ -79,17 +79,17 @@ class SQLStatement
     /**
      * Makes the query string with the internal parted SQL object
      *
-     * @return Object
+     * @return array
      */
-    public function makeBasicSelect()
+    private function makeParted()
     {
         
-        $o = $this->prepareOrderBy();
-        $lo = $this->prepareLimitOffset();
-        $w = $this->prepareWhere();
+        //$o = $this->prepareOrderBy();
+        //$lo = $this->prepareLimitOffset();
+        //$w = $this->prepareWhere();
 
         if(!self::$zero_based_mapping)
-            $this->prepareMapping();
+            $this->prepareMapped();
 
         self::$parted_sql = [
             'select' => ((self::$distinct)?'DISTINCT':'') . " * ", 
@@ -159,6 +159,9 @@ class SQLStatement
      */
     public function getPartedSql() : Array
     {
+        $parted = [
+
+        ];
         return self::$parted_sql;
     }
 
@@ -190,7 +193,7 @@ class SQLStatement
      * 
      * @return Object
      */
-    protected function prepareMapping()
+    protected function prepareMapped(array &$fields, $map)
     {
         // check if user restricted the query to only some fields
         $r = [];
@@ -227,6 +230,7 @@ class SQLStatement
         return $this;
     }
 
+    /*
     private function getExternalMapping($field_name)
     {
         return (!empty(self::$external_mapping) && array_key_exists($field_name,self::$external_mapping)) ?
@@ -251,6 +255,7 @@ class SQLStatement
         $i = preg_match($er,$field_name,$a);
         return ($i > 0) ? [$a[1],$a[2]] : false;
     }
+    */
 
     public static function noMap(){
         self::$zero_based_mapping = true;
@@ -264,12 +269,20 @@ class SQLStatement
      * @param Mapper $mapper
      * @return Object
      */
-    public static function mapWith(Mapper $mapper)
+    public function mapWith(Mapper $mapper)
     {
         self::$zero_based_mapping = false;
         self::$external_mapping = $mapper->getMap();    
         return self::me();
     }
+
+    /**
+     * Returns the current map
+     */
+    public function getMap()
+    {
+        return self::$external_mapping;
+    } 
 
     /**
      * Add specific field mapping to the next query
