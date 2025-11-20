@@ -42,30 +42,30 @@ class SQLStatement
         'queryMode' => 0
     ];
 
-    protected static $zero_based_mapping = false;
+    protected $zero_based_mapping = false;
 
     /** sql modifiers  */
-    protected static $fields = [];    
+    protected $fields = [];    
     
-    protected static $external_mapping = [];
+    protected ?Mapper $mapper;
 
-    protected static $distinct = false;
+    protected $distinct = false;
 
-    protected static $table = '';
+    protected $table = '';
 
-    protected static $where = [];
+    protected $where = [];
 
-    protected static $accepted_operators = [
+    protected $accepted_operators = [
         '=','!=','<>','>','<','>=','<=','IN', 'NOT IN', 'NOTIN','BETWEEN','LIKE','IS NULL','NULL','NOT NULL'
     ];
 
-    protected static $order_by = [];
+    protected $order_by = [];
 
-    protected static $limit = -1;
+    protected $limit = -1;
 
-    protected static $offset = -1;
+    protected $offset = -1;
 
-    private static $parted_sql = [];
+    private  $parted_sql = [];
 
     /**
      * Alias of makeBasicSelect()
@@ -89,7 +89,7 @@ class SQLStatement
         //$w = $this->prepareWhere();
 
         if(!self::$zero_based_mapping)
-            $this->prepareMapped();
+            $this->prepareMapped($this->fields, $this->mapper);
 
         self::$parted_sql = [
             'select' => ((self::$distinct)?'DISTINCT':'') . " * ", 
@@ -160,7 +160,11 @@ class SQLStatement
     public function getPartedSql() : Array
     {
         $parted = [
-
+            'select' => (($this->distinct)?'DISTINCT':'') . " * ", 
+            'from' => $this->table,  
+            'where' => $w, 
+            'orderby' => $o, 
+            'limit' => $lo
         ];
         return self::$parted_sql;
     }
@@ -257,10 +261,10 @@ class SQLStatement
     }
     */
 
-    public static function noMap(){
-        self::$zero_based_mapping = true;
-        self::$external_mapping = [];    
-        return self::me();
+    public function noMap(){
+        $this->zero_based_mapping = true;
+        $this->mapper = null;    
+        return $this;
     }
 
     /**
@@ -271,17 +275,17 @@ class SQLStatement
      */
     public function mapWith(Mapper $mapper)
     {
-        self::$zero_based_mapping = false;
-        self::$external_mapping = $mapper->getMap();    
-        return self::me();
+        $this->zero_based_mapping = true;
+        $this->mapper = $mapper;    
+        return $this;
     }
 
     /**
      * Returns the current map
      */
-    public function getMap()
+    public function getMap() : Mapper
     {
-        return self::$external_mapping;
+        return $this->mapper;
     } 
 
     /**
@@ -339,24 +343,34 @@ class SQLStatement
         return $this;
     }
 
-    
+    /**
+     * From part of statement
+    */
+    public function select(array $fields = [], ?Mapper $mapper = null)
+    {
+        $this->fields = $fields;
+        if ($mapper){
+            self::mapWith($mapper);
+        }
+        return $this;
+    }
+
     /**
      * From part of statement
     */
     public function distinct(bool $value = false)
     {
-        self::$distinct = $value;
+        $this->distinct = $value;
         return $this;
     }
-
     
     /**
      * From part of statement
     */
     public function from(String $table_name)
     {
-        self::$table = $table_name;
-        return self::me();
+        $this->table = $table_name;
+        return $this;
     }
     
     /**
@@ -382,10 +396,10 @@ class SQLStatement
     * @param integer $rows_count
     * @return object
     */
-    public static function limit($rows_count = -1)
+    public function limit($rows_count = -1)
     {
-        self::$limit = $rows_count;
-        return self::me();
+        $this->limit = $rows_count;
+        return $this;
     }
     
     /**
@@ -396,10 +410,10 @@ class SQLStatement
     * @param integer $rows_skip
     * @return object
     */
-    public static function offset($rows_skip = -1)
+    public function offset($rows_skip = -1)
     {
-        self::$offset = $rows_skip;
-        return self::me();
+        $this->offset = $rows_skip;
+        return $this;
     }
     
     /**
@@ -554,10 +568,10 @@ class SQLStatement
         return self::me();
     }
 
-    public static function clearSelect()
+    public function clearSelect()
     {
-        self::$fields = [];
-        return self::noMap();
+        $this->fields = [];
+        return $this->noMap();
     }
 
 

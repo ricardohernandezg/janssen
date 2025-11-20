@@ -3,11 +3,11 @@
 namespace Janssen\Engine;
 
 use Janssen\Engine\Mapper;
-use Janssen\Engine\Ruleset;
+// use Janssen\Engine\Ruleset;
 use Janssen\Engine\Database;
 use Janssen\Helpers\Exception;
 use Janssen\Helpers\SQLStatement;
-use Janssen\Helpers\Database\Adaptor;
+// use Janssen\Helpers\Database\Adaptor;
 use Janssen\Traits\ForceDefinition;
 use Janssen\Traits\InstanceGetter;
 use Janssen\Traits\StaticCall;
@@ -33,15 +33,21 @@ class Model
     use InstanceGetter;
     use StaticCall;
 
-    protected static $use_view = false;
-
-    protected static $pk_value_for_query = null;
-
+    /** mandatory options  */
     protected $table;
     protected $primaryKey;
     protected $view;
-    protected ?Ruleset $mapping = null;
-    
+
+    /** static modificers */
+    protected static $use_view = false;
+    private static $distinct = false;
+
+
+    /** private per-query settings  */
+    private static $pk_value_for_query = null;
+    private $fields = [];
+    private ?Mapper $mapper = null;
+
     /**
      * Statement object
      */
@@ -143,7 +149,7 @@ class Model
         return $this->primaryKey;
     }
 
-    protected function map()
+    protected function getMap()
     {
         return self::$stmt->getMap();
     }
@@ -291,6 +297,14 @@ class Model
                 throw new Exception('Connection not set in config', 500, 'Contact administrator');
         }else
             $adaptor = Database::getAdaptor();
+
+        
+        self::$stmt->select($this->fields, $this->mapper)
+            ->distinct(self::$distinct)
+            ->from(self::$use_view ? 
+                $this->view : $this->table
+                );
+        
 
         $parted_sql = self::$stmt->getPartedSql();
         $sql = $adaptor::translate($parted_sql);
