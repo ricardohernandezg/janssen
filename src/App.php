@@ -107,7 +107,7 @@ class App
             self::$request::fixPath();
         
         // instanciate database if setted up
-        $this->load_database_connection();
+        $this->loadDatabaseConnection();
         
         Event::invoke('app.afterinit', $this);
 
@@ -268,7 +268,7 @@ class App
         return $ret;
     }
 
-    private function load_database_connection()
+    private function loadDatabaseConnection()
     {
         $dc = self::getConfig('connections')[self::getConfig('default_connection')];
         $dbe = $dc['driver'] ?? false;
@@ -402,7 +402,7 @@ class App
      */
     public static function getConfig($config)
     {
-        return empty(self::$engine_config[$config]) ? false : self::$engine_config[$config];
+        return self::$engine_config[$config] ?? null;
     }
 
     public static function getPathCandidate($which = 'engine')

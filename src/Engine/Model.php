@@ -81,6 +81,11 @@ class Model
      */
     private static $query_mode = 0;
 
+    public function __construct()
+    {
+        self::$stmt = new SQLStatement();
+    }
+
     // - - - - - STATIC QUERY RUNNERS  - - - - - //
 
     public static function all()
@@ -272,9 +277,16 @@ class Model
         // using the adaptor to run it
         if($this->connection_name !== ""){
             // resuelve el adaptador correcto y setealo en database
-            
-        }
+            $conn = \getConfig('connections')[$this->connection_name] ?? false;
+            if($conn){
+                $adaptor = \getDatabaseAdaptor($conn);
+                Database::setAdaptor($adaptor);
+            }else
+                throw new Exception('Connection not set in config', 500, 'Contact administrator');
+        }else
+            $adaptor = Database::getAdaptor();
 
+        
         return "";
     }
 
