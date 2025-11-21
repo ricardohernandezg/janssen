@@ -92,7 +92,8 @@ class SQLStatement
             $this->prepareMapped($this->fields, $this->mapper);
 
         self::$parted_sql = [
-            'select' => ((self::$distinct)?'DISTINCT':'') . " * ", 
+            'select' => "*", 
+            'distinct' => '',
             'from' => $this->table,  
             'where' => $w, 
             'orderby' => $o, 
@@ -160,13 +161,16 @@ class SQLStatement
     public function getPartedSql() : Array
     {
         $parted = [
-            'select' => (($this->distinct)?'DISTINCT':'') . " * ", 
+            'select' => "*", 
+            'distinct' => $this->distinct,
             'from' => $this->table,  
-            'where' => $w, 
-            'orderby' => $o, 
-            'limit' => $lo
+            'where' => $this->prepareWhere(), 
+            'orderby' => $this->prepareOrderBy(), 
+            'limit' => $this->limit,
+            'offset' => $this->offset
         ];
-        return self::$parted_sql;
+        
+        return $parted;
     }
 
     /**
