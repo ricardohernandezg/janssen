@@ -17,7 +17,7 @@ class Database
     /**
      * Connection variable
      *
-     * @var Object
+     * @var Adaptor $adaptor
      */
     protected static ?Adaptor $adaptor = null;
 
@@ -82,8 +82,8 @@ class Database
     /**
      * Makes a query and returns mapped array with data
      *
-     * @param String $sql
-     * @return Array|Bool
+     * @param string $sql
+     * @return array|bool
      */
     public static function query(string $sql, ?array $bindings = [], ?array $mapping = [])
     {
@@ -99,9 +99,9 @@ class Database
      * 
      * Running other than a INSERT INTO statement here will throw an exception
      *
-     * @param String $sql
-     * @param ?Array $bindings
-     * @return Any
+     * @param string $sql
+     * @param ?array $bindings
+     * @return int|string|bool
      */
     public static function insert(string $sql, ?array $bindings = [])
     {
@@ -115,23 +115,23 @@ class Database
     /**
      * Run a statement with no return
      * 
-     * @param String $sql
-     * @param ?Array $bindings
-     * @return Bool
+     * @param string $sql
+     * @param ?array $bindings
+     * @return bool
      */
     public static function statement(string $sql, ?array $bindings = [])
     {
         return self::$adaptor->statement($sql, $bindings);
     }
-   
+
     /**
      * Makes a query and returns only the first row
-    *
-    * @param String $sql
-    * @param ?Array $mapping
-    * @param ?Array $bindings    
-    * @return Array|Bool
-    */
+     *
+     * @param string $sql
+     * @param ?array $mapping
+     * @param ?array $bindings    
+     * @return array|Bool
+     */
     public static function first(string $sql, ?array $bindings = [], ?array $mapping = [])
     {
         $r = self::query($sql, $bindings, $mapping);
