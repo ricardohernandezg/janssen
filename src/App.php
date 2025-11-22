@@ -487,7 +487,7 @@ class App
         if ($adaptor && $adaptor instanceof Adaptor){ 
             $cf = $adaptor->getAllConfigFields();
             foreach ($cf as $k => $v) {
-                $adaptor->setConfigField($k, empty($dc[$k]) ? null : $connection[$k]);
+                $adaptor->setConfigField($k, empty($connection[$k]) ? null : $connection[$k]);
             }
         } else {
             throw new Exception('Database class not implemented or inexistent', 500);

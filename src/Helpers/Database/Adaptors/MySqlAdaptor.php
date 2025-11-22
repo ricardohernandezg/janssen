@@ -4,12 +4,17 @@ namespace Janssen\Helpers\Database\Adaptors;
 
 use Janssen\Helpers\Database\Adaptor;
 use Janssen\Helpers\Exception;
+use Janssen\Traits\GenericSQLSyntax\GenericSelectSyntax;
+use Janssen\Traits\GenericSQLSyntax\GenericWhereSyntax;
 use PDO;
 use PDOException;
 use PDOStatement;
 
 class MySqlAdaptor extends Adaptor
 {
+
+    use GenericSelectSyntax;
+    use GenericWhereSyntax;
 
     protected $_config_fields = [
         'host'  => '',
@@ -163,7 +168,7 @@ class MySqlAdaptor extends Adaptor
     }
 
     
-
+    /*
     private function flatSQL($parted_sql)
     {
         $sql = 'SELECT ' . (self::$distinct?'DISTINCT ':'') . $parted_sql['select'] . ' FROM ' . $parted_sql['from'];
@@ -177,7 +182,8 @@ class MySqlAdaptor extends Adaptor
             $sql .= ' LIMIT ' . trim($parted_sql['limit']);
             
         return $sql;
-    }    
+    } 
+    */   
 
     /**
      * Inserts a record and returns the corresponding Id
@@ -231,7 +237,9 @@ class MySqlAdaptor extends Adaptor
 
     public function translate($parted_sql)
     {
-        return "";
+        $sql = $this->prepareSelect($parted_sql);
+        $sql .= " FROM " . $parted_sql['from'];
+        return $sql . ';';
     }
 
     /**

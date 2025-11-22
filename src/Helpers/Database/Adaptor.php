@@ -223,7 +223,7 @@ abstract class Adaptor
      * 
      * @return string
      */
-    public abstract function translate(SQLStatement $sql);
+    public abstract function translate(array $parted_sql);
     
     // - - - - - DATABASE INFORMATION SECTION
 

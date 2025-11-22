@@ -65,7 +65,7 @@ class SQLStatement
 
     protected $offset = -1;
 
-    private  $parted_sql = [];
+    private $parted_sql = [];
 
     /**
      * Alias of makeBasicSelect()
@@ -106,10 +106,11 @@ class SQLStatement
      * Cleans the mapping 
      *
      * @return object
+     * @deprecated
      */
     public static function clearMapping()
     {
-        self::$external_mapping = self::$defaults['mapping'];
+        //self::$external_mapping = self::$defaults['mapping'];
         return self::me();
     }
 
@@ -158,14 +159,14 @@ class SQLStatement
     /**
      * Returns the SQL parts that will be used to make the query string
      */
-    public function getPartedSql() : Array
+    public function getPartedSql() : array
     {
         $parted = [
-            'select' => "*", 
+            'select' => $this->fields, 
             'distinct' => $this->distinct,
             'from' => $this->table,  
-            'where' => $this->prepareWhere(), 
-            'orderby' => $this->prepareOrderBy(), 
+            'where' => $this->where, 
+            'orderby' => $this->order_by, 
             'limit' => $this->limit,
             'offset' => $this->offset
         ];
@@ -360,9 +361,9 @@ class SQLStatement
     }
 
     /**
-     * From part of statement
+     * Distinct part of statement
     */
-    public function distinct(bool $value = false)
+    public function distinct(bool $value = true)
     {
         $this->distinct = $value;
         return $this;
@@ -462,29 +463,29 @@ class SQLStatement
     /**
      * Initializes the $_where variable and adds the first criteria
      *
-     * @param Array $fields
+     * @param Array $criteria
      * @param Array|String $operator
      * @return Object
      */
-    public static function where($fields, $operator = '=')
+    public function where($criteria, $operator = '=')
     {
-        self::$where = [];
-        return self::whereReal($fields, $operator);
+        $this->where = [];
+        return $this->whereReal($criteria, $operator);
     }
 
     /**
      * Adds a criteria using the AND relation against prior criteria
      *
-     * @param Array $fields
+     * @param Array $criteria
      * @param Array|String $operator
      * @return Object
      */
-    public static function andWhere($fields, $operator = '=')
+    public function andWhere($criteria, $operator = '=')
     {
-        if(empty(self::$_where))
+        if(empty($this->where))
             throw new Exception('AndWhere requires Where function to be called first!',500);
 
-        return self::whereReal($fields, $operator, 'AND');
+        return $this->whereReal($criteria, $operator, 'AND');
     }
 
     /**
@@ -494,14 +495,14 @@ class SQLStatement
      * @param Array|String $operator
      * @return Object
      */
-    public static function orWhere($fields, $operator = '='){
-        if(empty(self::$_where))
+    public function orWhere($fields, $operator = '='){
+        if(empty($this->where))
             throw new Exception('OrWhere requires Where function to be called first!',500);
 
-        return self::whereReal($fields, $operator, 'OR');
+        return $this->whereReal($fields, $operator, 'OR');
     }
 
-    private static function whereReal($fields, $operator, $relation = '')
+    private function whereReal($fields, $operator, $relation = '')
     {
 
         $s_where = [];
@@ -530,13 +531,13 @@ class SQLStatement
                 $s_where[] = self::makeWhereMember($s_name, $s_value, $s_operator);
 
             }
-            self::$where[] = ['relation' => $relation,
+            $this->where[] = ['relation' => $relation,
                     'members' => $s_where];
             
         }else
             throw new Exception('Fields criteria must be Array', 500);
 
-        return self::me();
+        return $this;
 
     }
 
@@ -566,10 +567,10 @@ class SQLStatement
             return false;
     }
 
-    public static function clearWhere()
+    public function clearWhere()
     {
-        self::$where = [];
-        return self::me();
+        $this->where = [];
+        return $this;
     }
 
     public function clearSelect()

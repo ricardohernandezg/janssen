@@ -9,18 +9,22 @@ trait GenericSelectSyntax
 {
     use InstanceGetter;
     
-    protected static $select = [];
+    private static $__fields = [];
 
-    protected function prepareSelect(Array $parted_sql)
+    protected function prepareSelect(array $parted_sql, array $mapping = [])
     {
-        $parted_sql['select'] = $this->flatFields();
-        return $this->flatSQL($parted_sql);
+        //$parted_sql['select'] = $this->flatFields();
+        self::$__fields = []; 
+        foreach($parted_sql['select'] as $k=>$field_name){
+            self::$__fields[] = $field_name . (array_key_exists($field_name, $mapping) ? " AS " . $mapping[$field_name]:'');
+        }
+        return "SELECT " . ($parted_sql['distinct']==true?' DISTINCT ':'') . $this->flatFields($parted_sql);
     }
 
     private function flatFields()
     {
-        if(!empty(self::$select))
-            return implode(', ', self::$select);
+        if(!empty(self::$__fields))
+            return implode(', ', self::$__fields);
         else
             return '*';
     }

@@ -45,8 +45,8 @@ class Model
 
     /** private per-query settings  */
     private static $pk_value_for_query = null;
-    private $fields = [];
-    private ?Mapper $mapper = null;
+    private static $fields = [];
+    private static ?Mapper $map = null;
 
     /**
      * Statement object
@@ -77,7 +77,7 @@ class Model
     /**
      * Mode of query, defined by the last call to all, allById or one
      * 0 - all (default)
-     * 1 - allById 
+     * 1 - allById @deprecated
      * 2 - one
      * 3 - count
      * 
@@ -87,11 +87,6 @@ class Model
      */
     private static $query_mode = 0;
 
-    public function __construct()
-    {
-        self::$stmt = new SQLStatement();
-    }
-
     // - - - - - STATIC QUERY RUNNERS  - - - - - //
 
     public static function all()
@@ -100,6 +95,9 @@ class Model
         return self::me()->go();
     }
 
+    /**
+     * @deprecated
+     */
     public static function allById($id)
     {
         self::$query_mode = 1;
@@ -154,9 +152,9 @@ class Model
         return self::$stmt->getMap();
     }
 
-    protected function mapWith(Mapper $mapper)
+    protected function mapWith(Mapper $map)
     {
-        self::$stmt->mapWith($mapper);
+        self::$stmt->mapWith($map);
         return $this;
     }
 
@@ -178,7 +176,8 @@ class Model
      */
     public static function select(Array $fields, ?Mapper $map = null)
     {
-        self::$stmt->select($fields, $map);
+        self::$fields = $fields;
+        self::$map = $map;
         return self::me();
     }
 
@@ -217,7 +216,7 @@ class Model
                     break;                
                 case 2:
                 case 3:
-                    //$ret = Database::queryOne($sql);
+                    $ret = Database::first($sql);
             }
             
             if(self::$keep)
@@ -265,6 +264,8 @@ class Model
 
     private function prepareStatement()
     {
+
+        self::$stmt = new SQLStatement();
         
         switch(self::$query_mode){
             case 1:
@@ -277,7 +278,7 @@ class Model
                 break;
             case 0:
             default:
-                self::$stmt->clearSelect();
+                self::$stmt->clearWhere();
                     
         }
         return $this;
@@ -295,20 +296,23 @@ class Model
                 Database::setAdaptor($adaptor);
             }else
                 throw new Exception('Connection not set in config', 500, 'Contact administrator');
-        }else
-            $adaptor = Database::getAdaptor();
+        }/*else
+            $adaptor = Database::getAdaptor();*/
 
         
-        self::$stmt->select($this->fields, $this->mapper)
+        self::$stmt->select(self::$fields, self::$map)
             ->distinct(self::$distinct)
             ->from(self::$use_view ? 
                 $this->view : $this->table
                 );
         
+        if(self::$query_mode == 2){
+            self::$stmt->where([$this->primaryKey => self::$pk_value_for_query]);
+        }
 
         $parted_sql = self::$stmt->getPartedSql();
-        $sql = $adaptor::translate($parted_sql);
-        return "";
+        $statement = Database::getAdaptor()->translate($parted_sql);
+        return $statement;
     }
 
 }
