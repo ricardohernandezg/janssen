@@ -8,9 +8,9 @@ use Janssen\Engine\Database;
 use Janssen\Helpers\Exception;
 use Janssen\Helpers\SQLStatement;
 // use Janssen\Helpers\Database\Adaptor;
-use Janssen\Traits\ForceDefinition;
-use Janssen\Traits\InstanceGetter;
-use Janssen\Traits\StaticCall;
+// use Janssen\Traits\ForceDefinition;
+// use Janssen\Traits\InstanceGetter;
+// use Janssen\Traits\StaticCall;
 use Throwable;
 
 /**
@@ -29,9 +29,10 @@ use Throwable;
 class Model
 {
 
-    use ForceDefinition;
-    use InstanceGetter;
-    use StaticCall;
+    use \Janssen\Traits\ForceDefinition;
+    use \Janssen\Traits\InstanceGetter;
+    use \Janssen\Traits\StaticCall;    
+    use \Janssen\Traits\GenericSQLSyntax\GenericFieldSyntax;
 
     /** mandatory options  */
     protected $table;
@@ -190,6 +191,16 @@ class Model
     public static function distinct($value = true)
     {
         self::$distinct = $value;
+        return self::me();
+    }
+
+
+    /**
+     * Where part of statement
+     */
+    public static function where(array $criteria, $operator = '=')
+    {
+        self::$stmt->where($criteria, $operator);
         return self::me();
     }
 
