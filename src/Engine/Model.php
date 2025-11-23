@@ -32,6 +32,7 @@ class Model
     use \Janssen\Traits\ForceDefinition;
     use \Janssen\Traits\InstanceGetter;
     use \Janssen\Traits\StaticCall;    
+    use \Janssen\Traits\SQLStatement;    
     use \Janssen\Traits\GenericSQLSyntax\GenericFieldSyntax;
 
     /** mandatory options  */
@@ -41,19 +42,10 @@ class Model
 
     /** static modificers */
     protected static $use_view = false;
-    private static $distinct = false;
-
-
+    
     /** private per-query settings  */
     private static $pk_value_for_query = null;
-    private static $fields = [];
-    private static ?Mapper $map = null;
-
-    /**
-     * Statement object
-     */
-    private static SQLStatement $stmt;
-
+    
     /** 
      * Don't clear after this query
      */
@@ -84,7 +76,7 @@ class Model
      * 
      * This variable is to be setted internally using the funcions
      * 
-     * @var Integer
+     * @var integer
      */
     private static $query_mode = 0;
 
@@ -113,24 +105,18 @@ class Model
         return self::me()->go();
     }
 
-    private function checkView()
+    public static function count()
+    {
+        self::$query_mode = 3;
+        return self::me()->go();
+    }
+
+    private function checkView() : bool
     {
         if(self::$use_view && empty($this->view))
             throw new Exception('Query trying to use a view but no view attribute was defined in model', 500, 'Contact administrator');
 
-        return $this;
-    }
-
-    /**
-     * Sets the use of view or table in Model
-     *
-     * @param boolean $value
-     * @return object
-     */
-    public static function useView($value = true)
-    {
-        self::$use_view = $value;
-        return self::me();
+        return true;
     }
 
     public function getTable()
@@ -150,12 +136,12 @@ class Model
 
     protected function getMap()
     {
-        return self::$stmt->getMap();
+        return self::getMap();
     }
 
     protected function mapWith(Mapper $map)
     {
-        self::$stmt->mapWith($map);
+        self::mapWith($map);
         return $this;
     }
 
@@ -194,15 +180,17 @@ class Model
         return self::me();
     }
 
-
     /**
-     * Where part of statement
+     * Sets the use of view or table in Model
+     *
+     * @param boolean $value
+     * @return object
      */
-    public static function where(array $criteria, $operator = '=')
+    public static function useView($value = true)
     {
-        self::$stmt->where($criteria, $operator);
+        self::$use_view = $value;
         return self::me();
-    }
+    }    
 
     /**
      * Alias for one
@@ -275,8 +263,6 @@ class Model
 
     private function prepareStatement()
     {
-
-        self::$stmt = new SQLStatement();
         
         switch(self::$query_mode){
             case 1:
@@ -289,7 +275,7 @@ class Model
                 break;
             case 0:
             default:
-                self::$stmt->clearWhere();
+                self::clearWhere();
                     
         }
         return $this;
@@ -311,19 +297,27 @@ class Model
             $adaptor = Database::getAdaptor();*/
 
         
-        self::$stmt->select(self::$fields, self::$map)
+        self::select(self::$fields, self::$map)
             ->distinct(self::$distinct)
             ->from(self::$use_view ? 
                 $this->view : $this->table
                 );
         
         if(self::$query_mode == 2){
-            self::$stmt->where([$this->primaryKey => self::$pk_value_for_query]);
+            self::where([$this->primaryKey => self::$pk_value_for_query]);
         }
 
-        $parted_sql = self::$stmt->getPartedSql();
+        $parted_sql = self::getPartedSql();
         $statement = Database::getAdaptor()->translate($parted_sql);
         return $statement;
+    }
+
+    /**
+     * Handle the from part of statement
+     */
+    private function from(string $table_name)
+    {
+
     }
 
 }

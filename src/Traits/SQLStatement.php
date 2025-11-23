@@ -19,18 +19,6 @@ trait SQLStatement
     use \Janssen\Traits\StaticCall;
     use \Janssen\Traits\GenericSQLSyntax\GenericFieldSyntax;
 
-    /**
-     * Mode of query, defined by the last call to all, allById or one
-     * 0 - all (default)
-     * 1 - allById 
-     * 2 - one
-     * 3 - count
-     * 
-     * This variable is to be setted internally using the funcions
-     * 
-     * @var Integer
-     */
-    // private static $query_mode = 0;
 
     private static $defaults = [
         'orderBy' => [],
@@ -45,27 +33,25 @@ trait SQLStatement
     protected $zero_based_mapping = false;
 
     /** sql modifiers  */
-    protected $fields = [];    
+    private static $fields = [];    
     
-    protected ?Mapper $mapper;
+    private static ?Mapper $map;
 
-    protected $distinct = false;
+    private static $distinct = false;
 
-    protected $table = '';
+    private static $where = [];
 
-    protected $where = [];
-
-    protected $accepted_operators = [
+    private static $accepted_operators = [
         '=','!=','<>','>','<','>=','<=','IN', 'NOT IN', 'NOTIN','BETWEEN','LIKE','IS NULL','NULL','NOT NULL'
     ];
 
-    protected $order_by = [];
+    private static $order_by = [];
 
-    protected $limit = -1;
+    private static $limit = -1;
 
-    protected $offset = -1;
+    private static $offset = -1;
 
-    private $parted_sql = [];
+    private static $parted_sql = [];
 
     /**
      * Alias of makeBasicSelect()
@@ -158,8 +144,10 @@ trait SQLStatement
     
     /**
      * Returns the SQL parts that will be used to make the query string
+     * 
+     * @return array
      */
-    public function getPartedSql() : array
+    public static function getPartedSql() : array
     {
         $parted = [
             'select' => $this->fields, 
@@ -180,10 +168,10 @@ trait SQLStatement
      * @param Array $parted_sql
      * @return Object
      */
-    public function setPartedSql(Array $parted_sql)
+    public static function setPartedSql(array $parted_sql)
     {
         //parted must be an Array and have all the members
-        $parts = ['select','from','where','orderby','limit','offset'];
+        $parts = ['select','distinct','from','where','orderby','limit','offset'];
         $f = true;
         foreach($parts as $v){
             $f = ($f && isset($parted_sql[$v]));
@@ -266,7 +254,7 @@ trait SQLStatement
     }
     */
 
-    public function noMap(){
+    public static function noMap(){
         $this->zero_based_mapping = true;
         $this->mapper = null;    
         return $this;
@@ -278,7 +266,7 @@ trait SQLStatement
      * @param Mapper $mapper
      * @return Object
      */
-    public function mapWith(Mapper $mapper)
+    public static function mapWith(Mapper $mapper)
     {
         $this->zero_based_mapping = true;
         $this->mapper = $mapper;    
@@ -288,7 +276,7 @@ trait SQLStatement
     /**
      * Returns the current map
      */
-    public function getMap() : Mapper
+    public static function getMap() : Mapper
     {
         return $this->mapper;
     } 
@@ -325,7 +313,7 @@ trait SQLStatement
 
     // - - - - END MAPPING - - - - 
 
-    protected function clean()
+    protected static function clean()
     {
         // clear distinct select
         self::distinct(self::$defaults['distinct']);
@@ -351,7 +339,7 @@ trait SQLStatement
     /**
      * From part of statement
     */
-    public function select(array $fields = [], ?Mapper $mapper = null)
+    public static function select(array $fields = [], ?Mapper $mapper = null)
     {
         $this->fields = $fields;
         if ($mapper){
@@ -363,7 +351,7 @@ trait SQLStatement
     /**
      * Distinct part of statement
     */
-    public function distinct(bool $value = true)
+    public static function distinct(bool $value = true)
     {
         $this->distinct = $value;
         return $this;
@@ -372,7 +360,7 @@ trait SQLStatement
     /**
      * From part of statement
     */
-    public function from(String $table_name)
+    protected static function from(String $table_name)
     {
         $this->table = $table_name;
         return $this;
@@ -401,7 +389,7 @@ trait SQLStatement
     * @param integer $rows_count
     * @return object
     */
-    public function limit($rows_count = -1)
+    public static function limit($rows_count = -1)
     {
         $this->limit = $rows_count;
         return $this;
@@ -415,7 +403,7 @@ trait SQLStatement
     * @param integer $rows_skip
     * @return object
     */
-    public function offset($rows_skip = -1)
+    public static function offset($rows_skip = -1)
     {
         $this->offset = $rows_skip;
         return $this;
