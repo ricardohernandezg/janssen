@@ -35,6 +35,8 @@ trait SQLStatement
     /** sql modifiers  */
     private static $fields = [];    
     
+    private static $from = "";    
+
     private static ?Mapper $map;
 
     private static $distinct = false;
@@ -150,13 +152,13 @@ trait SQLStatement
     public static function getPartedSql() : array
     {
         $parted = [
-            'select' => $this->fields, 
-            'distinct' => $this->distinct,
-            'from' => $this->table,  
-            'where' => $this->where, 
-            'orderby' => $this->order_by, 
-            'limit' => $this->limit,
-            'offset' => $this->offset
+            'select' => self::$fields, 
+            'distinct' => self::$distinct,
+            'from' => self::$table,  
+            'where' => self::$where, 
+            'orderby' => self::$order_by, 
+            'limit' => self::$limit,
+            'offset' => self::$offset
         ];
         
         return $parted;
@@ -165,7 +167,7 @@ trait SQLStatement
     /**
      * Sets the parts that Model will use to make the query string
      *
-     * @param Array $parted_sql
+     * @param array $parted_sql
      * @return Object
      */
     public static function setPartedSql(array $parted_sql)
@@ -178,7 +180,7 @@ trait SQLStatement
         }
         if($f){
             self::$parted_sql = $parted_sql;
-            return $this;
+            return self::me();
         }else
             throw new Exception('Parted sql needs all its parameter to be built correctly.', 500);
     }
@@ -255,9 +257,9 @@ trait SQLStatement
     */
 
     public static function noMap(){
-        $this->zero_based_mapping = true;
-        $this->mapper = null;    
-        return $this;
+        self::$zero_based_mapping = true;
+        self::$map = null;    
+        return self::me();
     }
 
     /**
@@ -268,9 +270,9 @@ trait SQLStatement
      */
     public static function mapWith(Mapper $mapper)
     {
-        $this->zero_based_mapping = true;
-        $this->mapper = $mapper;    
-        return $this;
+        self::$zero_based_mapping = true;
+        self::$map = $mapper;    
+        return self::me();
     }
 
     /**
@@ -278,14 +280,14 @@ trait SQLStatement
      */
     public static function getMap() : Mapper
     {
-        return $this->mapper;
+        return self::$map;
     } 
 
     /**
      * Add specific field mapping to the next query
      *
-     * @param String $field_name
-     * @param String $new_name
+     * @param string $field_name
+     * @param string $new_name
      * @return Object
      */
     public static function addFieldMap($field_name, $new_name = '')
@@ -299,7 +301,7 @@ trait SQLStatement
     /**
      * Add specific field mapping from array. 
      *
-     * @param Array $map
+     * @param array $map
      * @return Object
      */
     public static function addFieldMapFromArray(Array $map)
@@ -333,7 +335,7 @@ trait SQLStatement
         // clean me() instance
         self::notMe();
 
-        return $this;
+        return self::me();
     }
 
     /**
@@ -341,11 +343,11 @@ trait SQLStatement
     */
     public static function select(array $fields = [], ?Mapper $mapper = null)
     {
-        $this->fields = $fields;
+        self::$fields = $fields;
         if ($mapper){
             self::mapWith($mapper);
         }
-        return $this;
+        return self::me();
     }
 
     /**
@@ -353,8 +355,8 @@ trait SQLStatement
     */
     public static function distinct(bool $value = true)
     {
-        $this->distinct = $value;
-        return $this;
+        self::$distinct = $value;
+        return self::me();
     }
     
     /**
@@ -362,8 +364,8 @@ trait SQLStatement
     */
     protected static function from(String $table_name)
     {
-        $this->table = $table_name;
-        return $this;
+        self::$from = $table_name;
+        return self::me();
     }
     
     /**
@@ -391,8 +393,8 @@ trait SQLStatement
     */
     public static function limit($rows_count = -1)
     {
-        $this->limit = $rows_count;
-        return $this;
+        self::$limit = $rows_count;
+        return self::me();
     }
     
     /**
@@ -401,12 +403,12 @@ trait SQLStatement
      * with Postgres
     *
     * @param integer $rows_skip
-    * @return object
+    * @return Object
     */
     public static function offset($rows_skip = -1)
     {
-        $this->offset = $rows_skip;
-        return $this;
+        self::$offset = $rows_skip;
+        return self::me();
     }
     
     /**
@@ -451,43 +453,43 @@ trait SQLStatement
     /**
      * Initializes the $_where variable and adds the first criteria
      *
-     * @param Array $criteria
-     * @param Array|String $operator
+     * @param array $criteria
+     * @param array|string $operator
      * @return Object
      */
-    public function where($criteria, $operator = '=')
+    public static function where($criteria, $operator = '=')
     {
-        $this->where = [];
-        return $this->whereReal($criteria, $operator);
+        self::$where = [];
+        return self::whereReal($criteria, $operator);
     }
 
     /**
      * Adds a criteria using the AND relation against prior criteria
      *
-     * @param Array $criteria
-     * @param Array|String $operator
+     * @param array $criteria
+     * @param array|string $operator
      * @return Object
      */
-    public function andWhere($criteria, $operator = '=')
+    public static function andWhere($criteria, $operator = '=')
     {
-        if(empty($this->where))
-            throw new Exception('AndWhere requires Where function to be called first!',500);
+        if(empty(self::$where))
+            throw new Exception('AndWhere requires Where function to be called first!', 500);
 
-        return $this->whereReal($criteria, $operator, 'AND');
+        return self::whereReal($criteria, $operator, 'AND');
     }
 
     /**
      * Adds a criteria using the OR relation against prior criteria
      *
-     * @param Array $fields
-     * @param Array|String $operator
+     * @param array $fields
+     * @param array|string $operator
      * @return Object
      */
     public function orWhere($fields, $operator = '='){
-        if(empty($this->where))
-            throw new Exception('OrWhere requires Where function to be called first!',500);
+        if(empty(self::$where))
+            throw new Exception('OrWhere requires Where function to be called first!', 500);
 
-        return $this->whereReal($fields, $operator, 'OR');
+        return self::whereReal($fields, $operator, 'OR');
     }
 
     private function whereReal($fields, $operator, $relation = '')
@@ -555,16 +557,16 @@ trait SQLStatement
             return false;
     }
 
-    public function clearWhere()
+    public static function clearWhere()
     {
-        $this->where = [];
-        return $this;
+        self::$where = [];
+        return self::me();
     }
 
     public function clearSelect()
     {
-        $this->fields = [];
-        return $this->noMap();
+        self::$fields = [];
+        return self::me();
     }
 
 
