@@ -69,6 +69,7 @@ trait SQLStatement
      *
      * @return array
      */
+    /*
     private function makeParted()
     {
         
@@ -89,6 +90,7 @@ trait SQLStatement
         
         return $this;
     }
+    */
 
     /**
      * Cleans the mapping 
@@ -154,7 +156,7 @@ trait SQLStatement
         $parted = [
             'select' => self::$fields, 
             'distinct' => self::$distinct,
-            'from' => self::$table,  
+            'from' => self::$from,  
             'where' => self::$where, 
             'orderby' => self::$order_by, 
             'limit' => self::$limit,
@@ -341,12 +343,9 @@ trait SQLStatement
     /**
      * From part of statement
     */
-    public static function select(array $fields = [], ?Mapper $mapper = null)
+    public static function select(array $fields = [])
     {
         self::$fields = $fields;
-        if ($mapper){
-            self::mapWith($mapper);
-        }
         return self::me();
     }
 
@@ -557,6 +556,8 @@ trait SQLStatement
             return false;
     }
 
+    // - - - - - CLEAR STATEMENT - - - - - - 
+    
     public static function clearWhere()
     {
         self::$where = [];

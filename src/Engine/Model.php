@@ -261,9 +261,31 @@ class Model
         return $this;
     }
 
+    /**
+     * Get the parted_sql from statement and adapt to query mode
+     */
     private function prepareStatement()
     {
         
+        
+        if($this->connection_name !== ""){
+            // resuelve el adaptador correcto y setealo en database
+            $conn = \getConfig('connections')[$this->connection_name] ?? false;
+            if($conn){
+                $adaptor = \getDatabaseAdaptor($conn);
+                Database::setAdaptor($adaptor);
+            }else
+            throw new Exception('Connection not set in config', 500, 'Contact administrator');
+        }
+        
+        // obtengo el parted sql y lo modifico segun necesite
+        $parted_sql = self::getPartedSql();
+        
+        if(self::$use_view && self::checkView())
+            $parted_sql['from'] = $this->view;
+
+        $parted_sql['distinct'] = self::$distinct;
+
         switch(self::$query_mode){
             case 1:
                 $ret = Database::query($sql);
@@ -278,26 +300,9 @@ class Model
                 self::clearWhere();
                     
         }
-        return $this;
-    }
 
-    private function makeStatement() : string
-    {
-        // get the parted_sql from statement and translate
-        // using the adaptor to run it
-        if($this->connection_name !== ""){
-            // resuelve el adaptador correcto y setealo en database
-            $conn = \getConfig('connections')[$this->connection_name] ?? false;
-            if($conn){
-                $adaptor = \getDatabaseAdaptor($conn);
-                Database::setAdaptor($adaptor);
-            }else
-                throw new Exception('Connection not set in config', 500, 'Contact administrator');
-        }/*else
-            $adaptor = Database::getAdaptor();*/
-
-        
-        self::select(self::$fields, self::$map)
+        /*
+        self::select(self::$fields)
             ->distinct(self::$distinct)
             ->from(self::$use_view ? 
                 $this->view : $this->table
@@ -306,7 +311,16 @@ class Model
         if(self::$query_mode == 2){
             self::where([$this->primaryKey => self::$pk_value_for_query]);
         }
-
+        */
+    
+        return $this;
+    }
+    
+    /**
+     * Translate the statement to query using the adaptor
+     */
+    private function makeStatement() : string
+    {        
         $parted_sql = self::getPartedSql();
         $statement = Database::getAdaptor()->translate($parted_sql);
         return $statement;
