@@ -281,25 +281,26 @@ class Model
         // obtengo el parted sql y lo modifico segun necesite
         $parted_sql = self::getPartedSql();
         
-        if(self::$use_view && self::checkView())
-            $parted_sql['from'] = $this->view;
+        $parted_sql['from'] = (self::$use_view && self::checkView()) ? $this->view : $this->table;
 
         $parted_sql['distinct'] = self::$distinct;
 
         switch(self::$query_mode){
             case 1:
-                $ret = Database::query($sql);
-                break;                
             case 2:
-                break;
+                $w = self::makeWhereMember($this->primaryKey, self::$pk_value_for_query);
+                $parted_sql['where'][] = ['members' => [$w]];
+                break;                
             case 3:
-            //$ret = Database::queryOne($sql);
+                //$ret = Database::queryOne($sql);
                 break;
             case 0:
             default:
                 self::clearWhere();
                     
         }
+
+        self::setPartedSql($parted_sql);
 
         /*
         self::select(self::$fields)

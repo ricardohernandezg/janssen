@@ -239,6 +239,10 @@ class MySqlAdaptor extends Adaptor
     {
         $sql = $this->prepareSelect($parted_sql);
         $sql .= " FROM " . $parted_sql['from'];
+        if($parted_sql['where']){
+            $sql .= " WHERE " . $this->flatWhere($parted_sql['where']);
+        }
+
         return $sql . ';';
     }
 

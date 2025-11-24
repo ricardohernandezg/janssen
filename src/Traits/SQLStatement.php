@@ -181,7 +181,15 @@ trait SQLStatement
             $f = ($f && isset($parted_sql[$v]));
         }
         if($f){
-            self::$parted_sql = $parted_sql;
+            // extract the elements to local variables
+            self::$fields = $parted_sql['select'];
+            self::$distinct = $parted_sql['distinct'];
+            self::$from = $parted_sql['from'];
+            self::$where = $parted_sql['where'];
+            self::$order_by = $parted_sql['orderby'];
+            self::$limit = $parted_sql['limit'];
+            self::$offset = $parted_sql['offset'];
+
             return self::me();
         }else
             throw new Exception('Parted sql needs all its parameter to be built correctly.', 500);
@@ -530,7 +538,7 @@ trait SQLStatement
 
     }
 
-    private static function makeWhereMember($field, $value, $operator){
+    protected static function makeWhereMember($field, $value, $operator = '='){
         
         return [
             'field' => $field,

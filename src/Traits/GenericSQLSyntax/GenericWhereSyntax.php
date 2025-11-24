@@ -65,7 +65,7 @@ trait GenericWhereSyntax
         foreach($where as $v)
         {
             
-            if($v['relation'] !== '') $ret .= " {$v['relation']} ";
+            if(($v['relation'] ?? '') !== '') $ret .= " {$v['relation']} ";
             $ret .= "(";
             foreach($v['members'] as $member){
                 if(in_array($member['operator'], ['IN','NOT IN', 'NOTIN','BETWEEN','IS NULL','NULL','NOT NULL'])){
