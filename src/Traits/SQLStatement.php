@@ -393,6 +393,17 @@ trait SQLStatement
     }
 
     /**
+     * Cleans the order by clause
+     *
+     * @return object
+     */
+    public static function clearOrderBy()
+    {
+        self::$order_by = self::$defaults['orderBy'];
+        return self::me();
+    }
+
+    /**
      * Sets the limit of rows in query
     *
     * @param integer $rows_count
@@ -417,19 +428,7 @@ trait SQLStatement
         self::$offset = $rows_skip;
         return self::me();
     }
-    
-    /**
-     * Cleans the order by clause
-     *
-     * @return object
-     */
-    public static function clearOrderBy()
-    {
-        self::$order_by = self::$defaults['orderBy'];
-        return self::me();
-    }
-
- 
+     
     /** DEBUG */
     /**
      * Returns the SQL intended to be used in query
@@ -492,14 +491,14 @@ trait SQLStatement
      * @param array|string $operator
      * @return Object
      */
-    public function orWhere($fields, $operator = '='){
+    public static function orWhere($fields, $operator = '='){
         if(empty(self::$where))
             throw new Exception('OrWhere requires Where function to be called first!', 500);
 
         return self::whereReal($fields, $operator, 'OR');
     }
 
-    private function whereReal($fields, $operator, $relation = '')
+    private static function whereReal($fields, $operator, $relation = '')
     {
 
         $s_where = [];
@@ -528,13 +527,13 @@ trait SQLStatement
                 $s_where[] = self::makeWhereMember($s_name, $s_value, $s_operator);
 
             }
-            $this->where[] = ['relation' => $relation,
+            self::$where[] = ['relation' => $relation,
                     'members' => $s_where];
             
         }else
             throw new Exception('Fields criteria must be Array', 500);
 
-        return $this;
+        return self::me();
 
     }
 
@@ -572,7 +571,7 @@ trait SQLStatement
         return self::me();
     }
 
-    public function clearSelect()
+    public static function clearSelect()
     {
         self::$fields = [];
         return self::me();

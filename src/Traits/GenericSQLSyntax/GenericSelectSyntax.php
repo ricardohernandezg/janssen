@@ -13,15 +13,14 @@ trait GenericSelectSyntax
 
     protected function prepareSelect(array $parted_sql, array $mapping = [])
     {
-        //$parted_sql['select'] = $this->flatFields();
         self::$__fields = []; 
         foreach($parted_sql['select'] as $k=>$field_name){
             self::$__fields[] = $field_name . (array_key_exists($field_name, $mapping) ? " AS " . $mapping[$field_name]:'');
         }
-        return "SELECT " . ($parted_sql['distinct']==true?' DISTINCT ':'') . $this->flatFields($parted_sql);
+        return "SELECT " . ($parted_sql['distinct']==true?' DISTINCT ':'') . $this->flatSelect($parted_sql);
     }
 
-    private function flatFields()
+    private function flatSelect()
     {
         if(!empty(self::$__fields))
             return implode(', ', self::$__fields);

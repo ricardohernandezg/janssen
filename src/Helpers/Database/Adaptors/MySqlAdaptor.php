@@ -4,8 +4,6 @@ namespace Janssen\Helpers\Database\Adaptors;
 
 use Janssen\Helpers\Database\Adaptor;
 use Janssen\Helpers\Exception;
-use Janssen\Traits\GenericSQLSyntax\GenericSelectSyntax;
-use Janssen\Traits\GenericSQLSyntax\GenericWhereSyntax;
 use PDO;
 use PDOException;
 use PDOStatement;
@@ -13,8 +11,9 @@ use PDOStatement;
 class MySqlAdaptor extends Adaptor
 {
 
-    use GenericSelectSyntax;
-    use GenericWhereSyntax;
+    use \Janssen\Traits\GenericSQLSyntax\GenericSelectSyntax;
+    use \Janssen\Traits\GenericSQLSyntax\GenericWhereSyntax;
+    use \Janssen\Traits\GenericSQLSyntax\GenericOrderBySyntax;
 
     protected $_config_fields = [
         'host'  => '',
@@ -241,6 +240,18 @@ class MySqlAdaptor extends Adaptor
         $sql .= " FROM " . $parted_sql['from'];
         if($parted_sql['where']){
             $sql .= " WHERE " . $this->flatWhere($parted_sql['where']);
+        }
+
+        if(!empty($parted_sql['orderby'])){
+            $sql .= $this->prepareOrderby($parted_sql);
+        }
+
+        if($parted_sql['limit'] >= 0){
+            $sql .= " LIMIT " . $parted_sql['limit'];
+        }
+        
+        if($parted_sql['offset'] >= 0){
+            $sql .= " OFFSET " . $parted_sql['offset'];
         }
 
         return $sql . ';';

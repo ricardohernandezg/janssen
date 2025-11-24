@@ -6,7 +6,7 @@ use Janssen\Engine\Mapper;
 // use Janssen\Engine\Ruleset;
 use Janssen\Engine\Database;
 use Janssen\Helpers\Exception;
-use Janssen\Helpers\SQLStatement;
+// use Janssen\Helpers\SQLStatement;
 // use Janssen\Helpers\Database\Adaptor;
 // use Janssen\Traits\ForceDefinition;
 // use Janssen\Traits\InstanceGetter;
@@ -73,6 +73,7 @@ class Model
      * 1 - allById @deprecated
      * 2 - one
      * 3 - count
+     * 4 - first
      * 
      * This variable is to be setted internally using the funcions
      * 
@@ -102,6 +103,13 @@ class Model
     {
         self::$query_mode = 2;
         self::$pk_value_for_query = $id;
+        return self::me()->go();
+    }
+
+    public static function first()
+    {
+        // usa el limit 1
+        self::$query_mode = 4;
         return self::me()->go();
     }
 
@@ -159,28 +167,6 @@ class Model
     }
     
     /**
-     * Select part of statement
-     */
-    public static function select(Array $fields, ?Mapper $map = null)
-    {
-        self::$fields = $fields;
-        self::$map = $map;
-        return self::me();
-    }
-
-    /**
-     * Sets or disables the use of DISTINCT clause in query
-     *
-     * @param boolean $value
-     * @return object
-     */
-    public static function distinct($value = true)
-    {
-        self::$distinct = $value;
-        return self::me();
-    }
-
-    /**
      * Sets the use of view or table in Model
      *
      * @param boolean $value
@@ -210,11 +196,14 @@ class Model
           
             switch(self::$query_mode){
                 case 0:
-                case 1:
+                case 1: 
                     $ret = Database::query($sql);
                     break;                
                 case 2:
                 case 3:
+                    $ret = Database::count($sql);
+                    break;
+                case 4:
                     $ret = Database::first($sql);
             }
             
@@ -267,7 +256,6 @@ class Model
     private function prepareStatement()
     {
         
-        
         if($this->connection_name !== ""){
             // resuelve el adaptador correcto y setealo en database
             $conn = \getConfig('connections')[$this->connection_name] ?? false;
@@ -285,6 +273,8 @@ class Model
 
         $parted_sql['distinct'] = self::$distinct;
 
+        $parted_sql['orderby'] = self::$order_by;
+
         switch(self::$query_mode){
             case 1:
             case 2:
@@ -292,7 +282,11 @@ class Model
                 $parted_sql['where'][] = ['members' => [$w]];
                 break;                
             case 3:
-                //$ret = Database::queryOne($sql);
+                $parted_sql['select'] = [];                //$ret = Database::queryOne($sql);
+                $parted_sql['distinct'] = false;
+                break;
+            case 4:
+                $parted_sql['limit'] = 1;
                 break;
             case 0:
             default:
@@ -301,19 +295,6 @@ class Model
         }
 
         self::setPartedSql($parted_sql);
-
-        /*
-        self::select(self::$fields)
-            ->distinct(self::$distinct)
-            ->from(self::$use_view ? 
-                $this->view : $this->table
-                );
-        
-        if(self::$query_mode == 2){
-            self::where([$this->primaryKey => self::$pk_value_for_query]);
-        }
-        */
-    
         return $this;
     }
     
@@ -327,12 +308,5 @@ class Model
         return $statement;
     }
 
-    /**
-     * Handle the from part of statement
-     */
-    private function from(string $table_name)
-    {
-
-    }
 
 }

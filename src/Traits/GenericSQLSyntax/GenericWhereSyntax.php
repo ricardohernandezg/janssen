@@ -3,11 +3,10 @@
 namespace Janssen\Traits\GenericSQLSyntax;
 
 use Janssen\Helpers\Exception;
-use Janssen\Traits\InstanceGetter;
 
 trait GenericWhereSyntax
 {
-    use InstanceGetter;
+    use \Janssen\Traits\InstanceGetter;
     
     private static function criteriaRequiresArray($operator)
     {
