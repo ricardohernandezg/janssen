@@ -2,8 +2,6 @@
 
 namespace Janssen\Engine;
 
-// use Janssen\Helpers\Exception;
-// use Janssen\Engine\Request;
 use Janssen\Engine\Ruleset;
 
 class Mapper
@@ -69,8 +67,8 @@ class Mapper
      * sends parameter empty we send the full map as defined
      * in the Rule in the form external=>internal
      *
-     * @param String|Array $member
-     * @return String|Array
+     * @param string|array $member
+     * @return string|array
      */
     public function asInput($member = null)
     {
@@ -99,8 +97,8 @@ class Mapper
      * sends parameter empty we send the full map as defined
      * in the Rule in the form internal=>external
      *
-     * @param String|Array $members
-     * @return String|Array
+     * @param string|array $members
+     * @return string|array
      */
     public function asOutput($member = null)
     {
@@ -132,7 +130,7 @@ class Mapper
      * Array must be [$field] => alias style to be processed. Intended to be
      * used with mapOutput return
      *
-     * @param Array $map
+     * @param array $map
      * @return void
      */
     public static function queryfyMapForOutput(Array $map)
@@ -150,8 +148,8 @@ class Mapper
      * Get output name for a member
      *
      * @param Ruleset $rule
-     * @param String $input_member_name
-     * @return String
+     * @param string $input_member_name
+     * @return string
      */
     public static function getOutputMember(Ruleset $rule, $input_member_name)
     {
@@ -163,8 +161,8 @@ class Mapper
      * Get the input name for a member
      *
      * @param Ruleset $rule
-     * @param String $output_member_name
-     * @return String
+     * @param string $output_member_name
+     * @return string
      */
     public static function getInputMember(Ruleset $rule, $output_member_name)
     {
