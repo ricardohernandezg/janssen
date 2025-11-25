@@ -188,10 +188,10 @@ class Model
                 case 1: 
                     $ret = Database::query($sql);
                     break;                
-                case 2:
                 case 3:
                     $ret = Database::count($sql);
                     break;
+                case 2:
                 case 4:
                     $ret = Database::first($sql);
             }
