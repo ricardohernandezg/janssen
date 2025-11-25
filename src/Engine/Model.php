@@ -147,20 +147,15 @@ class Model
         return self::getMap();
     }
 
-    protected function mapWith(Mapper $map)
-    {
-        self::mapWith($map);
-        return $this;
-    }
-
-
+    
+    
     // - - - - - - QUERY MODIFIERS - - - - - -
-
+    
     /**
      * Alias of select
      * 
      * @deprecated 
-     */
+    */
     public static function selectOnly(Array $fields)
     {
         return self::select($fields);
@@ -168,16 +163,16 @@ class Model
     
     /**
      * Sets the use of view or table in Model
-     *
-     * @param boolean $value
-     * @return object
-     */
+    *
+    * @param boolean $value
+    * @return object
+    */
     public static function useView($value = true)
     {
         self::$use_view = $value;
         return self::me();
     }    
-
+    
     /**
      * Alias for one
      */

@@ -30,9 +30,10 @@ trait SQLStatement
         'queryMode' => 0
     ];
 
-    protected $zero_based_mapping = false;
-
+    
     /** sql modifiers  */
+    private static $zero_based_mapping = false;
+    
     private static $fields = [];    
     
     private static $from = "";    
@@ -54,6 +55,7 @@ trait SQLStatement
     private static $offset = -1;
 
     private static $parted_sql = [];
+
 
     /**
      * Alias of makeBasicSelect()
@@ -280,7 +282,7 @@ trait SQLStatement
      */
     public static function mapWith(Mapper $mapper)
     {
-        self::$zero_based_mapping = true;
+        self::$zero_based_mapping = false;
         self::$map = $mapper;    
         return self::me();
     }
