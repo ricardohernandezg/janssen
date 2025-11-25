@@ -17,7 +17,7 @@ trait GenericOrderBySyntax
     {
         $ret = "";
         foreach(self::$__orderby as $field_name=>$order){
-            $ret .= $field_name . (trim(strtoupper($order)) == "DESC") ? " DESC, " : " ASC, ";
+            $ret .= $field_name . (trim(strtoupper($order)) == "DESC" ? " DESC, " : " ASC, ");
         }
         return substr($ret,0,strlen($ret)-2);
         
