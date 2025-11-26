@@ -109,7 +109,7 @@ trait SQLStatement
     /**
      * Prepares the where part of query
      *
-     * @return String
+     * //@return string
      */
     /*
     protected function prepareWhere(){
@@ -131,7 +131,7 @@ trait SQLStatement
     /**
      * Prepares the order by part of query
      *
-     * @return String
+     * //@return string
      */
     /*
     protected function prepareOrderBy(){
@@ -290,9 +290,9 @@ trait SQLStatement
     /**
      * Returns the current map
      */
-    public static function getMap() : Mapper
+    public static function getMapper() : Mapper
     {
-        return self::$map;
+        return self::$map ?? new Mapper();
     } 
 
     /**

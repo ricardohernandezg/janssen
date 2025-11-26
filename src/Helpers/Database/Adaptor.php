@@ -223,7 +223,7 @@ abstract class Adaptor
      * 
      * @return string
      */
-    public abstract function translate(array $parted_sql);
+    public abstract function translate(array $parted_sql, array $mapping = []);
     
     // - - - - - DATABASE INFORMATION SECTION
 

@@ -234,9 +234,9 @@ class MySqlAdaptor extends Adaptor
         return $this;
     }
 
-    public function translate($parted_sql)
+    public function translate(array $parted_sql, array $mapping = [])
     {
-        $sql = $this->prepareSelect($parted_sql);
+        $sql = $this->prepareSelect($parted_sql, $mapping);
         $sql .= " FROM " . $parted_sql['from'];
         if($parted_sql['where']){
             $sql .= " WHERE " . $this->flatWhere($parted_sql['where']);

@@ -28,7 +28,7 @@ class Mapper
     /**
      * Sets a map
      */
-    public function setMap(Array $map)
+    public function setMap(array $map)
     {
         $this->map = $map;
         return $this;
@@ -45,7 +45,7 @@ class Mapper
     /**
      * Returns the map
      *
-     * @return Array
+     * @return array
      */
     public function getMap()
     {

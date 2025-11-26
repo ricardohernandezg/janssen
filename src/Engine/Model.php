@@ -113,6 +113,13 @@ class Model
         return self::me()->go();
     }
 
+    public static function list()
+    {
+        self::$query_mode = 5;
+        return self::me()->go();
+    }
+    
+
     private function checkView() : bool
     {
         if(self::$use_view && empty($this->view))
@@ -121,12 +128,12 @@ class Model
         return true;
     }
 
-    public function getTable()
+    public function tableName()
     {
         return $this->table;
     }
 
-    public function getView()
+    public function viewName()
     {
         return $this->view;    
     }
@@ -293,7 +300,7 @@ class Model
     private function makeStatement() : string
     {        
         $parted_sql = self::getPartedSql();
-        $statement = Database::getAdaptor()->translate($parted_sql);
+        $statement = Database::getAdaptor()->translate($parted_sql, (self::getMapper()->getMap() ?? []));
         return $statement;
     }
 
