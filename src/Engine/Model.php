@@ -113,9 +113,35 @@ class Model
         return self::me()->go();
     }
 
-    public static function list()
+    /**
+     * Get elements from database key and item columns, ordered by $key_column
+     * if additional fields are required we give them too
+     * 
+     * @param string $key_column
+     * @param string $item_column
+     * @param string|array $additional_columns
+     * @return array|bool
+     */
+    public static function list(string $key_column = "", string $item_column = "", $additional_columns = null)
     {
-        self::$query_mode = 5;
+        if(trim($key_column) && trim($item_column)){
+            // use the provided vars
+            // we could have $additional_column as array or string
+            if($additional_columns && is_array($additional_columns)){
+                self::select([$key_column, $item_column] +  $additional_columns);
+            }elseif ($additional_columns && is_string($additional_columns)){
+                self::select([$key_column, $item_column, $additional_columns]);
+            }else{ // ignore additional column
+                self::select([$key_column, $item_column]);
+            }
+        }else{
+            /* we try to find the defaults set up
+             * look for an array called $list that must have
+             * at least 2 members called key and item and 
+             * optionally additional
+             */
+        }
+        self::$query_mode = 1;
         return self::me()->go();
     }
     
@@ -176,6 +202,8 @@ class Model
     
     /**
      * Alias for one
+     * 
+     * @deprecated
      */
     public static function queryOne($sql)
     {
