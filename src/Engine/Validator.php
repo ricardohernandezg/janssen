@@ -16,7 +16,7 @@ class Validator
     /**
      * Guard to authorize access to the controller asociated 
      *
-     * @var String
+     * @var string
      */
     public $guard;
 
@@ -24,21 +24,21 @@ class Validator
     /**
      * Methods of controller that will be ignored by the guard
      *
-     * @var Array
+     * @var array
      */
     public $guard_except = [];
 
     /**
      * Set of errors found to report
      *
-     * @var Array
+     * @var array
      */
     protected $_validation_errors = [];
 
     /**
      * Rules for parameter type validation
      *
-     * @var Array
+     * @var array
      */
     private $paramTypeRules = [
         // 'string' => '^.+$',
@@ -60,7 +60,7 @@ class Validator
      * 
      * @todo return mapped field names! This always goes to frontend
      *
-     * @return Array
+     * @return array
      */
     public function getValidationErrors($mapped = true)
     {
@@ -70,9 +70,9 @@ class Validator
     /**
      * Sets new error to validation errors array
      *
-     * @param String $key name of variable to be marked as bad
-     * @param String $message message to be returned
-     * @param Boolean $map_output Indicates if the key name have to be mapped for output 
+     * @param string $key name of variable to be marked as bad
+     * @param string $message message to be returned
+     * @param boolean $map_output Indicates if the key name have to be mapped for output 
      * @return Validator
      */
     protected function setValidationError($key, $message, $map_output = true)
@@ -87,7 +87,7 @@ class Validator
     /**
      * Sets new error to validation errors array from an array
      *
-     * @param Array $errors key-value array with the errors to report
+     * @param array $errors key-value array with the errors to report
      * @return Validator
      */
     protected function setValidationErrors(Array $errors)
@@ -102,7 +102,7 @@ class Validator
     /**
      * Indicate if there are errors to report
      *
-     * @return Boolean
+     * @return boolean
      */
     public function thereAreErrors()
     {
@@ -112,9 +112,9 @@ class Validator
     /**
      * Validate a value against the type
      * 
-     * @param String|Integer|Boolean $value
-     * @param Integer $type
-     * @return Boolean
+     * @param string|integer|boolean $value
+     * @param integer $type
+     * @return boolean
      * 
      */
     public function validateType($value, $type)
@@ -183,9 +183,9 @@ class Validator
     /**
      * Validates a value against the rule
      * 
-     * @param String|Integer|Boolean $value
-     * @param Integer|Array $rule
-     * @return Boolean
+     * @param string|integer|boolean $value
+     * @param integer|array $rule
+     * @return boolean
      * 
      */
     public function validateRule($value, $rule)
@@ -280,10 +280,10 @@ class Validator
     /**
      * Validate the incoming request agaist the given rules
      * 
-     * @param Array $rules
-     * @param Array|'auto' $map
-     * @param String|'post' $bag
-     * @return Boolean
+     * @param array $rules
+     * @param array|string $map
+     * @param string $bag
+     * @return boolean
      * 
      */
     public function validateRequest()
@@ -460,7 +460,7 @@ class Validator
      * the controller, method and rules to be used so is not needed
      * to have a function for each call unless its needed
      * 
-     * @param Array $fields
+     * @param array $fields
      * @return void
      */
     public function oneOf(Array $fields)
@@ -484,7 +484,7 @@ class Validator
     /**
      * Check if RULE_REQUIRED restriction is present
      *
-     * @param Array $restrictions
+     * @param array $restrictions
      * @return boolean
      */
     protected function isRequired($rules)
@@ -497,9 +497,9 @@ class Validator
      * Prepares validator rules and sets up the
      * messages and mapping
      *
-     * @param String $rule_class
-     * @param String $method
-     * @param String $bag
+     * @param string $rule_class
+     * @param string $method
+     * @param string $bag
      * @return Validator
      */
     protected function prepare(Ruleset $ruleset, $bag = 'post')
@@ -534,9 +534,9 @@ class Validator
     /**
      * Validates a parameter against a regular expression
      *
-     * @param String|Integer $value
-     * @param String $re
-     * @return Boolean
+     * @param string|integer $value
+     * @param string $re
+     * @return boolean
      */
     private function ValidateAgainstRegex($value, $re)
     {
@@ -561,8 +561,8 @@ class Validator
      * Check if all parameters are required to pass the validation
      * against the set rules
      *
-     * @param Array $rules
-     * @return Boolean
+     * @param array $rules
+     * @return boolean
      */
     private function allParamsAreRequired(Array $rules)
     {

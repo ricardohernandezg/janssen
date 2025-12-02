@@ -63,13 +63,22 @@ class Session
     }
 
     /**
-     * Removes a field from Session storage
-     *
-     * @param String $name
-     * @return void
+     * Alias for unsetValue
+     * @deprecated
      */
     public static function removeField($name)
     {
+        self::unsetValue($name);
+    }
+    
+    /**
+     * Removes a value from Session storage
+     *
+     * @param string $name
+     * @return void
+     */
+    public static function unsetValue($name)
+    {       
         self::setValue($name, NULL);
         unset($_SESSION[$name]);
     }

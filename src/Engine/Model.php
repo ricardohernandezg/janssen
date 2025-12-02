@@ -33,6 +33,7 @@ class Model
     protected $table;
     protected $primaryKey;
     protected $view;
+    protected $list = [];
 
     /** static modificers */
     protected static $use_view = false;
@@ -135,11 +136,13 @@ class Model
                 self::select([$key_column, $item_column]);
             }
         }else{
-            /* we try to find the defaults set up
-             * look for an array called $list that must have
-             * at least 2 members called key and item and 
-             * optionally additional
-             */
+
+            if(self::me()->checkList()){
+                if(self::me()->checkListHasAdditionals())
+
+                else
+                    
+            }
         }
         self::$query_mode = 1;
         return self::me()->go();
@@ -148,18 +151,51 @@ class Model
 
     private function checkView() : bool
     {
-        if(self::$use_view && empty($this->view))
+        if(self::$use_view && empty(trim($this->view)))
             throw new Exception('Query trying to use a view but no view attribute was defined in model', 500, 'Contact administrator');
 
         return true;
     }
 
-    public function tableName()
+    /**
+     * Checks the list attribute
+     * @return bool
+     */
+    private function checkList() : bool
+    {
+        /* we try to find the defaults set up
+        * look for an array called $list that must have
+        * at least 2 members called key and item and 
+        * optionally additional
+        */
+        if(empty($this->view))
+            throw new Exception('Query trying to use a list but no list attribute was defined in model', 500, 'Contact administrator');
+        elseif (is_array($this->list) && (trim($this->list['key']) ?? false) && (trim($this->list['item']) ?? false))
+            return true;
+        else
+            throw new Exception('Malformed list attribute was defined in model', 500, 'Contact administrator');
+        
+    }
+
+    private function checkListHasAdditionals() : bool
+    {
+        return ($this->checkList() && ($this->list['additional'] ?? false));
+    }
+
+    /**
+     * Gets the Model's table name
+     * @return string
+     */
+    public function tableName() : string
     {
         return $this->table;
     }
 
-    public function viewName()
+    /**
+     * Gets the Model's view name
+     * @return string
+     */
+    public function viewName() : string
     {
         return $this->view;    
     }
