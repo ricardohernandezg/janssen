@@ -242,6 +242,16 @@ class App
         return $this->handleResponse($res);
     }
 
+    private function loadDatabaseConnection()
+    {
+        $dc = self::getConfig('connections')[self::getConfig('default_connection')];
+        $dbe = $dc['driver'] ?? false;
+        if ($dc && $dbe) {
+            $adaptor = self::getDatabaseAdaptor($dc);
+            Database::setAdaptor($adaptor);
+        }
+    }
+
     /**
      * Gets method parameters
      *
@@ -249,10 +259,10 @@ class App
      * this will be useful to inject parameters in order
      *
      * @see https://stackoverflow.com/a/3387672
-     * @param String $class
-     * @param String $method
-     * @return Array
-     */
+     * @param string $class
+     * @param string $method
+     * @return array
+    */
     private function getMethodParams($class, $method)
     {
         $ret = [];
@@ -268,23 +278,13 @@ class App
         return $ret;
     }
 
-    private function loadDatabaseConnection()
-    {
-        $dc = self::getConfig('connections')[self::getConfig('default_connection')];
-        $dbe = $dc['driver'] ?? false;
-        if ($dc && $dbe) {
-            $adaptor = self::getDatabaseAdaptor($dc);
-            Database::setAdaptor($adaptor);
-        }
-    }
-    
     /**
      * Make a map of method parameters with RequestHelper
      * variables passed and validated. Intended only for internal
      * use
      *
-     * @param Array $param_names
-     * @return Array
+     * @param array $param_names
+     * @return array
      */
     private function makeParameterArray($param_names)
     {
@@ -310,8 +310,8 @@ class App
      * The parameters are assumed directly from request and if
      * the function accept it we inject it.
      *
-     * @param String $class
-     * @param String $method
+     * @param string $class
+     * @param string $method
      * @return void
      */
     private function makeTheCall($class, $method, $use_params = true)
