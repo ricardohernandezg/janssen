@@ -125,6 +125,7 @@ class Model
      */
     public static function list(string $key_column = "", string $item_column = "", $additional_columns = null)
     {
+        $key = '';
         if(trim($key_column) && trim($item_column)){
             // use the provided vars
             // we could have $additional_column as array or string
@@ -135,16 +136,30 @@ class Model
             }else{ // ignore additional column
                 self::select([$key_column, $item_column]);
             }
+            $key = $key_column;
         }else{
-
-            if(self::me()->checkList()){
-                if(self::me()->checkListHasAdditionals())
-
-                else
-                    
+            // use the model list config
+            $list = self::me()->checkList();
+            if($list){
+                
+                if($list['additional'] ?? false)
+                {
+                    // append the additionals fields to the query
+                    $additional_columns = $list['additional'];
+                    if(is_array($additional_columns)){
+                        self::select([$list['key'], $list['item']] +  $additional_columns);
+                    }else{
+                        self::select($list['key'], $list['item'], $additional_columns);
+                    }
+                }else{
+                    // create the select with the fields
+                    self::select([$list['key'], $list['item']]);
+                }
+                $key = $list['key'];    
             }
         }
-        self::$query_mode = 1;
+        self::orderBy($key);
+        self::$query_mode = 0;
         return self::me()->go();
     }
     
@@ -159,19 +174,19 @@ class Model
 
     /**
      * Checks the list attribute
-     * @return bool
+     * @return array|bool
      */
-    private function checkList() : bool
+    private function checkList() : array|bool
     {
         /* we try to find the defaults set up
         * look for an array called $list that must have
         * at least 2 members called key and item and 
         * optionally additional
         */
-        if(empty($this->view))
+        if(empty($this->list))
             throw new Exception('Query trying to use a list but no list attribute was defined in model', 500, 'Contact administrator');
         elseif (is_array($this->list) && (trim($this->list['key']) ?? false) && (trim($this->list['item']) ?? false))
-            return true;
+            return $this->list;
         else
             throw new Exception('Malformed list attribute was defined in model', 500, 'Contact administrator');
         
@@ -179,7 +194,8 @@ class Model
 
     private function checkListHasAdditionals() : bool
     {
-        return ($this->checkList() && ($this->list['additional'] ?? false));
+        $list = $this->checkList();
+        return ($list && ($list['additional'] ?? false));
     }
 
     /**
