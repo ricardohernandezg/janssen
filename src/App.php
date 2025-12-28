@@ -369,6 +369,7 @@ class App
             // its own
             ($response->hasHeaders())?$response->addHeader($this->header):$response->setHeader($this->header);
             $ret = $response;
+
         } elseif ($response instanceof Exception) {
             $er = new ErrorResponse();
             $http_code = $response->isHttpCode() ? $response->getCode() : 500;
@@ -377,13 +378,14 @@ class App
                 ->setException($response)
                 ->setHeader($this->header);
             $ret = $er;
-            //throw $response;
+            
         } else {
             // response is not instance of Response, we'll make a new one
             $o = (is_array($response) || self::$request->expectsJSON())?(new JsonResponse):(new RawResponse);
             $o->setContent($response)
                 ->setHeader($this->header);
             $ret = $o;
+
         }
 
         // here we should make the postprocessing if applyable
@@ -425,7 +427,7 @@ class App
 
     public static function url()
     {
-        //$url = self::getConfig('url');
+
         $url = Request::getURI();
         return $url;
     }
