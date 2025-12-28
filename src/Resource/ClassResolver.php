@@ -2,7 +2,7 @@
 
 namespace Janssen\Resource;
 
-class DefaultResolver
+class ClassResolver
 {
     
     private static $aliased_defaults = [
