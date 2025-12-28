@@ -14,6 +14,9 @@ class DefaultResolver
 
     /**
      * Resolve class as concrete
+     * 
+     * @param String $alias Alias of registered class to resolve
+     * @return Object|Bool
      */
     public static function resolve($alias)
     {
@@ -22,6 +25,9 @@ class DefaultResolver
 
     /**
      * Resolve class as static
+     * 
+     * @param String $alias Alias of registered class to resolve
+     * @return Object|Bool
      */
     public static function resolveStatic($alias)
     {
