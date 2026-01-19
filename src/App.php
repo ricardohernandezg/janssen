@@ -416,7 +416,7 @@ class App
 
     public static function appPath()
     {
-        return self::$s_app_path . '/';
+        return self::$s_app_path;
     }
 
     public static function url()
