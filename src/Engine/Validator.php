@@ -218,9 +218,9 @@ class Validator
     /**
      * Validates a value against the rule
      * 
-     * @param String|Integer|Boolean $value
-     * @param Integer|Array $rule
-     * @return Boolean
+     * @param string|integer|boolean $value
+     * @param integer|array $rule
+     * @return boolean
      * 
      */
     public function validateRule($value, $rule)
@@ -315,10 +315,10 @@ class Validator
     /**
      * Validate the incoming request agaist the given rules
      * 
-     * @param Array $rules
-     * @param Array|'auto' $map
-     * @param String|'post' $bag
-     * @return Boolean
+     * @param array $rules
+     * @param array|'auto' $map
+     * @param string|'post' $bag
+     * @return boolean
      * 
      */
     public function validateRequest()

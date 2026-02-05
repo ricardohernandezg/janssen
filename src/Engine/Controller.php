@@ -31,7 +31,7 @@ class Controller
      * Helper method to make static rule validatons from controller
      * 
      */
-    public function validateRule($value, $rule) : bool
+    public function validateRule($value, $rule, ?array $params) : bool
     {
         return Validator::validateRuleStatic($value, $rule);
     }
