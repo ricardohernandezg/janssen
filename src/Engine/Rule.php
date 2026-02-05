@@ -28,6 +28,7 @@ abstract class Rule
     const RULE_FIXED_LENGTH = 46;
     const RULE_FILE_MIMETYPE = 47;
     const RULE_FILE_MAXSIZE = 48;
+    const RULE_FILE_MINSIZE = 55;
     const RULE_ONEOF = 49;
     const RULE_STRICT_STRING = 50;
     const RULE_EMAIL = 51;

@@ -52,6 +52,41 @@ class Validator
         'isodate' => '/^(?:19|20)\d\d(?:[0]?[1-9]{1}|1[012]{1})(?:[0]?[1-9]{1}|[12]{1}[0-9]{1}|[3]{1}[01]{1})$/'
     ];
 
+    private static $rule_aliases = [
+        'positive' => Rule::RULE_NUMBER_POSITIVE,
+        'negative' => Rule::RULE_NUMBER_NEGATIVE,
+        'greater_than_zero' => Rule::RULE_GRTN_0,
+        'required' => Rule::RULE_REQUIRED,
+        'between' => Rule::RULE_BETWEEN,
+        'minlength' => Rule::RULE_MINLENGTH,
+        'maxlength' => Rule::RULE_MAXLENGTH,
+        'fixed_length' => Rule::RULE_FIXED_LENGTH,
+        'mimetype' => Rule::RULE_FILE_MIMETYPE,
+        'maxsize' => Rule::RULE_FILE_MAXSIZE,
+        'minsize' => Rule::RULE_FILE_MINSIZE,
+        'oneof' => Rule::RULE_ONEOF,
+        'strict_string' => Rule::RULE_STRICT_STRING,
+        'email' => Rule::RULE_EMAIL,
+        'array_member_type' => Rule::RULE_ARRAY_MEMBER_TYPE
+    ];
+
+    private static $type_aliases = [
+        'any' => Rule::RULE_TYPE_ANY,
+        'string' => Rule::RULE_TYPE_STRING,
+        'int' => Rule::RULE_TYPE_INTEGER,
+        'integer' => Rule::RULE_TYPE_INTEGER,
+        'float' => Rule::RULE_TYPE_FLOAT,
+        'bool' => Rule::RULE_TYPE_BOOL,
+        'boolean' => Rule::RULE_TYPE_BOOL,
+        'date' => Rule::RULE_TYPE_DATE,
+        'time' => Rule::RULE_TYPE_TIME,
+        'datetime' => Rule::RULE_TYPE_DATETIME,
+        'file' => Rule::RULE_TYPE_FILE,
+        'array' => Rule::RULE_TYPE_ARRAY,
+        'time_hm' => Rule::RULE_TYPE_TIMEHM,
+        'decimal' => Rule::RULE_TYPE_DECIMAL,
+    ];
+
     private $rules = [];
     private $messages = [];
 
