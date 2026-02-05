@@ -2,8 +2,10 @@
 
 namespace Janssen\Engine;
 
+use Janssen\Engine\Validator;
 use Janssen\Helpers\FlashMessage;
 use Janssen\Helpers\Response\JsonResponse;
+
 class Controller
 {
 
@@ -23,6 +25,24 @@ class Controller
         $r->setHeader($h)
             ->setContent(['error' => $message]);
         return $r;
+    }
+
+    /**
+     * Helper method to make static rule validatons from controller
+     * 
+     */
+    public function validateRule($value, $rule) : bool
+    {
+        return Validator::validateRuleStatic($value, $rule);
+    }
+
+    /**
+     * Helper method to make static type validatons from controller
+     * 
+     */
+    public function validateType($value, $type) : bool
+    {
+        return Validator::validateTypeStatic($value, $type);
     }
 
 }
