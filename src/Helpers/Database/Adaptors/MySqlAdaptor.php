@@ -116,7 +116,7 @@ class MySqlAdaptor extends Adaptor
         return $this->exists($sql, [$schema, $function_name]);
     } 
 
-    public function query(string $sql, ?array $bindings = [])
+    public function __query(string $sql, ?array $bindings = [])
     {
         $this->freeResult();
 

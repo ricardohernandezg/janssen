@@ -55,7 +55,7 @@ class PostgresAdaptor extends Adaptor
         $this->_cnx = null;
     }    
 
-    public function query($sql)
+    public function __query($sql)
     {
         $this->freeResult();
 
@@ -88,7 +88,7 @@ class PostgresAdaptor extends Adaptor
      * @param String $sql
      * @return Bool
      */    
-    public function statement($sql)
+    public function statement(string $sql, ?array $bindings = [])
     {
         $res = pg_query($this->connect(), $sql);
         if ($res) {
@@ -123,7 +123,7 @@ class PostgresAdaptor extends Adaptor
      * @param String $sql
      * @return Bool
      */
-    public function exists($sql): Bool 
+    public function exists(string $sql, ?array $bindings = []): Bool 
     {
         $sql = "SELECT EXISTS($sql) as e";
         $r = $this->query($sql);
@@ -141,7 +141,7 @@ class PostgresAdaptor extends Adaptor
      * @param String $sql
      * @return Int 
      */
-    public function insert($sql, Array $return_fields = [])
+    public function insert(string $sql, ?array $bindings = [])
     {
         $c = $this->connect();
         $sql = trim($sql);
@@ -220,7 +220,7 @@ class PostgresAdaptor extends Adaptor
         return $this;
     }
 
-    public function translate($parted_sql)
+    public function translate($parted_sql, array $mapping = [])
     {
         return "";
     }

@@ -57,7 +57,15 @@ abstract class Adaptor
      * 
      * MUST RETURN THE ARRAY WITH RESULTS or FALSE
      */
-    public abstract function query(string $sql, ?array $bindings = []);
+    public function query(string $sql, ?array $bindings = [], bool $throw_error_event = false)
+    {
+        return $this->__query($sql, $bindings);
+    }
+
+    /**
+     * Define the real query runner
+     */
+    protected abstract function __query(string $sql, ?array $bindings = []);
 
     /**
      * Runs a query and returns last insert id
