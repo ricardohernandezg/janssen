@@ -63,8 +63,8 @@ class MySqlAdaptor extends Adaptor
     /**
      * Check if query returns at least one row
      * 
-     * @param String $sql
-     * @return Bool
+     * @param string $sql
+     * @return bool
      */
     public function exists(string $sql, ?array $bindings = []): Bool
     {
@@ -116,7 +116,7 @@ class MySqlAdaptor extends Adaptor
         return $this->exists($sql, [$schema, $function_name]);
     } 
 
-    public function __query(string $sql, ?array $bindings = [])
+    public function query(string $sql, ?array $bindings = [])
     {
         $this->freeResult();
 
@@ -138,8 +138,8 @@ class MySqlAdaptor extends Adaptor
     /**
      * Executes a statement and returns bool 
      * 
-     * @param String $sql
-     * @return Bool
+     * @param string $sql
+     * @return bool
      */
     public function statement(string $sql, ?array $bindings = [])
     {
@@ -187,8 +187,8 @@ class MySqlAdaptor extends Adaptor
     /**
      * Inserts a record and returns the corresponding Id
      * 
-     * @param String $sql
-     * @return Int 
+     * @param string $sql
+     * @return int 
      */
     public function insert(string $sql, ?array $bindings = [])
     {

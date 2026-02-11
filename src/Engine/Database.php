@@ -147,6 +147,8 @@ class Database
    /**
      * Make the query as count(*)
      * 
+     * @param string $sql
+     * @param ?array $bindings
      * @return int
      */
     public static function count(string $sql, ?array $bindings = [], string $count_alias = 'count')

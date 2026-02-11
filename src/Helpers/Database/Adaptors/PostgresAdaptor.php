@@ -55,7 +55,7 @@ class PostgresAdaptor extends Adaptor
         $this->_cnx = null;
     }    
 
-    public function __query($sql)
+    public function query($sql, ?array $bindings = [])
     {
         $this->freeResult();
 
@@ -85,8 +85,8 @@ class PostgresAdaptor extends Adaptor
     /**
      * Executes a statement and returns bool 
      * 
-     * @param String $sql
-     * @return Bool
+     * @param string $sql
+     * @return bool
      */    
     public function statement(string $sql, ?array $bindings = [])
     {
@@ -101,8 +101,8 @@ class PostgresAdaptor extends Adaptor
     /**
      * Returns number of rows
      *
-     * @param String $sql
-     * @return Integer
+     * @param string $sql
+     * @return integer
      */
     /*
     public function howMany($sql)
@@ -120,8 +120,8 @@ class PostgresAdaptor extends Adaptor
     /**
      * Check if query returns at least one row
      * 
-     * @param String $sql
-     * @return Bool
+     * @param string $sql
+     * @return bool
      */
     public function exists(string $sql, ?array $bindings = []): Bool 
     {
@@ -138,8 +138,8 @@ class PostgresAdaptor extends Adaptor
     /**
      * Inserts a record and returns the corresponding Id if the $return_fields are provided
      * 
-     * @param String $sql
-     * @return Int 
+     * @param string $sql
+     * @return int 
      */
     public function insert(string $sql, ?array $bindings = [])
     {
