@@ -21,7 +21,7 @@ class ComposerScripts
         if(!is_dir($base_dir . '/bin'))
             mkdir($base_dir . '/bin');
 
-        copy($sca_dir . '/janssen.100', $base_dir . '/bin/janssen.php');
+        copy($sca_dir . '/janssen.php', $base_dir . '/bin/janssen.php');
 
     }
 

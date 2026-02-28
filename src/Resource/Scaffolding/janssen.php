@@ -103,7 +103,14 @@ switch (strtolower($argv[1])){
             $dest = $base_path . $m_path . '/' . $c['name'] . '.php';
             file_put_contents($dest, $c['text']);
             break;        
-        
+    case 'seed-db-row':
+            // read the .env file and get the db creds. As this is only for dev, 
+            // we need the .env file. In production the .env file should not exist
+            // idea: read the .env into array delimited by \n
+            // the separate the result in pairs delimited by first =            
+            $env = parseProjectEnv();
+
+            break;    
     default:
         dieWithMessage(showArgumentList());
 
@@ -151,6 +158,7 @@ function showArgumentList(){
     $ret = "Hey! You forgot to put the action you want to do!" . PHP_EOL . PHP_EOL .
     "What do you want to do? (use a command from the list)" . PHP_EOL .  PHP_EOL .
     "init: make scaffolding to start your app" . PHP_EOL . 
+    "seed-db-row -t table-name -u db-user -p db-pass -d json-data. : insert a row in a table in the db. In the JSON, prepend with <cipher> the values you want to cipher with the enc-key found in .env file. " . PHP_EOL . 
     "make-model name [-t table-name]: make a model with given name. Add optional -t parameter to use your own table name" . PHP_EOL . 
     "make-validator name : make validator file" . PHP_EOL . 
     "make-controller name : make controller file";
@@ -232,7 +240,8 @@ CNT_CNTS;
 
 }
 
-function makeClassName($name){
+function makeClassName($name)
+{
     return ucfirst($name);
 }
 
@@ -240,3 +249,202 @@ function dieWithMessage($message)
 {
     die(PHP_EOL . $message . PHP_EOL);
 }
+
+function parseProjectEnv() 
+{
+    if (!file_exists('../.env')) {
+        fwrite(STDERR, "Error: .env file not found\n");
+        return [];
+    }
+    
+    $result = [];
+    $lines = file('../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    
+    foreach ($lines as $ln => $line) {
+        $original_line = $line;
+        $ln += 1; // file() uses 0-based index
+        
+        // Skip comments and empty
+        if (preg_match('/^\s*(#|$)/', $line)) {
+            continue;
+        }
+        
+        // Trim spaces
+        $line = trim($line);
+        
+        // Find first =
+        $matches = [];
+        if (preg_match('/^([^=]*)=(.*)$/', $line, $matches)) {
+            $k = trim($matches[1]);
+            $v = trim($matches[2]);
+            
+            // Validate quotes
+            if (strpos($k, '"') !== false || strpos($v, '"') !== false) {
+                // Count quotes in the key
+                $key_quotes = substr_count($k, '"');
+                if ($key_quotes !== 2) {
+                    fwrite(STDERR, "Error in key '$k' (line $ln): quoting error\n");
+                    continue;
+                }
+                
+                // Contar comillas en valor
+                $value_quotes = substr_count($v, '"');
+                if ($value_quotes !== 2) {
+                    fwrite(STDERR, "Error en valor '$v' (line $ln): quoting error\n");
+                    continue;
+                }
+                
+                // Quitar comillas exteriores
+                $k = trim($k, '"');
+                $v = trim($v, '"');
+            }
+            
+            $result[$k] = $v;
+            
+        } else {
+            fwrite(STDERR, "Invalid: $original_line (line $ln)\n");
+        }
+    }
+    
+    return $result;
+}
+
+// Uso
+// $env = parseEnv('.env');
+
+// Para mostrar como pares clave=valor
+/* 
+foreach ($env as $clave => $valor) {
+    echo "$clave=$valor\n";
+}
+ */
+
+// Para usar como variables de entorno
+/* 
+foreach ($env as $clave => $valor) {
+    putenv("$clave=$valor");
+    $_ENV[$clave] = $valor;
+    $_SERVER[$clave] = $valor;
+}
+ */
+
+
+// check arguments 
+
+function parseArgs(array $parametros_esperados) {
+    global $argv;
+    
+    $args = [];
+    $errores = [];
+    
+    // $argv[0] es el nombre del script, empezamos desde 1
+    for ($i = 1; $i < count($argv); $i++) {
+        $arg = $argv[$i];
+        
+        // Formato --clave=valor o -clave=valor
+        if (preg_match('/^--?([a-zA-Z0-9_-]+)=(.+)$/', $arg, $matches)) {
+            $clave = $matches[1];
+            $valor = $matches[2];
+            $args[$clave] = $valor;
+            
+        // Formato --clave o -clave (flag booleano)
+        } elseif (preg_match('/^--?([a-zA-Z0-9_-]+)$/', $arg)) {
+            $clave = $matches[1];
+            $args[$clave] = true;
+            
+        } else {
+            $errores[] = "Parámetro inválido: $arg";
+        }
+    }
+    
+    // Validar parámetros obligatorios
+    foreach ($parametros_esperados as $parametro) {
+        $nombre = $parametro['nombre'];
+        $obligatorio = $parametro['obligatorio'] ?? false;
+        $default = $parametro['default'] ?? null;
+        
+        if (!isset($args[$nombre]) && $obligatorio && $default === null) {
+            $errores[] = "Falta parámetro obligatorio: --$nombre";
+        }
+        
+        // Asignar valor por defecto si no existe
+        if (!isset($args[$nombre]) && $default !== null) {
+            $args[$nombre] = $default;
+        }
+    }
+    
+    // Mostrar errores y salir si los hay
+    if (!empty($errores)) {
+        echo "❌ ERRORES:\n";
+        foreach ($errores as $error) {
+            echo "  - $error\n";
+        }
+        echo "\n";
+        mostrarAyuda($parametros_esperados);
+        exit(1);
+    }
+    
+    return $args;
+}
+
+function mostrarAyuda(array $parametros_esperados) {
+    global $argv;
+    
+    echo "Uso: " . basename($argv[0]) . " [opciones]\n\n";
+    echo "Opciones disponibles:\n";
+    
+    foreach ($parametros_esperados as $parametro) {
+        $nombre = $parametro['nombre'];
+        $descripcion = $parametro['descripcion'] ?? '';
+        $obligatorio = $parametro['obligatorio'] ?? false;
+        $default = $parametro['default'] ?? null;
+        
+        $obligatorio_mark = $obligatorio ? '[OBLIGATORIO]' : '';
+        $default_mark = $default !== null ? " (default: $default)" : '';
+        
+        printf("  --%-20s %s%s%s\n", $nombre, $obligatorio_mark, $default_mark, $descripcion ? " - $descripcion" : '');
+    }
+}
+
+// EJEMPLO DE USO
+$parametros_esperados = [
+    [
+        'nombre' => 'host',
+        'obligatorio' => true,
+        'descripcion' => 'Servidor MySQL'
+    ],
+    [
+        'nombre' => 'port',
+        'default' => 3306,
+        'descripcion' => 'Puerto MySQL'
+    ],
+    [
+        'nombre' => 'user',
+        'obligatorio' => true,
+        'descripcion' => 'Usuario de base de datos'
+    ],
+    [
+        'nombre' => 'help',
+        'descripcion' => 'Mostrar esta ayuda'
+    ],
+    [
+        'nombre' => 'debug',
+        'descripcion' => 'Modo debug'
+    ]
+];
+
+// Parsear argumentos
+$args = parseArgs($parametros_esperados);
+
+// Verificar ayuda
+if (isset($args['help'])) {
+    mostrarAyuda($parametros_esperados);
+    exit(0);
+}
+
+echo "✅ Parámetros parseados:\n";
+foreach ($args as $clave => $valor) {
+    printf("  %s = %s\n", $clave, $valor);
+}
+
+
