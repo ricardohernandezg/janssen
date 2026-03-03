@@ -52,7 +52,7 @@ class ViewResponse extends Response
         $engine = new Engine($this->template_path);
 
         if(!$engine->exists($this->template))
-            throw new Exception("The template {$this->template} doesn't exists!");
+            throw new Exception("The template {$this->template} doesn't exists!", 404);
 
         // inject all the assets variables to each template
         $ec_assets = App::getConfig('assets');
