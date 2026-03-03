@@ -1,12 +1,9 @@
 <?php
 
-/*
-init script must
-- create app folder and copy files
-- put the public folder and copy files
-- put the templates folder and copy files
-- put the .env file
-*/
+use Janssen\App;
+
+
+require_once ('../vendor/autoload.php');
 
 $DS = (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')?'\\':'/';
 
@@ -29,7 +26,7 @@ $files = [
     'templates' => [
         'd2VsY29tZS5waHA=$dGVtcGxhdGVzLw==$PD9waHAgDQoNCiRsb2JzdGVyID0gSmFuc3NlblxSZXNvdXJjZVxFbWJlZEZvbnRzOjokbG9ic3RlcjsNCg0KPz4NCjxodG1sPg0KPHRpdGxlPldlbGNvbWUgdG8gSmFuc3NlbiE8L3RpdGxlPg0KPHN0eWxlPg0KICAgIEBmb250LWZhY2Ugew0KICAgICAgICBmb250LWZhbWlseTogJ0xvYnN0ZXInOw0KICAgICAgICBzcmM6IHVybChkYXRhOmZvbnQvdHJ1ZXR5cGU7Y2hhcnNldD11dGYtODtiYXNlNjQsPD89ICRsb2JzdGVyID8+KSBmb3JtYXQoJ3RydWV0eXBlJyk7DQogICAgICAgIGZvbnQtd2VpZ2h0OiBub3JtYWw7DQogICAgICAgIGZvbnQtc3R5bGU6IG5vcm1hbDsNCiAgICB9DQoNCiAgICAuY29udGFpbmVyIHsNCiAgICAgICAgbWluLWhlaWdodDogMTBlbTsNCiAgICAgICAgcG9zaXRpb246IHJlbGF0aXZlOw0KICAgICAgICBoZWlnaHQ6IDkzJTsNCiAgICB9DQoNCiAgICAubmFtZSB7DQogICAgICAgIGZvbnQtZmFtaWx5OiAnTG9ic3Rlcic7DQogICAgICAgIGZvbnQtc2l6ZTogMTAwcHg7DQogICAgICAgIGZvbnQtd2VpZ2h0OjUwMDsNCiAgICAgICAgY29sb3I6ICNiYTA1MDU7DQogICAgfQ0KICAgIA0KICAgIC53ZWxjb21lLXRvIHsNCiAgICAgICAgZm9udC1mYW1pbHk6IHNhbnMtc2VyaWY7DQogICAgICAgIGZvbnQtc2l6ZTogMjBweDsNCiAgICB9DQoNCiAgICAubHMtd2lkZSB7DQogICAgICAgIGxldHRlci1zcGFjaW5nOiAxZW07DQogICAgfQ0KDQogICAgLmZ1bGwtcCB7DQogICAgICAgIG1hcmdpbjogMDsNCiAgICAgICAgdG9wOiA0MCU7DQogICAgICAgIHRleHQtYWxpZ246IGNlbnRlcjsNCiAgICAgICAgcG9zaXRpb246IHJlbGF0aXZlOw0KICAgIH0NCg0KICAgIC5kZWNvIHsNCiAgICAgICAgcG9zaXRpb246IGFic29sdXRlOw0KICAgICAgICBtYXJnaW46IDUlOw0KICAgICAgICBib3JkZXI6IDFweCBzb2xpZCBibGFjazsNCiAgICAgICAgd2lkdGg6IDkwJTsNCiAgICAgICAgaGVpZ2h0OiA5MCU7DQoNCiAgICB9DQoNCjwvc3R5bGU+DQo8Ym9keSBzdHlsZT0iYmFja2dyb3VuZC1jb2xvcjogbGlnaHRncmF5Ij4NCg0KPGRpdiBjbGFzcz0iY29udGFpbmVyIj4NCiAgICA8ZGl2IGNsYXNzPSJkZWNvIj48L2Rpdj4NCiAgICA8cCBjbGFzcz0iZnVsbC1wIiA+DQogICAgICAgIDxzcGFuIGNsYXNzPSJ3ZWxjb21lLXRvIGxzLXdpZGUiPndlbGNvbWUgdDwvc3Bhbj48c3BhbiBjbGFzcz0id2VsY29tZS10byI+bzwvc3Bhbj4NCiAgICAgICAgPGJyLz4NCiAgICAgICAgPHNwYW4gc3R5bGU9InBhZGRpbmctdG9wOiAyNXB4OyIgY2xhc3M9Im5hbWUiPkphbnNzZW48L3NwYW4+DQogICAgICAgIDxici8+DQogICAgICAgIDxzcGFuIGNsYXNzPSJ3ZWxjb21lLXRvIiBzdHlsZT0icGFkZGluZy10b3A6IDI1cHg7Ij4mbWRhc2g7Jm1kYXNoOyZtZGFzaDsmbWRhc2g7byZtZGFzaDsmbWRhc2g7Jm1kYXNoOyZtZGFzaDs8L3NwYW4+DQogICAgPC9wPg0KPC9kaXY+DQoNCg0KPC9ib2R5Pg0KPC9odG1sPg=='
     ],
-    'env' => 'LmVudg==$$IyBsb2NhbCBjb25maWd1cmF0aW9ucyBmaWxlDQojIHRoaXMgZmlsZSBpcyBub3QgaW50ZW5kZWQgdG8gYmUgdXBsb2FkZWQgdG8gdGhlIHJlcG8gc28gcGxlYXNlIGRvbid0IGRvIHRoYXQNCg0KIyB5b3UgY2FuIHB1dCBoZXJlIGFueSB2YXIgeW91IGNvbnNpZGVyIGltcG9ydGFudCB0byBrZWVwIHNhZmUgaW4geW91ciBsb2NhbCBjb25maWd1cmF0aW9ucw0KIyBidXQgcmVtZW1iZXIgdG8gcHV0IHRoYXQgdmFyIGluIHlvdXIgcHJvZHVjdGlvbiB2ZXJzaW9uIGFuZCBhdm9pZCB1c2Ugb2YgdGhpcyBlbnYgZmlsZQ0KIyBpbiBwcm9kdWN0aW9uIHN0YWdlDQojIGtleXMgYXJlIGNhc2Ugc2Vuc2l0aXZlIQ0KDQp1cmwgPSAnaHR0cDovL2xvY2FsaG9zdCcNCg0KZGJfZHJpdmVyID0gJycNCmRiX2hvc3QgPSAnJw0KZGJfcG9ydCA9ICcnDQpkYl91c2VyID0gJycNCmRiX3Bhc3MgPSAnJw0KZGJfbmFtZSA9ICcnDQoNCmVuY19rZXkgPSAndGhpc19rZXlfbXVzdF9iZV9jaGFuZ2VkISc='
+    'env.template' => 'LmVudi50ZW1wbGF0ZQ==$$IyBsb2NhbCBjb25maWd1cmF0aW9ucyBmaWxlDQojIHRoaXMgZmlsZSBpcyBub3QgaW50ZW5kZWQgdG8gYmUgdXBsb2FkZWQgdG8gdGhlIHJlcG8gc28gcGxlYXNlIGRvbid0IGRvIHRoYXQNCg0KIyB5b3UgY2FuIHB1dCBoZXJlIGFueSB2YXIgeW91IGNvbnNpZGVyIGltcG9ydGFudCB0byBrZWVwIHNhZmUgaW4geW91ciBsb2NhbCBjb25maWd1cmF0aW9ucw0KIyBidXQgcmVtZW1iZXIgdG8gcHV0IHRoYXQgdmFyIGluIHlvdXIgcHJvZHVjdGlvbiB2ZXJzaW9uIGFuZCBhdm9pZCB1c2Ugb2YgdGhpcyBlbnYgZmlsZQ0KIyBpbiBwcm9kdWN0aW9uIHN0YWdlDQojIGtleXMgYXJlIGNhc2Ugc2Vuc2l0aXZlIQ0KDQp1cmwgPSAnaHR0cDovL2xvY2FsaG9zdCcNCg0KZGJfZHJpdmVyID0gJycNCmRiX2hvc3QgPSAnJw0KZGJfcG9ydCA9ICcnDQpkYl91c2VyID0gJycNCmRiX3Bhc3MgPSAnJw0KZGJfbmFtZSA9ICcnDQoNCmVuY19rZXkgPSAndGhpc19rZXlfbXVzdF9iZV9jaGFuZ2VkISc='
 ];
 
 $base_path = __DIR__ . '/../';
@@ -39,6 +36,13 @@ if ($argc == 1)
 
 switch (strtolower($argv[1])){
     case 'init':
+        /*
+        init script must
+        - create app folder and copy files
+        - put the public folder and copy files
+        - put the templates folder and copy files
+        - put the .env.template file
+        */
         echo 'init';
         foreach($files as $section=>$encfile){
             if(is_array($encfile)){
@@ -90,27 +94,53 @@ switch (strtolower($argv[1])){
         break;
 
     case 'make-controller':
-            echo 'make controller';
-            // param 2 should be the controller name 
-            $cn = $argv[2];
-    
-            if(empty($cn))
-                dieWithMessage('Controller name is required!');
-    
-            $c = createController($cn);
-            $m_path = 'app/Controller';
-            createDir($base_path, $m_path);
-            $dest = $base_path . $m_path . '/' . $c['name'] . '.php';
-            file_put_contents($dest, $c['text']);
-            break;        
-    case 'seed-db-row':
-            // read the .env file and get the db creds. As this is only for dev, 
-            // we need the .env file. In production the .env file should not exist
-            // idea: read the .env into array delimited by \n
-            // the separate the result in pairs delimited by first =            
-            $env = parseProjectEnv();
+        echo 'make controller';
+        // param 2 should be the controller name 
+        $cn = $argv[2];
 
-            break;    
+        if (empty($cn))
+            dieWithMessage('Controller name is required!');
+
+        $c = createController($cn);
+        $m_path = 'app/Controller';
+        createDir($base_path, $m_path);
+        $dest = $base_path . $m_path . '/' . $c['name'] . '.php';
+        file_put_contents($dest, $c['text']);
+        break;
+    case 'seed-db-row':
+        // read the .env file and get the db creds. As this is only for dev, 
+        // we need the .env file. In production the .env file should not exist
+        // 
+        $env = parseProjectEnv();
+        // .env must have connector, host, port, user, password, db and debug must be true
+        $c = App::getConfig();
+        print_r($env, $c);
+        
+        $expected_params = [
+            [
+                'name' => 'table',
+                'mandatory' => true,
+                'description' => 'Table to be inserted'
+            ],
+            [
+                'name' => 'data',
+                'mandatory' => true,
+                'description' => 'Data in JSON format'
+            ],
+            [
+                'name' => 'password',
+                'mandatory' => true,
+                'description' => 'Password to the db user in the .env file'
+            ],
+            [
+                'name' => 'help',
+                'description' => 'Show this info'
+            ],
+        ];
+        $args = parseArgs($expected_params);
+        print_r($args);
+
+        break;
     default:
         dieWithMessage(showArgumentList());
 
@@ -290,7 +320,7 @@ function parseProjectEnv()
                 // Contar comillas en valor
                 $value_quotes = substr_count($v, '"');
                 if ($value_quotes !== 2) {
-                    fwrite(STDERR, "Error en valor '$v' (line $ln): quoting error\n");
+                    fwrite(STDERR, "Error in value '$v' (line $ln): quoting error\n");
                     continue;
                 }
                 
@@ -331,105 +361,106 @@ foreach ($env as $clave => $valor) {
 
 // check arguments 
 
-function parseArgs(array $parametros_esperados) {
+function parseArgs(array $expected_params) {
     global $argv;
     
     $args = [];
-    $errores = [];
+    $errors = [];
     
-    // $argv[0] es el nombre del script, empezamos desde 1
+    // $argv[0] is script name
     for ($i = 1; $i < count($argv); $i++) {
         $arg = $argv[$i];
         
-        // Formato --clave=valor o -clave=valor
+        // Format --key=value o -key=value
         if (preg_match('/^--?([a-zA-Z0-9_-]+)=(.+)$/', $arg, $matches)) {
-            $clave = $matches[1];
-            $valor = $matches[2];
-            $args[$clave] = $valor;
+            $k = $matches[1];
+            $v = $matches[2];
+            $args[$k] = $v;
             
-        // Formato --clave o -clave (flag booleano)
+        // Format --key o -key (bool)
         } elseif (preg_match('/^--?([a-zA-Z0-9_-]+)$/', $arg)) {
-            $clave = $matches[1];
-            $args[$clave] = true;
+            $k = $matches[1];
+            $args[$v] = true;
             
         } else {
-            $errores[] = "Parámetro inválido: $arg";
+            $errors[] = "Invalid parameter: $arg";
         }
     }
     
-    // Validar parámetros obligatorios
-    foreach ($parametros_esperados as $parametro) {
-        $nombre = $parametro['nombre'];
-        $obligatorio = $parametro['obligatorio'] ?? false;
-        $default = $parametro['default'] ?? null;
+    // Validate mandatory params
+    foreach ($expected_params as $param) {
+        $name = $param['name'];
+        $mandatory = $param['mandatory'] ?? false;
+        $default = $param['default'] ?? null;
         
-        if (!isset($args[$nombre]) && $obligatorio && $default === null) {
-            $errores[] = "Falta parámetro obligatorio: --$nombre";
+        if (!isset($args[$name]) && $mandatory && $default === null) {
+            $errors[] = "Need this parameter: --$name";
         }
         
-        // Asignar valor por defecto si no existe
-        if (!isset($args[$nombre]) && $default !== null) {
-            $args[$nombre] = $default;
+        // Assign value if not exists
+        if (!isset($args[$name]) && $default !== null) {
+            $args[$name] = $default;
         }
     }
     
-    // Mostrar errores y salir si los hay
-    if (!empty($errores)) {
-        echo "❌ ERRORES:\n";
-        foreach ($errores as $error) {
+    // Show errors if any
+    if (!empty($errors)) {
+        echo "ERRORS:\n";
+        foreach ($errors as $error) {
             echo "  - $error\n";
         }
         echo "\n";
-        mostrarAyuda($parametros_esperados);
+        showHelp($expected_params);
         exit(1);
     }
     
     return $args;
 }
 
-function mostrarAyuda(array $parametros_esperados) {
+function showHelp(array $expected_params) {
     global $argv;
     
-    echo "Uso: " . basename($argv[0]) . " [opciones]\n\n";
-    echo "Opciones disponibles:\n";
+    echo "Use: " . basename($argv[0]) . " [options]\n\n";
+    echo "Available options:\n";
     
-    foreach ($parametros_esperados as $parametro) {
-        $nombre = $parametro['nombre'];
-        $descripcion = $parametro['descripcion'] ?? '';
-        $obligatorio = $parametro['obligatorio'] ?? false;
-        $default = $parametro['default'] ?? null;
+    foreach ($expected_params as $param) {
+        $nombre = $param['name'];
+        $descripcion = $param['description'] ?? '';
+        $mandatory = $param['mandatory'] ?? false;
+        $default = $param['default'] ?? null;
         
-        $obligatorio_mark = $obligatorio ? '[OBLIGATORIO]' : '';
+        $mandatory_mark = $mandatory ? '[MANDATORY]' : '';
         $default_mark = $default !== null ? " (default: $default)" : '';
         
-        printf("  --%-20s %s%s%s\n", $nombre, $obligatorio_mark, $default_mark, $descripcion ? " - $descripcion" : '');
+        printf("  --%-20s %s%s%s\n", $nombre, $mandatory_mark, $default_mark, $descripcion ? " - $descripcion" : '');
     }
 }
 
 // EJEMPLO DE USO
+/*
 $parametros_esperados = [
     [
-        'nombre' => 'host',
-        'obligatorio' => true,
-        'descripcion' => 'Servidor MySQL'
+        'name' => 'host',
+        'mandatory' => true,
+        'description' => 'Servidor MySQL'
     ],
     [
-        'nombre' => 'port',
+        'name' => 'port',
         'default' => 3306,
-        'descripcion' => 'Puerto MySQL'
+        'description' => 'Puerto MySQL'
     ],
     [
-        'nombre' => 'user',
-        'obligatorio' => true,
-        'descripcion' => 'Usuario de base de datos'
+        'name' => 'user',
+        'mandatory' => true,
+        'description' => 'Usuario de base de datos'
     ],
     [
-        'nombre' => 'help',
-        'descripcion' => 'Mostrar esta ayuda'
+        'name' => 'help',
+        'description' => 'Mostrar esta ayuda'
     ],
     [
-        'nombre' => 'debug',
-        'descripcion' => 'Modo debug'
+        'name' => 'debug',
+        'description' => 'Modo debug'
     ]
 ];
 
@@ -438,7 +469,7 @@ $args = parseArgs($parametros_esperados);
 
 // Verificar ayuda
 if (isset($args['help'])) {
-    mostrarAyuda($parametros_esperados);
+    showHelp($parametros_esperados);
     exit(0);
 }
 
@@ -446,5 +477,5 @@ echo "✅ Parámetros parseados:\n";
 foreach ($args as $clave => $valor) {
     printf("  %s = %s\n", $clave, $valor);
 }
-
+*/
 

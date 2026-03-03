@@ -420,11 +420,7 @@ class App
 
     public static function appPath()
     {
-<<<<<<< HEAD
-        return self::$app_path . '/';
-=======
-        return self::$s_app_path;
->>>>>>> da353a98884377783ffb6dcca728e8e5f214e2b9
+        return self::$app_path;
     }
 
     public static function url()

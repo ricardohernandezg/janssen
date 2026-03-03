@@ -6,6 +6,7 @@ use Exception;
 class Config
 {
     private static $settings = [];
+    private static $envVariableNames = [];
 
     /**
      * Tries to load a value from env and return it. In case
@@ -19,12 +20,26 @@ class Config
      * @param Any $default
      * @return Any
      */
-    public static function env($key, $default){
+    public static function env($key, $default = null)
+    {
         if(isset($_ENV[$key]))
             return getenv($key);
         else
             return $default;
     }
+
+    /**
+     * Get all the variables loaded from the .env file
+     */
+    public static function getAllEnv()
+    {
+        $ret = [];
+        foreach(self::$envVariableNames as $v){
+            $ret[$v] = self::env($v);
+        }
+        return $ret;
+    }
+
 
     /**
      * 
@@ -43,6 +58,7 @@ class Config
             try{
                 $dotenv = \Dotenv\Dotenv::create($path);
                 $dotenv->load();
+                self::$envVariableNames = $dotenv->getEnvironmentVariableNames();
             }catch(Exception $e){
                 throw new Exception('You need to use Dotenv if you want to load .env files!');
             }
