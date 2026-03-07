@@ -32,7 +32,7 @@ class App
      * objects
      */
 
-    private static $version = '0.8.2';
+    private static $version = '0.9.0';
     private static $name = 'Janssen Core';
     private static $app_path;
     private static $s_assets_path;
@@ -54,7 +54,7 @@ class App
         return self::$version;
     }
    
-    public function init(String $app_path)
+    public function init(string $app_path)
     {
 
         Event::invoke('app.beforeinit', $this);
@@ -68,25 +68,20 @@ class App
         self::$app_path = $app_path;
 
         // load external aliases
-        $ca_candidate = self::getPathCandidate('aliases');
+        $ca_candidate = self::getConfigPathCandidate(self::appPath(), 'aliases');
         $external_aliases = (is_file($ca_candidate)) ? (include $ca_candidate) : [];
         if(!empty($external_aliases))
             DefaultResolver::append($external_aliases);
 
         // make the global functions mapped to aliases to be called
         // from everywhere in the app
-        $ugf_conf_candidate = self::getPathCandidate('functions');
+        $ugf_conf_candidate = self::getConfigPathCandidate(self::appPath(), 'functions');
         $user_global_functions = (is_file($ugf_conf_candidate)) ? (include $ugf_conf_candidate) : [];
         create_global_functions($user_global_functions);
 
-        // load config
-        Config::loadConfigFromEnv($app_path . '/..');
+        // load app configuration
+        self::loadConfig($app_path);
     
-        // load app config
-        $engine_conf_candidate = self::getPathCandidate();
-        Config::append((is_file($engine_conf_candidate)) ? (include $engine_conf_candidate) : []);
-        self::$engine_config = Config::get();
-
         // create a header to the response
         $this->header = new Header;            
         
@@ -107,7 +102,7 @@ class App
             self::$request::fixPath();
         
         // instanciate database if setted up
-        $this->load_database_connection();
+        $this->loadDatabaseConnection();
         
         Event::invoke('app.afterinit', $this);
 
@@ -129,7 +124,7 @@ class App
             // as we process routing only for GET requests but the preprocessing is
             // for all types of requests, we need to check the routes before preprocessing
             if ($rm == 'GET') {
-                $routes_conf_candidate = self::getPathCandidate('routes');
+                $routes_conf_candidate = self::getConfigPathCandidate(self::appPath(), 'routes');
                 $routes = (is_file($routes_conf_candidate)) ? (include $routes_conf_candidate) : [];
                 Route::setRoutes($routes);
             }
@@ -268,7 +263,7 @@ class App
         return $ret;
     }
 
-    private function load_database_connection()
+    private function loadDatabaseConnection()
     {
         $dc = self::getConfig('connections')[self::getConfig('default_connection')];
         $dbe = $dc['driver'];
@@ -403,6 +398,21 @@ class App
     }
 
     /**
+     * Load application env and engine configuration
+     */
+    public static function loadConfig($app_path)
+    {
+        // load .env config
+        Config::loadConfigFromEnv($app_path . '/..');
+    
+        // load app config
+        $engine_conf_candidate = self::getConfigPathCandidate($app_path);
+        Config::append((is_file($engine_conf_candidate)) ? (include $engine_conf_candidate) : []);
+        self::$engine_config = Config::get();
+
+    }
+
+    /**
      * Gets the value of a engine config
      *
      * @param String $config
@@ -413,9 +423,9 @@ class App
         return empty(self::$engine_config[$config]) ? false : self::$engine_config[$config];
     }
 
-    public static function getPathCandidate($which = 'engine')
+    public static function getConfigPathCandidate($app_path, $which = 'engine')
     {
-        return self::appPath() . "/../app/Config/$which.php";
+        return $app_path . "/Config/$which.php";
     }
 
     public static function appPath()

@@ -1,9 +1,13 @@
 <?php
 
-use Janssen\App;
-
-
 require_once ('../vendor/autoload.php');
+
+use Janssen\App;
+use Janssen\Engine\Config;
+use Janssen\Helpers\Database;
+use Janssen\Helpers\Encrypt;
+use Janssen\Helpers\Database\Adaptor;
+use Janssen\Resource\DefaultResolver;
 
 $DS = (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')?'\\':'/';
 
@@ -21,7 +25,7 @@ $files = [
     ],
     'public' => [
         'Lmh0YWNjZXNz$cHVibGljLw==$PElmTW9kdWxlIG1vZF9yZXdyaXRlLmM+DQogICAgPElmTW9kdWxlIG1vZF9uZWdvdGlhdGlvbi5jPg0KICAgICAgICBPcHRpb25zIC1NdWx0aVZpZXdzDQogICAgPC9JZk1vZHVsZT4NCg0KICAgIFJld3JpdGVFbmdpbmUgT24NCiAgDQogICAgIyBSZWRpcmVjdCBUcmFpbGluZyBTbGFzaGVzIElmIE5vdCBBIEZvbGRlci4uLg0KICAgICMgUmV3cml0ZUNvbmQgJXtSRVFVRVNUX0ZJTEVOQU1FfSAhLWQNCiAgICAjIFJld3JpdGVSdWxlIF4oLiopLyQgLyQxIFtMLFI9MzAxXQ0KDQogICAgIyBIYW5kbGUgRnJvbnQgQ29udHJvbGxlci4uLg0KICAgIFJld3JpdGVDb25kICV7UkVRVUVTVF9VUkl9ICEoXC4oY3NzfGpzfG1hcHxzdmd8aWNvfHdvZmZ8d29mZjJ8dHRmKSQpDQogICAgUmV3cml0ZUNvbmQgJXtSRVFVRVNUX0ZJTEVOQU1FfSAhLWQNCiAgICBSZXdyaXRlQ29uZCAle1JFUVVFU1RfRklMRU5BTUV9ICEtZg0KICAgIFJld3JpdGVSdWxlIF4gaW5kZXgucGhwIFtMXQ0KDQogICAgIyBIYW5kbGUgQXV0aG9yaXphdGlvbiBIZWFkZXINCiAgICBSZXdyaXRlQ29uZCAle0hUVFA6QXV0aG9yaXphdGlvbn0gLg0KICAgIFJld3JpdGVSdWxlIC4qIC0gW0U9SFRUUF9BVVRIT1JJWkFUSU9OOiV7SFRUUDpBdXRob3JpemF0aW9ufV0NCjwvSWZNb2R1bGU+DQo=',
-        'aW5kZXgucGhw$cHVibGljLw==$PD9waHAgDQoNCnJlcXVpcmVfb25jZSAoJy4uL3ZlbmRvci9hdXRvbG9hZC5waHAnKTsNCg0KLyoqDQogKiAtLSBBcHBsaWNhdGlvbiBsaWZlY3ljbGUgLS0NCiAqIFRha2UgcmVxdWVzdCAoR0VUfFBPU1R8UFVUfERFTEVURSkgDQogKiBQcmVwcm9jZXNzDQogKiBGaW5kIHRoZSByaWdodCBoYW5kbGVyIA0KICogSGFuZGxlIHJlcXVlc3QNCiAqIE1ha2UgcmVzcG9uc2UgDQogKiBQb3N0cHJvY2Vzcw0KICogRWNobyByZXNwb25zZQ0KICogDQogKi8NCg0KLy8gSW5zdGFudGlhdGUgb3VyIGFwcA0KJGphbmFwcCA9IG5ldyBKYW5zc2VuXEFwcCgpOw0KDQovLyBJbml0IHRoZSBhcHAgYW5kIGxvYWQgY29uZmlndXJhdGlvbnMNCiRqYW5hcHAtPmluaXQoX19ESVJfXyk7DQoNCi8vIHJ1biENCmVjaG8gJGphbmFwcC0+cnVuKCk7',
+        'aW5kZXgucGhw$cHVibGljLw==$PD9waHAgCgpyZXF1aXJlX29uY2UgKCcuLi92ZW5kb3IvYXV0b2xvYWQucGhwJyk7CgovKioKICogLS0gQXBwbGljYXRpb24gbGlmZWN5Y2xlIC0tCiAqIFRha2UgcmVxdWVzdCAoR0VUfFBPU1R8UFVUfERFTEVURSkgCiAqIFByZXByb2Nlc3MKICogRmluZCB0aGUgcmlnaHQgaGFuZGxlciAKICogSGFuZGxlIHJlcXVlc3QKICogTWFrZSByZXNwb25zZSAKICogUG9zdHByb2Nlc3MKICogRWNobyByZXNwb25zZQogKiAKICovCgovLyBJbnN0YW50aWF0ZSBvdXIgYXBwCiRqYW5hcHAgPSBuZXcgSmFuc3NlblxBcHAoKTsKCi8vIEluaXQgdGhlIGFwcCBhbmQgbG9hZCBjb25maWd1cmF0aW9ucwokamFuYXBwLT5pbml0KF9fRElSX18gLiAnLy4uL2FwcCcpOwoKLy8gcnVuIQplY2hvICRqYW5hcHAtPnJ1bigpOw==',
     ],
     'templates' => [
         'd2VsY29tZS5waHA=$dGVtcGxhdGVzLw==$PD9waHAgDQoNCiRsb2JzdGVyID0gSmFuc3NlblxSZXNvdXJjZVxFbWJlZEZvbnRzOjokbG9ic3RlcjsNCg0KPz4NCjxodG1sPg0KPHRpdGxlPldlbGNvbWUgdG8gSmFuc3NlbiE8L3RpdGxlPg0KPHN0eWxlPg0KICAgIEBmb250LWZhY2Ugew0KICAgICAgICBmb250LWZhbWlseTogJ0xvYnN0ZXInOw0KICAgICAgICBzcmM6IHVybChkYXRhOmZvbnQvdHJ1ZXR5cGU7Y2hhcnNldD11dGYtODtiYXNlNjQsPD89ICRsb2JzdGVyID8+KSBmb3JtYXQoJ3RydWV0eXBlJyk7DQogICAgICAgIGZvbnQtd2VpZ2h0OiBub3JtYWw7DQogICAgICAgIGZvbnQtc3R5bGU6IG5vcm1hbDsNCiAgICB9DQoNCiAgICAuY29udGFpbmVyIHsNCiAgICAgICAgbWluLWhlaWdodDogMTBlbTsNCiAgICAgICAgcG9zaXRpb246IHJlbGF0aXZlOw0KICAgICAgICBoZWlnaHQ6IDkzJTsNCiAgICB9DQoNCiAgICAubmFtZSB7DQogICAgICAgIGZvbnQtZmFtaWx5OiAnTG9ic3Rlcic7DQogICAgICAgIGZvbnQtc2l6ZTogMTAwcHg7DQogICAgICAgIGZvbnQtd2VpZ2h0OjUwMDsNCiAgICAgICAgY29sb3I6ICNiYTA1MDU7DQogICAgfQ0KICAgIA0KICAgIC53ZWxjb21lLXRvIHsNCiAgICAgICAgZm9udC1mYW1pbHk6IHNhbnMtc2VyaWY7DQogICAgICAgIGZvbnQtc2l6ZTogMjBweDsNCiAgICB9DQoNCiAgICAubHMtd2lkZSB7DQogICAgICAgIGxldHRlci1zcGFjaW5nOiAxZW07DQogICAgfQ0KDQogICAgLmZ1bGwtcCB7DQogICAgICAgIG1hcmdpbjogMDsNCiAgICAgICAgdG9wOiA0MCU7DQogICAgICAgIHRleHQtYWxpZ246IGNlbnRlcjsNCiAgICAgICAgcG9zaXRpb246IHJlbGF0aXZlOw0KICAgIH0NCg0KICAgIC5kZWNvIHsNCiAgICAgICAgcG9zaXRpb246IGFic29sdXRlOw0KICAgICAgICBtYXJnaW46IDUlOw0KICAgICAgICBib3JkZXI6IDFweCBzb2xpZCBibGFjazsNCiAgICAgICAgd2lkdGg6IDkwJTsNCiAgICAgICAgaGVpZ2h0OiA5MCU7DQoNCiAgICB9DQoNCjwvc3R5bGU+DQo8Ym9keSBzdHlsZT0iYmFja2dyb3VuZC1jb2xvcjogbGlnaHRncmF5Ij4NCg0KPGRpdiBjbGFzcz0iY29udGFpbmVyIj4NCiAgICA8ZGl2IGNsYXNzPSJkZWNvIj48L2Rpdj4NCiAgICA8cCBjbGFzcz0iZnVsbC1wIiA+DQogICAgICAgIDxzcGFuIGNsYXNzPSJ3ZWxjb21lLXRvIGxzLXdpZGUiPndlbGNvbWUgdDwvc3Bhbj48c3BhbiBjbGFzcz0id2VsY29tZS10byI+bzwvc3Bhbj4NCiAgICAgICAgPGJyLz4NCiAgICAgICAgPHNwYW4gc3R5bGU9InBhZGRpbmctdG9wOiAyNXB4OyIgY2xhc3M9Im5hbWUiPkphbnNzZW48L3NwYW4+DQogICAgICAgIDxici8+DQogICAgICAgIDxzcGFuIGNsYXNzPSJ3ZWxjb21lLXRvIiBzdHlsZT0icGFkZGluZy10b3A6IDI1cHg7Ij4mbWRhc2g7Jm1kYXNoOyZtZGFzaDsmbWRhc2g7byZtZGFzaDsmbWRhc2g7Jm1kYXNoOyZtZGFzaDs8L3NwYW4+DQogICAgPC9wPg0KPC9kaXY+DQoNCg0KPC9ib2R5Pg0KPC9odG1sPg=='
@@ -29,7 +33,8 @@ $files = [
     'env.template' => 'LmVudi50ZW1wbGF0ZQ==$$IyBsb2NhbCBjb25maWd1cmF0aW9ucyBmaWxlDQojIHRoaXMgZmlsZSBpcyBub3QgaW50ZW5kZWQgdG8gYmUgdXBsb2FkZWQgdG8gdGhlIHJlcG8gc28gcGxlYXNlIGRvbid0IGRvIHRoYXQNCg0KIyB5b3UgY2FuIHB1dCBoZXJlIGFueSB2YXIgeW91IGNvbnNpZGVyIGltcG9ydGFudCB0byBrZWVwIHNhZmUgaW4geW91ciBsb2NhbCBjb25maWd1cmF0aW9ucw0KIyBidXQgcmVtZW1iZXIgdG8gcHV0IHRoYXQgdmFyIGluIHlvdXIgcHJvZHVjdGlvbiB2ZXJzaW9uIGFuZCBhdm9pZCB1c2Ugb2YgdGhpcyBlbnYgZmlsZQ0KIyBpbiBwcm9kdWN0aW9uIHN0YWdlDQojIGtleXMgYXJlIGNhc2Ugc2Vuc2l0aXZlIQ0KDQp1cmwgPSAnaHR0cDovL2xvY2FsaG9zdCcNCg0KZGJfZHJpdmVyID0gJycNCmRiX2hvc3QgPSAnJw0KZGJfcG9ydCA9ICcnDQpkYl91c2VyID0gJycNCmRiX3Bhc3MgPSAnJw0KZGJfbmFtZSA9ICcnDQoNCmVuY19rZXkgPSAndGhpc19rZXlfbXVzdF9iZV9jaGFuZ2VkISc='
 ];
 
-$base_path = __DIR__ . '/../';
+$base_path = __DIR__ . '/..';
+$app_path = $base_path . '/app';
 
 if ($argc == 1)
     dieWithMessage(showArgumentList());
@@ -110,12 +115,25 @@ switch (strtolower($argv[1])){
     case 'seed-db-row':
         // read the .env file and get the db creds. As this is only for dev, 
         // we need the .env file. In production the .env file should not exist
-        // 
         $env = parseProjectEnv();
         // .env must have connector, host, port, user, password, db and debug must be true
-        $c = App::getConfig();
-        print_r($env, $c);
-        
+
+        //Config::loadConfigFromEnv($base_path);
+        App::loadConfig($app_path);
+        $c = Config::getAllEnv();
+    
+        // check if we have the required variables to work
+        $requiredEnvs = array_keys(getDBExpectedEnvFields());
+
+        $found = true;
+        foreach($requiredEnvs as $v){
+            $found &= (array_key_exists($v, $c));
+            
+            if(!$found)
+                dieWithMessage("ERROR: .env file has missing db fields");
+                
+        }
+
         $expected_params = [
             [
                 'name' => 'table',
@@ -128,7 +146,7 @@ switch (strtolower($argv[1])){
                 'description' => 'Data in JSON format'
             ],
             [
-                'name' => 'password',
+                'name' => 'pass',
                 'mandatory' => true,
                 'description' => 'Password to the db user in the .env file'
             ],
@@ -138,8 +156,44 @@ switch (strtolower($argv[1])){
             ],
         ];
         $args = parseArgs($expected_params);
-        print_r($args);
+        
+        if($args['pass'] !== $c['db_pass'])
+            dieWithMessage("ERROR: provided password doesn't match with .env");
 
+        $valid_data = isValidJson($args['data']);
+        if(!$valid_data)
+            dieWithMessage('Error: Data to be inserted must be single quoted JSON');
+
+        
+        $dbe = $c['db_driver'];
+        if ($dbe) {
+            $adaptor = DefaultResolver::resolve($dbe);
+            if ($adaptor && $adaptor instanceof Adaptor){ 
+
+                $db_cf = mapDBConfigFields($c);
+
+                $cf = $adaptor->getAllConfigFields();
+                foreach ($cf as $k => $v) {
+                    $adaptor->setConfigField($k, $db_cf[$k]);
+                }
+                Database::setAdaptor($adaptor);
+
+                print_r($args);
+                //die;
+                $data = json_decode($args['data'], true);
+                buildInsert('users',$data);
+                // Write the query to insert the data in the table
+
+
+                $u = Database::queryOne("select * from security.user where IdUser = 1");
+                print_r($u);
+                die;
+
+            } else 
+                dieWithMessage("ERROR: database adaptor not found");
+
+        }
+        
         break;
     default:
         dieWithMessage(showArgumentList());
@@ -195,6 +249,27 @@ function showArgumentList(){
     return $ret;
 }
 
+function buildInsert($table, array $data) {
+    $fields = array_keys($data);
+    $placeholders = array_fill(0, count($data), '?');
+    
+    $sql = "INSERT INTO {$table} (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ")";
+    
+    $params = array_values($data);
+    foreach($params as $k=>&$v){
+        if(strtolower(substr($v, 0,9)) == '<encrypt>'){
+            $v = Encrypt::encrypt(substr($v, 10));
+        }
+    }
+    var_dump($sql);
+    print_r($params);
+    die;
+    return [
+        'sql' => $sql,
+        'params' => $params
+    ];
+}
+
 function createModel($name, $table = false)
 {
     $pyload = <<<MODEL_CNTS
@@ -210,7 +285,7 @@ class _{MODEL_NAME}_ extends Model
     public \$primaryKey = '_{PK_NAME}_';
 }
 MODEL_CNTS;
-
+-
     $ret = str_replace('_{MODEL_NAME}_', makeClassName($name), $pyload);
     if($table)
         $ret = str_replace('_{TABLE_NAME}_', strtolower($table), $ret);
@@ -277,7 +352,7 @@ function makeClassName($name)
 
 function dieWithMessage($message)
 {
-    die(PHP_EOL . $message . PHP_EOL);
+    die(PHP_EOL . $message . PHP_EOL . PHP_EOL);
 }
 
 function parseProjectEnv() 
@@ -368,7 +443,7 @@ function parseArgs(array $expected_params) {
     $errors = [];
     
     // $argv[0] is script name
-    for ($i = 1; $i < count($argv); $i++) {
+    for ($i = 2; $i < count($argv); $i++) {
         $arg = $argv[$i];
         
         // Format --key=value o -key=value
@@ -435,6 +510,93 @@ function showHelp(array $expected_params) {
         printf("  --%-20s %s%s%s\n", $nombre, $mandatory_mark, $default_mark, $descripcion ? " - $descripcion" : '');
     }
 }
+
+function getDBExpectedEnvFields()
+{
+    return [
+        'db_driver' => 'driver',
+        'db_host' => 'host',
+        'db_port' => 'port',
+        'db_user' => 'user',
+        'db_pass' => 'pwd',
+        'db_name' => 'db'
+    ];
+}
+
+function mapDBConfigFields($envVariables){
+
+    $ev = getDBExpectedEnvFields();
+    $ret = [];
+    $found = true;
+    foreach($ev as $k=>$v){
+        if(array_key_exists($k, $envVariables)){
+            $ret[$v] = $envVariables[$k];
+        }else
+            $found = false;
+
+        if(!$found) dieWithMessage('Error: At least one db config value is missing');
+    }    
+    return $ret;
+
+}
+
+/**
+ * Valida si un texto es JSON válido - PHP < 8.3
+ * @param string $text Texto a validar
+ * @return bool
+ */
+function isValidJson(string $text): bool {
+    // Eliminar espacios en blanco al inicio y final
+    $text = trim($text);
+    
+    // Validar JSON con json_decode (compatible PHP < 8.3)
+    $decoded = json_decode($text);
+    $jsonError = json_last_error();
+    
+    // Verificar si es JSON válido
+    return ($jsonError === JSON_ERROR_NONE && $decoded !== null);
+}
+
+// Pruebas
+/*
+$tests = [
+    '{"name":"Juan", "age":30}',                    // ✅ Objeto
+    '[]',                                          // ✅ Array vacío
+    '[1,2,3]',                                     // ✅ Array números
+    '"texto simple"',                              // ✅ String
+    'true',                                        // ✅ Booleano true
+    'false',                                       // ✅ Booleano false
+    'null',                                        // ✅ Null
+    '{name: "sin comillas"}',                      // ❌ Clave sin comillas
+    '[{',                                          // ❌ JSON incompleto
+    'texto normal',                                // ❌ No es JSON
+];
+
+foreach ($tests as $test) {
+    $result = isValidJson($test);
+    $status = $result['is_valid'] ? '✅ VÁLIDO' : '❌ ' . $result['error'];
+    printf("%-25s → %s\n", $test, $status);
+    
+    if ($result['is_valid']) {
+        printf("  → Tipo: %s\n", gettype($result['decoded']));
+    }
+    echo str_repeat("-", 40) . "\n";
+}
+*/
+
+// Ejemplos de uso:
+/*
+$tests = [
+    "'{\"name\":\"Juan\", \"age\":30}'",                    // ✅ Válido
+    "'{\"name\": \"Ana\", \"city\": \"Caracas\"}'",         // ✅ Válido
+    '"{"name":"Pedro"}"',                                  // ❌ Comillas dobles
+    "'{name: \"Luis\"}'",                                  // ❌ JSON inválido (clave sin comillas)
+    "Texto normal sin JSON",                               // ❌ Sin comillas simples
+    "'{\"name\":\"ok\"}' extra texto",                     // ✅ Solo extrae el JSON
+];
+    
+?>
+*/
 
 // EJEMPLO DE USO
 /*
