@@ -24,6 +24,7 @@ trait SQLStatement
         'orderBy' => [],
         'distinct' => false,
         'zeroBasedMapping' => false,
+        'externalMapping' => [],
         'mapping' => [],
         'limit' => -1,
         'offset' => -1,
@@ -33,6 +34,8 @@ trait SQLStatement
     
     /** sql modifiers  */
     private static $zero_based_mapping = false;
+
+    private static $external_mapping = [];
     
     private static $fields = [];    
     
@@ -98,11 +101,11 @@ trait SQLStatement
      * Cleans the mapping 
      *
      * @return object
-     * @deprecated
      */
-    public static function clearMapping()
+    private static function clearMapping()
     {
-        //self::$external_mapping = self::$defaults['mapping'];
+        self::$zero_based_mapping = self::$defaults['zeroBasedMapping']; 
+        self::$external_mapping = self::$defaults['externalMapping'];
         return self::me();
     }
 
