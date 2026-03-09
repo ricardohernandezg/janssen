@@ -1,643 +1,507 @@
 <?php
 
-require_once ('../vendor/autoload.php');
+namespace Janssen;
 
-use Janssen\App;
 use Janssen\Engine\Config;
+use Janssen\Engine\Event;
+use Janssen\Engine\Header;
+use Janssen\Engine\Preprocessor;
+use Janssen\Engine\Request;
+use Janssen\Engine\Response;
+use Janssen\Engine\Route;
+use Janssen\Engine\Session;
+use Janssen\Engine\Validator;
 use Janssen\Helpers\Database;
-use Janssen\Helpers\Encrypt;
 use Janssen\Helpers\Database\Adaptor;
+use Janssen\Helpers\Exception;
+use Janssen\Helpers\Response\ErrorResponse;
+use Janssen\Helpers\Response\JsonResponse;
+use Janssen\Helpers\Response\RawResponse;
+use Janssen\Helpers\FlashMessage;
 use Janssen\Resource\DefaultResolver;
+use Throwable;
 
-$DS = (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')?'\\':'/';
+class App
+{
+    use Traits\InstanceGetter;
 
-$files = [
-    'app' => [
-        'QWRtaW5HdWFyZC5waHA=$YXBwL0F1dGg=$PD9waHAgDQoNCm5hbWVzcGFjZSBBcHBcQXV0aDsNCg0KdXNlIEphbnNzZW5cSGVscGVyc1xHdWFyZDsNCnVzZSBKYW5zc2VuXEVuZ2luZVxSZXF1ZXN0Ow0KDQpjbGFzcyBBZG1pbkd1YXJkIGV4dGVuZHMgR3VhcmQNCnsNCg0KICAgIC8qKg0KICAgICAqIE1ha2UgdGhlIGF1dGhlbnRpY2F0aW9uIG9mIGEgdXNlciB0aHJvdWdoIHRoZSBBZG1pbiBHdWFyZC4NCiAgICAgKiBUaGlzIHdpbGwgZ3JhbnQgYSByZXF1ZXN0IGNvbWVzIGZyb20gYSB1c2VyIHRoYXQgaXMgaW4gdGhlIA0KICAgICAqIGxpc3QgdGhhdCBjYW4gYWNjZXNzIHRoZSByZXNvdXJjZSBtYW5hZ2VkIGJ5IEFkbWluDQogICAgICoNCiAgICAgKiBAcGFyYW0gUmVxdWVzdCAkcmVxdWVzdA0KICAgICAqIEByZXR1cm4gdm9pZA0KICAgICAqLw0KICAgIHB1YmxpYyBmdW5jdGlvbiBhdXRoZW50aWNhdGUoUmVxdWVzdCAkcmVxdWVzdCkNCiAgICB7DQogICAgICAgIHJldHVybiB0cnVlOw0KICAgIH0NCg0KICAgIC8qKg0KICAgICAqIEF1dGhvcml6ZSBhbiBhY3Rpb24gdGhhdCBtdXN0IGNvbWUgZnJvbSBhbiBhdXRoZW50aWNhdGVkIHVzZXINCiAgICAgKiBhcyB0aGUgcm91dGUgc2hvdWxkIGJlIHByb3RlY3RlZCB3aXRoIHRoaXMgZ3VhcmQNCiAgICAgKg0KICAgICAqIEBwYXJhbSBSZXF1ZXN0ICRyZXF1ZXN0DQogICAgICogQHJldHVybiB2b2lkDQogICAgICovDQogICAgcHVibGljIGZ1bmN0aW9uIGF1dGhvcml6ZShSZXF1ZXN0ICRyZXF1ZXN0KQ0KICAgIHsNCiAgICAgICAgcmV0dXJuIHRydWU7DQogICAgfQ0KICAgIA0KfQ==',
-        'ZW5naW5lLnBocA==$YXBwL0NvbmZpZw==$PD9waHANCg0KdXNlIEphbnNzZW5cRW5naW5lXENvbmZpZzsNCg0KcmV0dXJuIFsNCiAgICAncHJlcHJvY2Vzc29ycycgPT4gWw0KICAgICAgICAnXEFwcFxQcmVwcm9jZXNzb3JcTWFpbnRlbmFuY2UnLA0KICAgICAgICBbJ1xBcHBcUHJlcHJvY2Vzc29yXERlY3J5cHRSb3V0ZScsICdQT1NUJ10sDQogICAgICAgICdcQXBwXFByZXByb2Nlc3NvclxBY2Nlc3NDb250cm9sJywNCiAgICBdLA0KDQogICAgJ3Bvc3Rwcm9jZXNzb3JzJyA9PiBbICAgICAgDQogICAgXSwNCiAgDQoNCiAgICAvKiBkZWJ1Z2dpbmc6IHNldCB0aGlzIHRvIHRydWUgdG8gaGF2ZSBkZXRhaWxlZCBlcnJvciBtZXNzYWdlcyAqLw0KICAgICdkZWJ1ZycgPT4gQ29uZmlnOjplbnYoJ2RlYnVnJywgZmFsc2UpLA0KDQogICAgLyogbWFpbnRlbmFuY2UgbW9kZT8gKi8NCiAgICAnbWFpbnRlbmFuY2UnID0+IENvbmZpZzo6ZW52KCdtYWludGVuYW5jZScsIGZhbHNlKSwNCg0KICAgICdhc3NldHMnID0+IFsNCiAgICAgICAgJ2NzcycgPT4gJ2Fzc2V0cy9jc3MvJywNCiAgICAgICAgJ2pzJyA9PiAnYXNzZXRzL2pzLycsDQogICAgICAgICdpbWcnID0+ICdhc3NldHMvaW1hZ2VzLycsDQogICAgICAgICdmb250cycgPT4gJ2Fzc2V0cy9mb250LycsDQogICAgICAgICd2ZW5kb3InID0+ICdhc3NldHMvdmVuZG9ycy8nDQogICAgXSwNCg0KICAgIC8qIGJhc2UgdXJsIHRvIHRoZSB3ZWJzaXRlLCBpdCB3aWxsIGJlIGdhdGhlcmVkIGZyb20gLmVudiBidXQgaW4gcHJvZHVjdGlvbiB0aGlzDQogICAgdmFyaWFibGUgbXVzdCBiZSBzZXQgdG8gZmluYWwgdXJsICovDQogICAgJ3VybCcgPT4gQ29uZmlnOjplbnYoJ3VybCcsICdodHRwOi8vbG9jYWxob3N0JyksDQoNCiAgICAvKiByZWxheCByb3V0ZSAqLw0KICAgICdyZWxheF9yb3V0ZScgPT4gdHJ1ZSwNCg0KICAgIC8qIGZvcmNlIGh0dHBzICovDQogICAgJ2ZvcmNlX2h0dHBzJyA9PiB0cnVlLA0KDQogICAgLyogaGFzaGluZzogc2V0IHRoZSBrZXkgZm9yIGhhc2ggZ2VuZXJhdGlvbiBhbmQgbWV0aG9kICovDQogICAgJ2VuY19rZXknID0+IENvbmZpZzo6ZW52KCdlbmNfa2V5JywgJ19wMTM0czNfY2g0bmczXzd0MTVfazN5XycpLA0KICAgIA0KICAgICdlbmNfbWV0aG9kJyA9PiBDb25maWc6OmVudignZW5jX21ldGhvZCcsICdiZi1vZmInKSwNCg0KICAgIC8qIG1hbmFnZWQgd2Vic2l0ZSBwYXRoOiBpZiB0aGlzIGFwcCBpcyBhbmQgbWFuYWdlciBmb3IgYW5vdGhlciB3ZWJzaXRlIGFuZCB5b3UNCiAgICB0aGluayB5b3UnbGwgbmVlZCBpdHMgVVJMLCBwdXQgaXQgaGVyZSAqLyANCiAgICAvLyAnd2Vic2l0ZV9wYXRoJyA9PiBDb25maWc6OmVudignd2Vic2l0ZV9wYXRoJyksIA0KIA0KICAgIC8qIG1hbmFnZWQgd2Vic2l0ZSBhc3NldHMgcGF0aCAqLw0KICAgICd3ZWJzaXRlX2Fzc2V0cycgPT4gWw0KICAgICAgICAnY3NzJyA9PiAnY3NzLycsDQogICAgICAgICdqcycgPT4gJ2pzLycsDQogICAgICAgICdpbWcnID0+ICdpbWFnZXMvJywNCiAgICBdLA0KDQogICAgLyoqDQogICAgICogRGF0YWJhc2UgY29ubmVjdGlvbnMNCiAgICAgKiBhcHAgd2lsbCB1c2UgZGF0YWJhc2UgY29ubmVjdGlvbi4gUHV0IGZhbHNlIG9yIHJlbW92ZSB0byBub3QgDQogICAgICogdXNlIGFueSBkYXRhYmFzZSBjb25uZWN0aW9uLiBZb3UgY2FuIGFsc28gaW5kaWNhdGUgcHNyLTQgcm91dGUNCiAgICAgKiB0byB5b3VyIG93biBpbXBsZW1lbnRhdGlvbiBvZiBBZGFwdG9yIGlmIG5vdCBteXNxbGkgb3IgcG9zdGdyZXMgDQogICAgICovDQogICAgJ2Nvbm5lY3Rpb25zJyA9PiBbDQogICAgICAgICdteWRiJyA9PiBbDQogICAgICAgICAgICAnZHJpdmVyJyA9PiBDb25maWc6OmVudignZGJfZHJpdmVyJywgJ215c3FsJyksDQogICAgICAgICAgICAncG9ydCcgPT4gQ29uZmlnOjplbnYoJ2RiX3BvcnQnLCAzMzA2KSwNCiAgICAgICAgICAgICdob3N0JyA9PiBDb25maWc6OmVudignZGJfaG9zdCcsICdsb2NhbGhvc3QnKSwNCiAgICAgICAgICAgICd1c2VyJyA9PiBDb25maWc6OmVudignZGJfdXNlcicsICdyb290JyksDQogICAgICAgICAgICAncHdkJyA9PiBDb25maWc6OmVudignZGJfcGFzcycsICdyb290JyksDQogICAgICAgICAgICAnZGInID0+IENvbmZpZzo6ZW52KCdkYl9kYicsICdteV9kYicpLA0KICAgICAgICBdDQogICAgXSwNCiAgICAvKioNCiAgICAgKiBEZWZhdWx0IGNvbm5lY3Rpb24gd2hlbiBubyBzcGVjaWZpZWQgKGFsc28gdXNlZCBmb3Igc3RhcnQpDQogICAgICovDQogICAgJ2RlZmF1bHRfY29ubmVjdGlvbicgPT4gJ215ZGInLA0KDQogICAgLyoqDQogICAgICogR3VhcmRzIGFyZSB0aGUgaW5zdGFuY2VzIHRoYXQgYXV0aGVudGljYXRlIG9yIGF1dGhvcml6ZQ0KICAgICAqIGEgcmVxdWVzdA0KICAgICAqLw0KICAgICdndWFyZHMnID0+IFsNCiAgICAgICAnYWRtaW4nLA0KICAgICAgICdhcGknDQogICAgXSwNCg0KICAgIC8qKg0KICAgICAqIERlZmF1bHQgZ3VhcmQgd2hlbiBjb250cm9sbGVyIGRvZXNuJ3QgZGVzaWduYXRlIG9uZQ0KICAgICAqLw0KICAgICdkZWZhdWx0X2d1YXJkJyA9PiAnYWRtaW4nLA0KDQogICAgLyoqDQogICAgICogQXV0aGVudGljYXRpb24gaXMgdGhlIG1ldGhvZCB0byB2ZXJpZnkgYW4gaWRlbnRpdHkuIA0KICAgICAqIEVhY2ggZ3VhcmQgbXVzdCBpbXBsZW1lbnQgaXRzIG93biB3YXkgdG8gbWFrZSBhdXRoZW50aWNhdGlvbi4NCiAgICAgKiBJZiBub3QgbWV0aG9kIGlzIGZvdW5kIHRoZSByZXF1ZXN0IHdpbGwgYmUgZGVuaWVkIGJ5IGRlZmF1bHQNCiAgICAgKi8NCiAgICAnYXV0aGVudGljYXRpb24nID0+IFsNCiAgICAgICAgJ2FkbWluJywNCiAgICAgICAgJ2FwaScNCiAgICBdLA0KDQogICAgLyoqDQogICAgICogQXV0b3JpemF0aW9uIGlzIHRoZSBtZXRob2QgdG8gY2hlY2sgaWYgdXNlciBjYW4gYWNjZXNzDQogICAgICogYSByZXNvdXJjZS4NCiAgICAgKi8gICAgDQogICAgJ2F1dG9yaXphdGlvbicgPT4gWw0KICAgICAgICAnYWRtaW4nID0+IFsNCiAgICAgICAgICAgICdtZXRob2QnID0+ICdzZXNzaW9uJywNCiAgICAgICAgICAgICdsb29rX2ZvcicgPT4gWydpc19hZG1pbicsIHRydWVdDQogICAgICAgICAgICBdDQogICAgXSwNCl07DQo=',
-        'ZnVuY3Rpb25zLnBocA==$YXBwL0NvbmZpZw==$PD9waHAgDQovKioNCiAqIFRoZSBwdXJwb3NlIG9mIHRoaXMgZmlsZSBpcyB0byBtYWtlIGdsb2JhbCBmdW5jdGlvbnMNCiAqIHRvIGJlIGNhbGxlZCB3aXRob3V0IHdyaXRpbmcgZW50aXJlIG5hbWVzcGFjZXMgb3IgbWFraW5nDQogKiBpbnZvY2F0aW9ucy4gVGhpcyBpcyB2ZXJ5IHVzZWZ1bCB0byBmdW5jdGlvbnMgdGhhciBhcmUNCiAqIGhlbHBlcnMgYW5kIGdldHRlcnMgb2YgZGF0YSB0aGF0IGFyZSB1c2VkIHZlcnkgb2Z0ZW4uDQogKiANCiAqIFRoZSBnbG9iYWwgY29uc3RydWN0b3Igd2lsbCB0YWtlIGNhcmUgb2YgeW91ciBjYWxsLCBkZXRlcm1pbmluZw0KICogaWYgeW91ciBtZXRob2QgaXMgc3RhdGljIG9yIG5vdCBhbmQgcmV0cmlldmluZyB0aGUNCiAqIHBhcmFtZXRlcnMgbmVlZGVkLiBJdCB3aWxsIG1ha2UgdGhlIGZ1bmN0aW9uIG9uIHRoZSBmbHkNCiAqIGZvciB5b3UuDQogKiANCiAqIEZvciBzZWN1cml0eSByZWFzb25zIHdlJ2xsIG5vdCBhbGxvdyB0aGUgcmVnaXN0cmF0aW9uDQogKiBvZiBjYWxsYmFjayBmdW5jdGlvbnMgaGVyZS4gQWxsIGNhbGxzIG11c3QgZ28gdG8gYSBtZXRob2QNCiAqIGluIGEgbmFtZXNwYWNlZCBjbGFzcy4NCiAqIA0KICovDQoNCnJldHVybiBbDQogICAgJ2FwcF9wYXRoJyA9PiAnXEphbnNzZW5cQXBwQGFwcFBhdGgnLA0KICAgICd1cmwnID0+ICdcSmFuc3NlblxBcHBAdXJsJywNCiAgICAnYXNzZXRzJyA9PiAnXEphbnNzZW5cQXBwQGFzc2V0cycsDQogICAgDQogICAgJ2ZpbGUnID0+ICdcSmFuc3NlblxBcHBAZmlsZVJlc3BvbnNlJywNCiAgICAncmVxdWVzdCcgPT4gJ1xKYW5zc2VuXEFwcEBnZXRSZXF1ZXN0JywNCiAgICANCiAgICAnZW5naW5lX2NvbmZpZycgPT4gJ1xKYW5zc2VuXEFwcEBnZXRDb25maWcnLA0KICAgICdjdXJyZW50X2hlYWRlcicgPT4gJ1xKYW5zc2VuXEFwcEBnZXRDdXJyZW50SGVhZGVyJywNCg0KICAgIC8qDQogICAgJ3dlYnNpdGVfYXNzZXRzJyA9PiAnXEFwcFxDb250cm9sbGVyXFdlYnNpdGVDb250cm9sbGVyQHdlYnNpdGVBc3NldHMnLA0KICAgICd3ZWJzaXRlX3BhdGgnID0+ICdcQXBwXENvbnRyb2xsZXJcV2Vic2l0ZUNvbnRyb2xsZXJAd2Vic2l0ZVBhdGgnLA0KICAgICovDQoNCiAgICBdOw==',
-        'cm91dGVzLnBocA==$YXBwL0NvbmZpZw==$PD9waHAgDQoNCi8qKg0KICogDQogKiBGaWxsIHRoZSBhcnJheSB3aXRoIHJvdXRlLCBkZXN0aW5hdGlvbiB0aGF0IHdpbGwgYmUgcHJvY2Vzc2VkIGFuZCBvcHRpb25hbGx5IHBhcmFtcw0KICogDQogKiBUSElTIElTIE9OTFkgRk9SIEdFVCBSRVFVRVNUUw0KICogDQogKiBBcnJheSBNVVNUIEJFOg0KICogUmVnZXh8bGl0ZXJhbDogdGhpcyB3aWxsIGJlIGNvbXBhcmVkIHRvIHJlcXVlc3QgYW5kIGZpcnN0IG1hdGNoIHdpbGwgYmUgcmV0dXJuZWQNCiAqIENvbnRyb2xsZXJ8VGVtcGxhdGVfZmlsZTogVGhpcyB3aWxsIHByb2Nlc3MgdGhlIHJlcXVlc3QsIGlmIGEgY29udHJvbGxlciBpcyBwYXNzZWQgaXQNCiAqIHdpbGwgYmUgaW52b2tlZCwgaWYgYSBmaWxlIGlzIHBhc3NlZCB0aGUgcGF0aCB3aWxsIGJlIHNlYXJjaGVkIGluIHRlbXBsYXRlcyBmb2xkZXIsIGxvYWRlZA0KICogYW5kIHJldHVybmVkLg0KICogUGFyYW1ldGVyOiBJZiB5b3VyIHJlZ2V4IGhhcyBjYXB0dXJlIHZhcmlhYmxlcywgdGhpcyB3aWxsIGJlIG5hbWVkIHdpdGggdGhpcyBsaXRlcmFscw0KICogYW5kIHBhc3NlZCB0byBjb250cm9sbGVyIChpcyB1c2VkKSBvciBzYXZlZCBpbiBSZXF1ZXN0IHBhcmFtZXRlcnMgdG8gYmUgdXNlZCBpbiB5b3VyDQogKiBhcHAgbm9ybWFsbHkuIFRoaXMgcGFyYW1ldGVycyBhcmUgcHJvY2Vzc2VkIGluIG9yZGVyIGFuZCBQT1NUIG92ZXJ3cml0ZSBHRVQgcGFyYW1ldGVycy4NCiAqIA0KICoqLyANCg0KcmV0dXJuIFsNCg0KICAgICAgICBbJ3BhdGgnID0+ICcvZHluanMvbG9naW4nLCANCiAgICAgICAgJ3Jlc29sdmVyJyA9PiAnXEFwcFxDb250cm9sbGVyXFNjcmlwdENvbnRyb2xsZXJAZ2V0TG9naW5TY3JpcHQnLCANCiAgICAgICAgJ2d1YXJkJyA9PiAnbm9ib2R5J10sIA0KICAgICAgICANCiAgICAgICAgWydwYXRoJyA9PicvJywgDQogICAgICAgICdyZXNvbHZlcicgPT4gJ3dlbGNvbWUucGhwJywgDQogICAgICAgICdndWFyZCcgPT4gJ25vYm9keSddLA0KICAgIA0KXTs=',
-        'SG9tZUNvbnRyb2xsZXIucGhw$YXBwL0NvbnRyb2xsZXI=$PD9waHAgDQoNCm5hbWVzcGFjZSBBcHBcQ29udHJvbGxlcjsNCg0KdXNlIEphbnNzZW5cRW5naW5lXENvbnRyb2xsZXI7DQp1c2UgSmFuc3NlblxFbmdpbmVcUmVxdWVzdDsNCg0KY2xhc3MgSG9tZUNvbnRyb2xsZXIgZXh0ZW5kcyBDb250cm9sbGVyDQp7DQoNCiAgICBwdWJsaWMgZnVuY3Rpb24gd2VsY29tZSgpDQogICAgew0KICAgICAgICByZXR1cm4gIkhlbGxvIHVzZXIhIjsNCiAgICB9DQoNCn0=',
-        'QWNjZXNzQ29udHJvbC5waHA=$YXBwL1ByZXByb2Nlc3Nvcg==$PD9waHAgCgpuYW1lc3BhY2UgQXBwXFByZXByb2Nlc3NvcjsKCi8vdXNlIEphbnNzZW5cRW5naW5lXEZhY3Rvcnk7CnVzZSBKYW5zc2VuXEVuZ2luZVxQcmVwcm9jZXNzb3I7CnVzZSBKYW5zc2VuXEVuZ2luZVxSZXF1ZXN0Owp1c2UgSmFuc3NlblxFbmdpbmVcUm91dGU7CnVzZSBKYW5zc2VuXEhlbHBlcnNcRXhjZXB0aW9uOwp1c2UgSmFuc3NlblxIZWxwZXJzXEd1YXJkOwp1c2UgSmFuc3NlblxIZWxwZXJzXFJlc3BvbnNlXEVycm9yUmVzcG9uc2U7CnVzZSBKYW5zc2VuXEhlbHBlcnNcQXV0aDsKCmNsYXNzIEFjY2Vzc0NvbnRyb2wgZXh0ZW5kcyBQcmVwcm9jZXNzb3IKewoKICAgIHB1YmxpYyBmdW5jdGlvbiBoYW5kbGUoUmVxdWVzdCAkcmVxdWVzdCkKICAgIHsKICAgICAgICAvLyBpZiByZXF1ZXN0IG1ldGhvZCBpcyBnZXQgd2UgZmluZCBmb3IgYSBhdXRob3JpemF0aW9uIGluIGd1YXJkCiAgICAgICAgLy8gaWYgcG9zdCB3ZSBjaGVjayB0aGUgdmFsaWRhdG9yIHRvIGNoZWNrIHdoYXQgZ3VhcmRzIGFyZSBlbmFibGVkCiAgICAgICAgJHJtID0gJHJlcXVlc3QtPm1ldGhvZCgpOwogICAgICAgIGlmKCRybSA9PSAnR0VUJyl7CiAgICAgICAgICAgICRwYXRoID0gJHJlcXVlc3QtPmdldFBhdGgoKTsKICAgICAgICAgICAgJHJvdXRlID0gUm91dGU6OmdldEJ5UGF0aCgkcGF0aCk7CiAgICAgICAgICAgICRndWFyZCA9IGVtcHR5KCRyb3V0ZVsnZ3VhcmQnXSk/ZW5naW5lX2NvbmZpZygnZGVmYXVsdF9ndWFyZCcpOiRyb3V0ZVsnZ3VhcmQnXTsKICAgICAgICAgICAgaWYoJGd1YXJkICE9PSAnbm9ib2R5Jyl7CiAgICAgICAgICAgICAgICByZXR1cm4gQXV0aDo6Z3VhcmQoJGd1YXJkKS0+YXV0aG9yaXplKCRyZXF1ZXN0KTsKICAgICAgICAgICAgfWVsc2UKICAgICAgICAgICAgICAgIHJldHVybiB0cnVlOwoKICAgICAgICB9ZWxzZWlmIChpbl9hcnJheSgkcm0sIFsnUE9TVCcsJ1BVVCcsJ0RFTEVURSddKSl7CiAgICAgICAgICAgICR1YSA9ICRyZXF1ZXN0LT5nZXRVc2VyQWN0aW9uKCk7CiAgICAgICAgICAgICR2X25hbWUgPSAnXEFwcFxWYWxpZGF0b3JcXCcgLiB0cmFuc2Zvcm1fdG9fY2xhc3NfbmFtZSgkdWFbJ2NvbnRyb2xsZXInXSkgLiAnVmFsaWRhdG9yJzsKICAgICAgICAgICAgJHYgPSBuZXcgJHZfbmFtZTsKICAgICAgICAgICAgJGd1YXJkID0gR3VhcmQ6OnJlc29sdmUoJHYtPmd1YXJkKTsKICAgICAgICAgICAgLy8gYXMgZ3VhcmRzIGF1dGhvcml6ZSB0aGUgYWNjZXNzLCB3aXRoIG9ubHkgb25lIHRoYXQgYWxsb3dzIHRoZSBhY3Rpb24KICAgICAgICAgICAgLy8gaXQgd2lsbCBiZSBhbGxvd2VkCiAgICAgICAgICAgICRhdXRob3JpemVkID0gZmFsc2UgfHwgJHYtPmd1YXJkID09ICdub2JvZHknOwogICAgICAgICAgICBmb3JlYWNoKCRndWFyZCBhcyAkZykKICAgICAgICAgICAgewogICAgICAgICAgICAgICAgJGF1dGhvcml6ZWQgPSAkZy0+YXV0aG9yaXplKCRyZXF1ZXN0KTsKICAgICAgICAgICAgICAgIGlmKCRhdXRob3JpemVkKQogICAgICAgICAgICAgICAgICAgIGJyZWFrOwogICAgICAgICAgICB9CiAgICAgICAgICAgIGlmKCEkYXV0aG9yaXplZCkKICAgICAgICAgICAgICAgIHJldHVybiBuZXcgRXJyb3JSZXNwb25zZSgnUmVxdWVzdCBub3QgYWxsb3dlZCcsIDQwMyk7CiAgICAgICAgfWVsc2VpZigkcm0gPT0gJ09QVElPTlMnKXsKICAgICAgICAgICAgJGhlYWRlcnMgPSBbCiAgICAgICAgICAgICAgICAnQWNjZXNzLUNvbnRyb2wtQWxsb3ctT3JpZ2luOiAqJywKICAgICAgICAgICAgICAgICdBY2Nlc3MtQ29udHJvbC1BbGxvdy1NZXRob2RzOiBQT1NULCBHRVQsIE9QVElPTlMnLAogICAgICAgICAgICAgICAgJ0FjY2Vzcy1Db250cm9sLUFsbG93LUhlYWRlcnM6IFgtUElOR09USEVSLCBDb250ZW50LVR5cGUnLAogICAgICAgICAgICAgICAgJ0FjY2Vzcy1Db250cm9sLU1heC1BZ2U6IDg2NDAwJwogICAgICAgICAgICBdOwogICAgICAgICAgICBmb3JlYWNoKCRoZWFkZXJzIGFzICRoKQogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICBoZWFkZXIoJGgsIHRydWUpOwogICAgICAgICAgICB9CiAgICAgICAgfWVsc2UKICAgICAgICAgICAgdGhyb3cgbmV3IEV4Y2VwdGlvbignUmVxdWVzdCBub3QgYWNjZXB0YWJsZScsIDQwNik7CiAgICAgICAgCiAgICAgICAgLy8gdGhpcyBmdW5jdGlvbiBtdXN0IHJldHVybiBhIGJvb2xlYW4KICAgICAgICByZXR1cm4gdHJ1ZTsKICAgIH0KCiAgICBwdWJsaWMgZnVuY3Rpb24gaGFuZGxlRXJyb3IoKQogICAgewogICAgICAgIHJldHVybiByZWRpcmVjdCgnbG9naW4nKS0+d2l0aERhdGEoWydlcnJvcicgPT4gJ1lvdXIgc2Vzc2lvbiBoYXMgZW5kZWQuIExvZ2luIGFnYWluJ10pOwogICAgfQoKfQ==',
-        'RGVjcnlwdFJvdXRlLnBocA==$YXBwL1ByZXByb2Nlc3Nvcg==$PD9waHAgCgpuYW1lc3BhY2UgQXBwXFByZXByb2Nlc3NvcjsKCnVzZSBKYW5zc2VuXEVuZ2luZVxQcmVwcm9jZXNzb3I7CnVzZSBKYW5zc2VuXEVuZ2luZVxSb3V0ZTsKdXNlIEphbnNzZW5cRW5naW5lXFJlcXVlc3Q7CnVzZSBKYW5zc2VuXEhlbHBlcnNcRXhjZXB0aW9uOwoKCmNsYXNzIERlY3J5cHRSb3V0ZSBleHRlbmRzIFByZXByb2Nlc3Nvcgp7CgogICAgcHVibGljIGZ1bmN0aW9uIGhhbmRsZShSZXF1ZXN0ICRyZXF1ZXN0KQogICAgewogICAgICAgICRyZXF1ZXN0ID0gbmV3IFJlcXVlc3Q7CiAgICAgICAgLy8gZ2V0IHRoZSBmdWxsIHBhdGggYW5kIGV4dHJhY3QgdGhlIHBheWxvYWQgdG8gZ2V0IHRoZSByb3V0ZQogICAgICAgICRwYXlsb2FkID0gJHJlcXVlc3QtPmdldFF1ZXJ5U3RyaW5nUGF5bG9hZCgpOwogICAgICAgIGlmICghJHBheWxvYWQpIHsKICAgICAgICAgICAgdGhyb3cgbmV3IEV4Y2VwdGlvbignSW52YWxpZCByZXF1ZXN0JywgNDAwKTsKICAgICAgICB9CiAgICAgICAgLy8gZGVjaXBoZXIgcm91dGUKICAgICAgICAkcm91dGUgPSBSb3V0ZTo6ZGVjcnlwdCgkcGF5bG9hZCk7CiAgICAgICAgLy8gbG9hZCB0aGUgY29ycmVjdCBjb250cm9sbGVyCiAgICAgICAgJGEgPSBleHBsb2RlKCcvJywgJHJvdXRlKTsKICAgICAgICBpZiAoIWlzX2FycmF5KCRhKSAmJiBjb3VudCgkYSkgPD0gMikgewogICAgICAgICAgICB0aHJvdyBuZXcgRXhjZXB0aW9uKCdJbnZhbGlkIHJlcXVlc3QnLCA0MDApOwogICAgICAgIH0KICAgICAgICAvL2F1dG9jYXBpdGFsaXplIGNvbnRyb2xsZXIgYW5kIG1ldGhvZAogICAgICAgIGZvcmVhY2goJGEgYXMgJiRtZW1iZXIpIHsKICAgICAgICAgICAgJG1lbWJlciA9IHVjZmlyc3Qoc3RydG9sb3dlcigkbWVtYmVyKSk7CiAgICAgICAgfQogICAgICAgIHVuc2V0KCRtZW1iZXIpOwoKICAgICAgICAvLyBjb3VudCB0aGUgcGF5bG9hZCBtZW1iZXJzCiAgICAgICAgJGkgPSBjb3VudCgkYSk7CiAgICAgICAgJGMgPSBhcnJheV9zbGljZSgkYSwgMCwgLTEpOwogICAgICAgICRkID0gaW1wbG9kZSgnXFwnLCAkYyk7CiAgICAgICAgJGQgPSBzdHJfcmVwbGFjZSgnLScsICdfJywgJGQpOwoKICAgICAgICAvLyBzYXZlIHRoZSBwYXRoIHRvIFJlcXVlc3Qgb2JqZWN0CiAgICAgICAgJHJlcXVlc3QtPnNldFVzZXJBY3Rpb24oJGQsICRhWyRpLTFdKTsKICAgICAgICByZXR1cm4gdHJ1ZTsKICAgIH0KCiAgICBwdWJsaWMgZnVuY3Rpb24gaGFuZGxlRXJyb3IoKQogICAgewogICAgICAgIHJldHVybiBmYWxzZTsKICAgIH0KCn0=',
-        'TWFpbnRlbmFuY2UucGhw$YXBwL1ByZXByb2Nlc3Nvcg==$PD9waHAgDQoNCm5hbWVzcGFjZSBBcHBcUHJlcHJvY2Vzc29yOw0KDQp1c2UgSmFuc3NlblxFbmdpbmVcUHJlcHJvY2Vzc29yOw0KdXNlIEphbnNzZW5cRW5naW5lXFJlcXVlc3Q7DQp1c2UgSmFuc3NlblxFbmdpbmVcQ29uZmlnOw0KDQpjbGFzcyBNYWludGVuYW5jZSBleHRlbmRzIFByZXByb2Nlc3Nvcg0Kew0KDQogICAgcHVibGljIGZ1bmN0aW9uIGhhbmRsZShSZXF1ZXN0ICRyZXF1ZXN0KQ0KICAgIHsNCiAgICAgICAgaWYoQ29uZmlnOjpnZXQoJ21haW50ZW5hbmNlJykgPT0gJ3RydWUnKXsNCiAgICAgICAgICAgIC8vIG1ha2UgYSByZXNwb25zZSB0byBoYW5kbGUgdGhlIG1haW50ZW5hbmNlDQogICAgICAgICAgICAkciA9IG5ldyBcSmFuc3NlblxIZWxwZXJzXFJlc3BvbnNlXFJhd1Jlc3BvbnNlOw0KICAgICAgICAgICAgJHItPnNldENvbnRlbnQoJ0VzdGFtb3MgZW4gbWFudGVuaW1pZW50byEnKTsNCiAgICAgICAgICAgIHJldHVybiAkcjsNCiAgICAgICAgfWVsc2UNCiAgICAgICAgICAgIHJldHVybiB0cnVlOw0KICAgIH0NCg0KICAgIHB1YmxpYyBmdW5jdGlvbiBoYW5kbGVFcnJvcigpDQogICAgew0KICAgICAgICByZXR1cm4gZmFsc2U7DQogICAgfQ0KDQp9',
-        'U2Vzc2lvblRpbWVvdXQucGhw$YXBwL1ByZXByb2Nlc3Nvcg==$PD9waHAgDQoNCm5hbWVzcGFjZSBBcHBcUHJlcHJvY2Vzc29yOw0KDQp1c2UgSmFuc3NlblxFbmdpbmVcUHJlcHJvY2Vzc29yOw0KdXNlIEphbnNzZW5cRW5naW5lXFJlcXVlc3Q7DQoNCmNsYXNzIFNlc3Npb25UaW1lb3V0IGV4dGVuZHMgUHJlcHJvY2Vzc29yDQp7DQoNCiAgICBwdWJsaWMgZnVuY3Rpb24gaGFuZGxlKFJlcXVlc3QgJHJlcXVlc3QpDQogICAgew0KICAgICAgICByZXR1cm4gdHJ1ZTsNCiAgICB9DQoNCiAgICBwdWJsaWMgZnVuY3Rpb24gaGFuZGxlRXJyb3IoKQ0KICAgIHsNCiAgICAgICAgcmV0dXJuIGZhbHNlOw0KICAgIH0NCg0KfQ==',
-    ],
-    'public' => [
-        'Lmh0YWNjZXNz$cHVibGljLw==$PElmTW9kdWxlIG1vZF9yZXdyaXRlLmM+DQogICAgPElmTW9kdWxlIG1vZF9uZWdvdGlhdGlvbi5jPg0KICAgICAgICBPcHRpb25zIC1NdWx0aVZpZXdzDQogICAgPC9JZk1vZHVsZT4NCg0KICAgIFJld3JpdGVFbmdpbmUgT24NCiAgDQogICAgIyBSZWRpcmVjdCBUcmFpbGluZyBTbGFzaGVzIElmIE5vdCBBIEZvbGRlci4uLg0KICAgICMgUmV3cml0ZUNvbmQgJXtSRVFVRVNUX0ZJTEVOQU1FfSAhLWQNCiAgICAjIFJld3JpdGVSdWxlIF4oLiopLyQgLyQxIFtMLFI9MzAxXQ0KDQogICAgIyBIYW5kbGUgRnJvbnQgQ29udHJvbGxlci4uLg0KICAgIFJld3JpdGVDb25kICV7UkVRVUVTVF9VUkl9ICEoXC4oY3NzfGpzfG1hcHxzdmd8aWNvfHdvZmZ8d29mZjJ8dHRmKSQpDQogICAgUmV3cml0ZUNvbmQgJXtSRVFVRVNUX0ZJTEVOQU1FfSAhLWQNCiAgICBSZXdyaXRlQ29uZCAle1JFUVVFU1RfRklMRU5BTUV9ICEtZg0KICAgIFJld3JpdGVSdWxlIF4gaW5kZXgucGhwIFtMXQ0KDQogICAgIyBIYW5kbGUgQXV0aG9yaXphdGlvbiBIZWFkZXINCiAgICBSZXdyaXRlQ29uZCAle0hUVFA6QXV0aG9yaXphdGlvbn0gLg0KICAgIFJld3JpdGVSdWxlIC4qIC0gW0U9SFRUUF9BVVRIT1JJWkFUSU9OOiV7SFRUUDpBdXRob3JpemF0aW9ufV0NCjwvSWZNb2R1bGU+DQo=',
-        'aW5kZXgucGhw$cHVibGljLw==$PD9waHAgCgpyZXF1aXJlX29uY2UgKCcuLi92ZW5kb3IvYXV0b2xvYWQucGhwJyk7CgovKioKICogLS0gQXBwbGljYXRpb24gbGlmZWN5Y2xlIC0tCiAqIFRha2UgcmVxdWVzdCAoR0VUfFBPU1R8UFVUfERFTEVURSkgCiAqIFByZXByb2Nlc3MKICogRmluZCB0aGUgcmlnaHQgaGFuZGxlciAKICogSGFuZGxlIHJlcXVlc3QKICogTWFrZSByZXNwb25zZSAKICogUG9zdHByb2Nlc3MKICogRWNobyByZXNwb25zZQogKiAKICovCgovLyBJbnN0YW50aWF0ZSBvdXIgYXBwCiRqYW5hcHAgPSBuZXcgSmFuc3NlblxBcHAoKTsKCi8vIEluaXQgdGhlIGFwcCBhbmQgbG9hZCBjb25maWd1cmF0aW9ucwokamFuYXBwLT5pbml0KF9fRElSX18gLiAnLy4uL2FwcCcpOwoKLy8gcnVuIQplY2hvICRqYW5hcHAtPnJ1bigpOw==',
-    ],
-    'templates' => [
-        'd2VsY29tZS5waHA=$dGVtcGxhdGVzLw==$PD9waHAgDQoNCiRsb2JzdGVyID0gSmFuc3NlblxSZXNvdXJjZVxFbWJlZEZvbnRzOjokbG9ic3RlcjsNCg0KPz4NCjxodG1sPg0KPHRpdGxlPldlbGNvbWUgdG8gSmFuc3NlbiE8L3RpdGxlPg0KPHN0eWxlPg0KICAgIEBmb250LWZhY2Ugew0KICAgICAgICBmb250LWZhbWlseTogJ0xvYnN0ZXInOw0KICAgICAgICBzcmM6IHVybChkYXRhOmZvbnQvdHJ1ZXR5cGU7Y2hhcnNldD11dGYtODtiYXNlNjQsPD89ICRsb2JzdGVyID8+KSBmb3JtYXQoJ3RydWV0eXBlJyk7DQogICAgICAgIGZvbnQtd2VpZ2h0OiBub3JtYWw7DQogICAgICAgIGZvbnQtc3R5bGU6IG5vcm1hbDsNCiAgICB9DQoNCiAgICAuY29udGFpbmVyIHsNCiAgICAgICAgbWluLWhlaWdodDogMTBlbTsNCiAgICAgICAgcG9zaXRpb246IHJlbGF0aXZlOw0KICAgICAgICBoZWlnaHQ6IDkzJTsNCiAgICB9DQoNCiAgICAubmFtZSB7DQogICAgICAgIGZvbnQtZmFtaWx5OiAnTG9ic3Rlcic7DQogICAgICAgIGZvbnQtc2l6ZTogMTAwcHg7DQogICAgICAgIGZvbnQtd2VpZ2h0OjUwMDsNCiAgICAgICAgY29sb3I6ICNiYTA1MDU7DQogICAgfQ0KICAgIA0KICAgIC53ZWxjb21lLXRvIHsNCiAgICAgICAgZm9udC1mYW1pbHk6IHNhbnMtc2VyaWY7DQogICAgICAgIGZvbnQtc2l6ZTogMjBweDsNCiAgICB9DQoNCiAgICAubHMtd2lkZSB7DQogICAgICAgIGxldHRlci1zcGFjaW5nOiAxZW07DQogICAgfQ0KDQogICAgLmZ1bGwtcCB7DQogICAgICAgIG1hcmdpbjogMDsNCiAgICAgICAgdG9wOiA0MCU7DQogICAgICAgIHRleHQtYWxpZ246IGNlbnRlcjsNCiAgICAgICAgcG9zaXRpb246IHJlbGF0aXZlOw0KICAgIH0NCg0KICAgIC5kZWNvIHsNCiAgICAgICAgcG9zaXRpb246IGFic29sdXRlOw0KICAgICAgICBtYXJnaW46IDUlOw0KICAgICAgICBib3JkZXI6IDFweCBzb2xpZCBibGFjazsNCiAgICAgICAgd2lkdGg6IDkwJTsNCiAgICAgICAgaGVpZ2h0OiA5MCU7DQoNCiAgICB9DQoNCjwvc3R5bGU+DQo8Ym9keSBzdHlsZT0iYmFja2dyb3VuZC1jb2xvcjogbGlnaHRncmF5Ij4NCg0KPGRpdiBjbGFzcz0iY29udGFpbmVyIj4NCiAgICA8ZGl2IGNsYXNzPSJkZWNvIj48L2Rpdj4NCiAgICA8cCBjbGFzcz0iZnVsbC1wIiA+DQogICAgICAgIDxzcGFuIGNsYXNzPSJ3ZWxjb21lLXRvIGxzLXdpZGUiPndlbGNvbWUgdDwvc3Bhbj48c3BhbiBjbGFzcz0id2VsY29tZS10byI+bzwvc3Bhbj4NCiAgICAgICAgPGJyLz4NCiAgICAgICAgPHNwYW4gc3R5bGU9InBhZGRpbmctdG9wOiAyNXB4OyIgY2xhc3M9Im5hbWUiPkphbnNzZW48L3NwYW4+DQogICAgICAgIDxici8+DQogICAgICAgIDxzcGFuIGNsYXNzPSJ3ZWxjb21lLXRvIiBzdHlsZT0icGFkZGluZy10b3A6IDI1cHg7Ij4mbWRhc2g7Jm1kYXNoOyZtZGFzaDsmbWRhc2g7byZtZGFzaDsmbWRhc2g7Jm1kYXNoOyZtZGFzaDs8L3NwYW4+DQogICAgPC9wPg0KPC9kaXY+DQoNCg0KPC9ib2R5Pg0KPC9odG1sPg=='
-    ],
-    'env.template' => 'LmVudi50ZW1wbGF0ZQ==$$IyBsb2NhbCBjb25maWd1cmF0aW9ucyBmaWxlDQojIHRoaXMgZmlsZSBpcyBub3QgaW50ZW5kZWQgdG8gYmUgdXBsb2FkZWQgdG8gdGhlIHJlcG8gc28gcGxlYXNlIGRvbid0IGRvIHRoYXQNCg0KIyB5b3UgY2FuIHB1dCBoZXJlIGFueSB2YXIgeW91IGNvbnNpZGVyIGltcG9ydGFudCB0byBrZWVwIHNhZmUgaW4geW91ciBsb2NhbCBjb25maWd1cmF0aW9ucw0KIyBidXQgcmVtZW1iZXIgdG8gcHV0IHRoYXQgdmFyIGluIHlvdXIgcHJvZHVjdGlvbiB2ZXJzaW9uIGFuZCBhdm9pZCB1c2Ugb2YgdGhpcyBlbnYgZmlsZQ0KIyBpbiBwcm9kdWN0aW9uIHN0YWdlDQojIGtleXMgYXJlIGNhc2Ugc2Vuc2l0aXZlIQ0KDQp1cmwgPSAnaHR0cDovL2xvY2FsaG9zdCcNCg0KZGJfZHJpdmVyID0gJycNCmRiX2hvc3QgPSAnJw0KZGJfcG9ydCA9ICcnDQpkYl91c2VyID0gJycNCmRiX3Bhc3MgPSAnJw0KZGJfbmFtZSA9ICcnDQoNCmVuY19rZXkgPSAndGhpc19rZXlfbXVzdF9iZV9jaGFuZ2VkISc='
-];
+    /**
+     * This is the base class for the core app.
+     * It has the sole responsability of receive the request,
+     * process it and give response using the designated
+     * objects
+     */
 
-$base_path = __DIR__ . '/..';
-$app_path = $base_path . '/app';
+    private static $version = '0.9.0';
+    private static $name = 'Janssen Core';
+    private static $app_path;
+    private static $s_assets_path;
 
-if ($argc == 1)
-    dieWithMessage(showArgumentList());
+    private static $request;
+    private $header;
+    private $response;
+    private $validator;  // validator instance that was used to validate request.
 
-switch (strtolower($argv[1])){
-    case 'init':
-        /*
-        init script must
-        - create app folder and copy files
-        - put the public folder and copy files
-        - put the templates folder and copy files
-        - put the .env.template file
-        */
-        echo 'init';
-        foreach($files as $section=>$encfile){
-            if(is_array($encfile)){
-                foreach($encfile as $eencfile){
-                    $parts = getParts($eencfile);		
-                    putContents($parts);
-                }
-            }else{
-                $parts = getParts($encfile);
-                putContents($parts);	
+    private static $engine_config;
+
+    public static function name()
+    {
+        return self::$name;
+    }
+
+    public static function version()
+    {
+        return self::$version;
+    }
+   
+    public function init(string $app_path)
+    {
+
+        Event::invoke('app.beforeinit', $this);
+
+        $app_path = trim($app_path);
+        if (empty($app_path)) 
+            throw new Exception("App configuration is corrupt", 500, 'Contact administrator');
+        if(substr($app_path,-1,1) == '/') 
+            $app_path = substr($app_path,0,strlen($app_path) -1);
+
+        self::$app_path = $app_path;
+
+        // load external aliases
+        $ca_candidate = self::getConfigPathCandidate(self::appPath(), 'aliases');
+        $external_aliases = (is_file($ca_candidate)) ? (include $ca_candidate) : [];
+        if(!empty($external_aliases))
+            DefaultResolver::append($external_aliases);
+
+        // make the global functions mapped to aliases to be called
+        // from everywhere in the app
+        $ugf_conf_candidate = self::getConfigPathCandidate(self::appPath(), 'functions');
+        $user_global_functions = (is_file($ugf_conf_candidate)) ? (include $ugf_conf_candidate) : [];
+        create_global_functions($user_global_functions);
+
+        // load app configuration
+        self::loadConfig($app_path);
+    
+        // create a header to the response
+        $this->header = new Header;            
+        
+        // start session
+        Session::start();
+        
+        // the only way to know what user want? the request
+        Request::fill();
+        
+        // set self request
+        self::$request = new Request;
+        
+        // load previous messages from session
+        FlashMessage::bulkLoadFromSession();
+        
+        // fix path if engine needed
+        if(self::$engine_config['relax_route'])
+            self::$request::fixPath();
+        
+        // instanciate database if setted up
+        $this->loadDatabaseConnection();
+        
+        Event::invoke('app.afterinit', $this);
+
+        // we are ready to start!! turn off errors
+        error_reporting(Config::get('php_error_reporting', 0));
+    }
+
+    // we'll put the running logic here, but is possible to modify this to
+    // move it to another class
+    public function run()
+    {
+        /**
+         * @todo solve .htaccess when trying to access non existent files
+         * inside public dir
+         */
+        
+        try {
+            $rm = self::$request->method();
+            // as we process routing only for GET requests but the preprocessing is
+            // for all types of requests, we need to check the routes before preprocessing
+            if ($rm == 'GET') {
+                $routes_conf_candidate = self::getConfigPathCandidate(self::appPath(), 'routes');
+                $routes = (is_file($routes_conf_candidate)) ? (include $routes_conf_candidate) : [];
+                Route::setRoutes($routes);
             }
+
+            // run preprocessor, we expect a preprocessor to answer true, if
+            // any preprocessor answers Response is output directly if false, throw exception
+            $r = Preprocessor::processHandlers(self::$engine_config['preprocessors'], self::$request);
+            if ($r instanceof Response) {
+                $res = $r;
+                goto response_section;
+            }
+
+            // if request method is GET, we'll use the routes.
+            // if request method is POST, PUT or DELETE we will take the route from encrypted post
+            if ($rm == 'GET') {
+                $path = self::$request->getPath();
+                $route = Route::getCurrent();
+                if(empty($route))
+                    $route = Route::getByPath($path);
+                $action = $route['resolver'];
+
+                // extract parameters from path
+                $parameters = Route::getParameters($path);
+                foreach ($parameters as $name => $value) {
+                    self::$request->registerParameter($name, $value);
+                }
+
+                // if action is a callable, use it and process the response.
+                if (!is_array($action) && Route::isRoutedMethod($action)) {
+                    $p = explode('@', $action);
+                    $res = $this->makeTheCall($p[0], $p[1]);
+                } elseif (is_array($action)) {
+                    /**
+                     * @todo this must be refactorized. What happens if the renderer 
+                     * is not a ViewResponse?
+                     * 
+                     * the user possibly configured template with a view handler
+                     * we must have a template and a render that must be a heredor
+                     * of Janssen\Response
+                     */
+                    $page = $action[0];
+                    $renderer = DefaultResolver::resolve($action[1]);
+                    if($renderer && $renderer instanceof Response){
+                        $res = $renderer->render(['filename' => $page]);
+                    } else
+                        throw new Exception("Indicated renderer for $page doesn't exists!", 500, 'Contact Administrator');
+                } else {
+                    $p = new RawResponse;
+                    $p->loadPage($action);
+                    $res = $p;
+                }
+            } elseif (in_array($rm, ['POST', 'PUT', 'DELETE'])) {
+
+                $ua = self::$request->getUserAction();
+                $method = $ua['method'];
+                /**
+                 * @todo remove this in production!
+                 */
+                $ca = 'Called-action: ' . $ua['controller'] . '/' . $ua['method'];
+                $this->header->setMessage($ca);
+
+                /**
+                 * @todo put the validator inside Request to not instanciate more than 
+                 * once
+                 */
+                $validator_name = transform_to_class_name($ua['controller']) . 'Validator';
+                $validator_fullname = "App\\Validator\\" . $validator_name;
+                $validator_method = 'validate' . transform_to_class_name($method);
+                $v = $this->makeTheCall($validator_fullname, $validator_method);
+                if ($v === true) {
+                    $controller_name = transform_to_class_name($ua['controller']) . 'Controller';
+                    $controller_fullname = "App\\Controller\\" . $controller_name;
+                    // call the function
+                    $res = $this->makeTheCall($controller_fullname, $method);
+                } else {
+                    // the validation didn't pass. Make a response with that
+                    $ve = $this->validator->getValidationErrors();
+                    Event::invoke('app.onvalidationerror', $this, $ve);
+                    if(self::$request->expectsJSON()){
+                        $this->header->setMessage('',400, true);
+                        if (self::getConfig('detail_validator_error'))
+                            $res = ['error' => ['validator' => $ve]];  // let's try with a 
+                        else
+                            $res = ['error' => 'VALIDATOR_REJECT_REQUEST'];
+                    }else{
+                        /**
+                         * @todo We should send the validator errors detailed here no matter
+                         * what the config says. As this would go in Session and will be erased
+                         * on next use.
+                         * 
+                         * @todo check what happens when sending arrays to FlashMessage
+                         */
+                        FlashMessage::add('general', 'Data validation error', 'error');
+                        $res = \redirect(self::$request->back());
+                    }
+                    
+                }
+            }
+        } catch (\Janssen\Helpers\Exception $e) {            
+            $res = $e;
+        } catch (Throwable $e) {
+            $s = $e->getTrace();
+            $res = new ErrorResponse();
+            $h = new Header;
+            $h->setMessage('', 500, true);
+            $res->setException($e)
+                ->setHeader($h);
         }
-        break;
-    case 'make-model':
-        echo "make model";
-        // param 2 should be the model name and optionally 4th the table name if 3rd is -t
-        $mn = $argv[2];
+        response_section: 
+        return $this->handleResponse($res);
+    }
 
-        if(empty($mn))
-            dieWithMessage('Model name is required!');
-
-        $tn = false;
-        if(isset($argv[3]) && strtolower($argv[3]) == '-t'){
-            if(!empty($argv[4])){
-                $tn = $argv[4];
-            }else
-                dieWithMessage('if you set -t must indicate table name');
+    /**
+     * Gets method parameters
+     *
+     * Use reflection object to get the arguments of a class method
+     * this will be useful to inject parameters in order
+     *
+     * @see https://stackoverflow.com/a/3387672
+     * @param String $class
+     * @param String $method
+     * @return Array
+     */
+    private function getMethodParams($class, $method)
+    {
+        $ret = [];
+        $r = new \ReflectionMethod($class, $method);
+        $params = $r->getParameters();
+        foreach ($params as $param) {
+            //$param is an instance of ReflectionParameter
+            $ret[] = ['name' => $param->getName(),
+                'optional' => $param->isOptional(),
+                'type' => $param->getType() ? $param->getType()->getName() : null,
+                'default_value' => ($param->isOptional() ? $param->getDefaultValue() : null)];
         }
-        $text = createModel($mn, $tn);
-        $m_path = 'app/Model';
-        createDir($base_path, $m_path);
-        $dest = $base_path . $m_path . '/' . ucfirst($mn) . '.php';
-        file_put_contents($dest, $text);
-        break;
-    
-    case 'make-validator':
-        echo 'make validator';
-        // param 2 should be the validator name 
-        $vn = $argv[2];
+        return $ret;
+    }
 
-        if(empty($vn))
-            dieWithMessage('Validator name is required!');
-
-        $v = createValidator($vn);
-        $m_path = 'app/Validator';
-        createDir($base_path, $m_path);
-        $dest = $base_path . $m_path . '/' . $v['name'] . '.php';
-        file_put_contents($dest, $v['text']);
-        break;
-
-    case 'make-controller':
-        echo 'make controller';
-        // param 2 should be the controller name 
-        $cn = $argv[2];
-
-        if (empty($cn))
-            dieWithMessage('Controller name is required!');
-
-        $c = createController($cn);
-        $m_path = 'app/Controller';
-        createDir($base_path, $m_path);
-        $dest = $base_path . $m_path . '/' . $c['name'] . '.php';
-        file_put_contents($dest, $c['text']);
-        break;
-    case 'seed-db-row':
-        // read the .env file and get the db creds. As this is only for dev, 
-        // we need the .env file. In production the .env file should not exist
-        $env = parseProjectEnv();
-        // .env must have connector, host, port, user, password, db and debug must be true
-
-        //Config::loadConfigFromEnv($base_path);
-        App::loadConfig($app_path);
-        $c = Config::getAllEnv();
-    
-        // check if we have the required variables to work
-        $requiredEnvs = array_keys(getDBExpectedEnvFields());
-
-        $found = true;
-        foreach($requiredEnvs as $v){
-            $found &= (array_key_exists($v, $c));
-            
-            if(!$found)
-                dieWithMessage("ERROR: .env file has missing db fields");
-                
-        }
-
-        $expected_params = [
-            [
-                'name' => 'table',
-                'mandatory' => true,
-                'description' => 'Table to be inserted'
-            ],
-            [
-                'name' => 'data',
-                'mandatory' => true,
-                'description' => 'Data in JSON format'
-            ],
-            [
-                'name' => 'pass',
-                'mandatory' => true,
-                'description' => 'Password to the db user in the .env file'
-            ],
-            [
-                'name' => 'help',
-                'description' => 'Show this info'
-            ],
-        ];
-        $args = parseArgs($expected_params);
-        
-        if($args['pass'] !== $c['db_pass'])
-            dieWithMessage("ERROR: provided password doesn't match with .env");
-
-        $valid_data = isValidJson($args['data']);
-        if(!$valid_data)
-            dieWithMessage('Error: Data to be inserted must be single quoted JSON');
-
-        
-        $dbe = $c['db_driver'];
+    private function loadDatabaseConnection()
+    {
+        $dc = self::getConfig('connections')[self::getConfig('default_connection')];
+        $dbe = $dc['driver'];
         if ($dbe) {
             $adaptor = DefaultResolver::resolve($dbe);
             if ($adaptor && $adaptor instanceof Adaptor){ 
-
-                $db_cf = mapDBConfigFields($c);
-
                 $cf = $adaptor->getAllConfigFields();
                 foreach ($cf as $k => $v) {
-                    $adaptor->setConfigField($k, $db_cf[$k]);
+                    $adaptor->setConfigField($k, empty($dc[$k]) ? null : $dc[$k]);
                 }
                 Database::setAdaptor($adaptor);
-
-                print_r($args);
-                //die;
-                $data = json_decode($args['data'], true);
-                buildInsert('users',$data);
-                // Write the query to insert the data in the table
-
-
-                $u = Database::queryOne("select * from security.user where IdUser = 1");
-                print_r($u);
-                die;
-
-            } else 
-                dieWithMessage("ERROR: database adaptor not found");
-
-        }
-        
-        break;
-    default:
-        dieWithMessage(showArgumentList());
-
-}
-
-dieWithMessage('Done!');
-
-function getParts($encoded){
-    $a = explode('$', $encoded, 3);
-    $filename = base64_decode($a[0]);
-    $path = base64_decode($a[1]);
-    $content = base64_decode($a[2]);
-
-    return compact('filename', 'path', 'content');
-}
-
-function putContents($parts){
-	
-	global $base_path, $DS;
-	
-    $d = createDir($base_path, $parts['path']);
-	$intended_file = $d . $DS . $parts['filename'];
-    file_put_contents($intended_file, $parts['content']);
-	echo 'created ' . $intended_file . PHP_EOL;
-}
-
-function createDir($base_path, $new_path)
-{
-    global $DS;
-
-    $parts = explode('/', $new_path);
-    $cpart = '';
-	//$intended_dir = $base_path;
-    foreach($parts as $part){
-		if(empty($part))
-			continue;
-        $cpart .= $DS . $part;
-        if(!is_dir($base_path . $cpart))
-            mkdir($base_path . $cpart);
-    }
-    return $base_path . $cpart;
-}
-
-function showArgumentList(){
-    $ret = "Hey! You forgot to put the action you want to do!" . PHP_EOL . PHP_EOL .
-    "What do you want to do? (use a command from the list)" . PHP_EOL .  PHP_EOL .
-    "init: make scaffolding to start your app" . PHP_EOL . 
-    "seed-db-row -t table-name -u db-user -p db-pass -d json-data. : insert a row in a table in the db. In the JSON, prepend with <cipher> the values you want to cipher with the enc-key found in .env file. " . PHP_EOL . 
-    "make-model name [-t table-name]: make a model with given name. Add optional -t parameter to use your own table name" . PHP_EOL . 
-    "make-validator name : make validator file" . PHP_EOL . 
-    "make-controller name : make controller file";
-    return $ret;
-}
-
-function buildInsert($table, array $data) {
-    $fields = array_keys($data);
-    $placeholders = array_fill(0, count($data), '?');
-    
-    $sql = "INSERT INTO {$table} (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ")";
-    
-    $params = array_values($data);
-    foreach($params as $k=>&$v){
-        if(strtolower(substr($v, 0,9)) == '<encrypt>'){
-            $v = Encrypt::encrypt(substr($v, 10));
-        }
-    }
-    var_dump($sql);
-    print_r($params);
-    die;
-    return [
-        'sql' => $sql,
-        'params' => $params
-    ];
-}
-
-function createModel($name, $table = false)
-{
-    $pyload = <<<MODEL_CNTS
-<?php 
-
-namespace App\Model;
-
-use Janssen\Engine\Model;
-
-class _{MODEL_NAME}_ extends Model
-{
-    public \$table = '_{TABLE_NAME}_';
-    public \$primaryKey = '_{PK_NAME}_';
-}
-MODEL_CNTS;
--
-    $ret = str_replace('_{MODEL_NAME}_', makeClassName($name), $pyload);
-    if($table)
-        $ret = str_replace('_{TABLE_NAME}_', strtolower($table), $ret);
-    else
-        $ret = str_replace('_{TABLE_NAME}_', strtolower($name), $ret);
-
-    $pk = 'Id' . makeClassName($name);
-    if(substr($pk, -1, 1) == 's')
-        $pk = substr($pk, 0, strlen($pk) - 1);
-
-    $ret = str_replace('_{PK_NAME}_', $pk, $ret);
-    return $ret;
-}
-
-function createValidator($name){
-
-    $pyload = <<<VAL_CNTS
-<?php 
-
-namespace App\Validator;
-
-use Janssen\Engine\Validator;
-use Janssen\Engine\Request;
-use Janssen\Engine\Ruleset;
-
-class _{VAL_NAME}_ extends Validator
-{
-    
-}
-VAL_CNTS;
-
-    $vn = makeClassName($name) . 'Validator';
-    $ret = str_replace('_{VAL_NAME}_', $vn, $pyload);
-    return ['name' => $vn, 'text' =>$ret];
-
-}
-
-function createController($name){
-
-    $pyload = <<<CNT_CNTS
-<?php 
-
-namespace App\Controller;
-
-use Janssen\Engine\Controller;
-use Janssen\Engine\Request;
-
-class _{CNT_NAME}_ extends Controller
-{
-    
-}
-CNT_CNTS;
-
-    $cn = makeClassName($name) . 'Controller';
-    $ret = str_replace('_{CNT_NAME}_', $cn, $pyload);
-    return ['name' => $cn, 'text' =>$ret];
-
-}
-
-function makeClassName($name)
-{
-    return ucfirst($name);
-}
-
-function dieWithMessage($message)
-{
-    die(PHP_EOL . $message . PHP_EOL . PHP_EOL);
-}
-
-function parseProjectEnv() 
-{
-    if (!file_exists('../.env')) {
-        fwrite(STDERR, "Error: .env file not found\n");
-        return [];
-    }
-    
-    $result = [];
-    $lines = file('../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    
-    foreach ($lines as $ln => $line) {
-        $original_line = $line;
-        $ln += 1; // file() uses 0-based index
-        
-        // Skip comments and empty
-        if (preg_match('/^\s*(#|$)/', $line)) {
-            continue;
-        }
-        
-        // Trim spaces
-        $line = trim($line);
-        
-        // Find first =
-        $matches = [];
-        if (preg_match('/^([^=]*)=(.*)$/', $line, $matches)) {
-            $k = trim($matches[1]);
-            $v = trim($matches[2]);
-            
-            // Validate quotes
-            if (strpos($k, '"') !== false || strpos($v, '"') !== false) {
-                // Count quotes in the key
-                $key_quotes = substr_count($k, '"');
-                if ($key_quotes !== 2) {
-                    fwrite(STDERR, "Error in key '$k' (line $ln): quoting error\n");
-                    continue;
-                }
-                
-                // Contar comillas en valor
-                $value_quotes = substr_count($v, '"');
-                if ($value_quotes !== 2) {
-                    fwrite(STDERR, "Error in value '$v' (line $ln): quoting error\n");
-                    continue;
-                }
-                
-                // Quitar comillas exteriores
-                $k = trim($k, '"');
-                $v = trim($v, '"');
+            } else {
+                throw new Exception('Database class not implemented or inexistent', 500);
             }
-            
-            $result[$k] = $v;
-            
+        }
+    }
+
+    /**
+     * Make a map of method parameters with RequestHelper
+     * variables passed and validated. Intended only for internal
+     * use
+     *
+     * @param Array $param_names
+     * @return Array
+     */
+    private function makeParameterArray($param_names)
+    {
+        $ret = [];
+        foreach ($param_names as $v) {
+            if($v['type'] == 'Janssen\Engine\Request'){
+                $ret[$v['name']] = self::$request;
+                continue;
+            }
+
+            $p = self::$request->parameter($v['name']);
+            if ($p || $p == 0) {
+                $ret[$v['name']] = $p;
+            } else {
+                $ret[$v['name']] = ($v['optional'] ? $v['default_value'] : self::$request->nullValue());
+            }
+        }
+        return $ret;
+    }
+
+    /**
+     * Here we make the parameter attach and function call.
+     * The parameters are assumed directly from request and if
+     * the function accept it we inject it.
+     *
+     * @param String $class
+     * @param String $method
+     * @return void
+     */
+    private function makeTheCall($class, $method, $use_params = true)
+    {
+        if (class_exists($class)) {
+            $instance = new $class;
+
+            // if user wants to get detailed validator error, we need to save the object to use outside
+            $is_validator = ($instance instanceof Validator);
+            if($is_validator){
+                $this->validator = $instance;
+                $use_params = true;
+            }
+
+            if (method_exists($instance, $method)) {
+                // sometimes we are pretty sure we won't use parameters
+                // set $use_params to false to make the call directly
+                if ($use_params) {
+                    // get the parameters and inject needed
+                    // validator will inject the Request always as first paremeter and ignore others. 
+                    if(!$is_validator)
+                        $method_params = $this->getMethodParams($instance, $method);    
+                    else{
+                        $method_params = [['type' => 'Janssen\Engine\Request', 'name' => 'request']];
+                    }
+                    $params = $this->makeParameterArray($method_params);
+                    $ret = call_user_func_array([$instance, $method], $params);
+
+                } else {
+                    $ret = $instance->$method();
+                }
+
+            } else {
+                throw new Exception("Method $method doesn't exists in class " . get_class_name($class), 0);
+            }
         } else {
-            fwrite(STDERR, "Invalid: $original_line (line $ln)\n");
+            throw new Exception("Controller " . get_class_name($class) . " doesn't exists", 0);
         }
+
+        return $ret;
     }
-    
-    return $result;
-}
 
-// Uso
-// $env = parseEnv('.env');
-
-// Para mostrar como pares clave=valor
-/* 
-foreach ($env as $clave => $valor) {
-    echo "$clave=$valor\n";
-}
- */
-
-// Para usar como variables de entorno
-/* 
-foreach ($env as $clave => $valor) {
-    putenv("$clave=$valor");
-    $_ENV[$clave] = $valor;
-    $_SERVER[$clave] = $valor;
-}
- */
-
-
-// check arguments 
-
-function parseArgs(array $expected_params) {
-    global $argv;
-    
-    $args = [];
-    $errors = [];
-    
-    // $argv[0] is script name
-    for ($i = 2; $i < count($argv); $i++) {
-        $arg = $argv[$i];
-        
-        // Format --key=value o -key=value
-        if (preg_match('/^--?([a-zA-Z0-9_-]+)=(.+)$/', $arg, $matches)) {
-            $k = $matches[1];
-            $v = $matches[2];
-            $args[$k] = $v;
-            
-        // Format --key o -key (bool)
-        } elseif (preg_match('/^--?([a-zA-Z0-9_-]+)$/', $arg)) {
-            $k = $matches[1];
-            $args[$v] = true;
-            
+    private function handleResponse($response)
+    {
+        if ($response instanceof Response) {
+            // here we ADD headers, not resplace, as the response could have set
+            // its own
+            ($response->hasHeaders())?$response->addHeader($this->header):$response->setHeader($this->header);
+            $ret = $response;
+        } elseif ($response instanceof Exception) {
+            $er = new ErrorResponse();
+            $http_code = $response->isHttpCode() ? $response->getCode() : 500;
+            $this->header->setMessage('', $http_code, true);
+            $er->isJson(self::$request->expectsJSON())
+                ->setException($response)
+                ->setHeader($this->header);
+            $ret = $er;
+            //throw $response;
         } else {
-            $errors[] = "Invalid parameter: $arg";
+            // response is not instance of Response, we'll make a new one
+            $o = (is_array($response) || self::$request->expectsJSON())?(new JsonResponse):(new RawResponse);
+            $o->setContent($response)
+                ->setHeader($this->header);
+            $ret = $o;
         }
+
+        // here we should make the postprocessing if applyable
+        return $ret;
     }
+
+    /**
+     * Adds or modify an engine configuration at runtime
+     *
+     * @param String $config
+     * @param Any $value
+     * @return void
+     */
+    public function setEngineConfig($config, $value)
+    {
+        $this->engine_config[$config] = $value;
+    }
+
+    /**
+     * Load application env and engine configuration
+     */
+    public static function loadConfig($app_path)
+    {
+        // load .env config
+        Config::loadConfigFromEnv($app_path . '/..');
     
-    // Validate mandatory params
-    foreach ($expected_params as $param) {
-        $name = $param['name'];
-        $mandatory = $param['mandatory'] ?? false;
-        $default = $param['default'] ?? null;
-        
-        if (!isset($args[$name]) && $mandatory && $default === null) {
-            $errors[] = "Need this parameter: --$name";
+        // load app config
+        $engine_conf_candidate = self::getConfigPathCandidate($app_path);
+        Config::append((is_file($engine_conf_candidate)) ? (include $engine_conf_candidate) : []);
+        self::$engine_config = Config::get();
+
+    }
+
+    /**
+     * Gets the value of a engine config
+     *
+     * @param String $config
+     * @return Any
+     */
+    public static function getConfig($config)
+    {
+        return empty(self::$engine_config[$config]) ? false : self::$engine_config[$config];
+    }
+
+    public static function getConfigPathCandidate($app_path, $which = 'engine')
+    {
+        return $app_path . "/Config/$which.php";
+    }
+
+    public static function appPath()
+    {
+        return self::$app_path;
+    }
+
+    public static function url()
+    {
+        //$url = self::getConfig('url');
+        $url = Request::getURI();
+        return $url;
+    }
+
+    /**
+     * Get assets path relative to /public
+     */
+    public static function assets($type = '', $filename = '')
+    {
+        $type = trim($type);
+        $filename = trim($filename);
+
+        $r = Request::getURI();
+        $p = self::getConfig('assets');
+
+        if(trim(substr($r,-1,1)) !== '/')
+            $r .= '/';
+
+        if ($p && $p[$type]) {
+            $ts = trim($p[$type]);
+            $fs = (substr($ts,-1,1) === '/')?'':'/';
+            $r .= ((empty($p[$type])?'':$p[$type]) . $fs);
         }
+
+        $ret = $r . $filename;
+        if (substr($ret,-1,1) === '/')
+            $ret = substr($ret,0, strlen($ret)-1);
         
-        // Assign value if not exists
-        if (!isset($args[$name]) && $default !== null) {
-            $args[$name] = $default;
+        return $ret;
+    }
+
+    /**
+     * @todo think how to send flash messages with this approach
+     */
+    public static function redirectResponse($to = '/')
+    {
+        
+        $to = trim($to);
+        // if the redirect url starts with '/' we'll assume
+        // the user is redirecting to a internal route. 
+        if(substr($to, 0,1) == '/')
+            $to = self::$request->getURI() . substr($to,1);
+
+        $h = new Header;
+        $h->setMessage("Location: " . $to, 302, true);
+        $r = new RawResponse;
+        $r->setHeader($h)
+            ->setContent('');
+        if(FlashMessage::howMany() > 0){
+            Session::setValue(FlashMessage::getSessionVarName(), FlashMessage::all());
         }
+        return $r;
     }
-    
-    // Show errors if any
-    if (!empty($errors)) {
-        echo "ERRORS:\n";
-        foreach ($errors as $error) {
-            echo "  - $error\n";
-        }
-        echo "\n";
-        showHelp($expected_params);
-        exit(1);
-    }
-    
-    return $args;
-}
 
-function showHelp(array $expected_params) {
-    global $argv;
-    
-    echo "Use: " . basename($argv[0]) . " [options]\n\n";
-    echo "Available options:\n";
-    
-    foreach ($expected_params as $param) {
-        $nombre = $param['name'];
-        $descripcion = $param['description'] ?? '';
-        $mandatory = $param['mandatory'] ?? false;
-        $default = $param['default'] ?? null;
-        
-        $mandatory_mark = $mandatory ? '[MANDATORY]' : '';
-        $default_mark = $default !== null ? " (default: $default)" : '';
-        
-        printf("  --%-20s %s%s%s\n", $nombre, $mandatory_mark, $default_mark, $descripcion ? " - $descripcion" : '');
-    }
-}
-
-function getDBExpectedEnvFields()
-{
-    return [
-        'db_driver' => 'driver',
-        'db_host' => 'host',
-        'db_port' => 'port',
-        'db_user' => 'user',
-        'db_pass' => 'pwd',
-        'db_name' => 'db'
-    ];
-}
-
-function mapDBConfigFields($envVariables){
-
-    $ev = getDBExpectedEnvFields();
-    $ret = [];
-    $found = true;
-    foreach($ev as $k=>$v){
-        if(array_key_exists($k, $envVariables)){
-            $ret[$v] = $envVariables[$k];
-        }else
-            $found = false;
-
-        if(!$found) dieWithMessage('Error: At least one db config value is missing');
+    public static function errorResponse($message = 'Internal error', $code = 500)
+    {
+        $er = new ErrorResponse($message, $code);
+        $h = new Header;
+        $h->setMessage($message, $code, true);
+        $er->setHeader($h);
+        return $er;
     }    
-    return $ret;
 
-}
-
-/**
- * Valida si un texto es JSON válido - PHP < 8.3
- * @param string $text Texto a validar
- * @return bool
- */
-function isValidJson(string $text): bool {
-    // Eliminar espacios en blanco al inicio y final
-    $text = trim($text);
-    
-    // Validar JSON con json_decode (compatible PHP < 8.3)
-    $decoded = json_decode($text);
-    $jsonError = json_last_error();
-    
-    // Verificar si es JSON válido
-    return ($jsonError === JSON_ERROR_NONE && $decoded !== null);
-}
-
-// Pruebas
-/*
-$tests = [
-    '{"name":"Juan", "age":30}',                    // ✅ Objeto
-    '[]',                                          // ✅ Array vacío
-    '[1,2,3]',                                     // ✅ Array números
-    '"texto simple"',                              // ✅ String
-    'true',                                        // ✅ Booleano true
-    'false',                                       // ✅ Booleano false
-    'null',                                        // ✅ Null
-    '{name: "sin comillas"}',                      // ❌ Clave sin comillas
-    '[{',                                          // ❌ JSON incompleto
-    'texto normal',                                // ❌ No es JSON
-];
-
-foreach ($tests as $test) {
-    $result = isValidJson($test);
-    $status = $result['is_valid'] ? '✅ VÁLIDO' : '❌ ' . $result['error'];
-    printf("%-25s → %s\n", $test, $status);
-    
-    if ($result['is_valid']) {
-        printf("  → Tipo: %s\n", gettype($result['decoded']));
+    public function getCurrentHeader()
+    {
+        return $this->header;
     }
-    echo str_repeat("-", 40) . "\n";
+
 }
-*/
-
-// Ejemplos de uso:
-/*
-$tests = [
-    "'{\"name\":\"Juan\", \"age\":30}'",                    // ✅ Válido
-    "'{\"name\": \"Ana\", \"city\": \"Caracas\"}'",         // ✅ Válido
-    '"{"name":"Pedro"}"',                                  // ❌ Comillas dobles
-    "'{name: \"Luis\"}'",                                  // ❌ JSON inválido (clave sin comillas)
-    "Texto normal sin JSON",                               // ❌ Sin comillas simples
-    "'{\"name\":\"ok\"}' extra texto",                     // ✅ Solo extrae el JSON
-];
-    
-?>
-*/
-
-// EJEMPLO DE USO
-/*
-$parametros_esperados = [
-    [
-        'name' => 'host',
-        'mandatory' => true,
-        'description' => 'Servidor MySQL'
-    ],
-    [
-        'name' => 'port',
-        'default' => 3306,
-        'description' => 'Puerto MySQL'
-    ],
-    [
-        'name' => 'user',
-        'mandatory' => true,
-        'description' => 'Usuario de base de datos'
-    ],
-    [
-        'name' => 'help',
-        'description' => 'Mostrar esta ayuda'
-    ],
-    [
-        'name' => 'debug',
-        'description' => 'Modo debug'
-    ]
-];
-
-// Parsear argumentos
-$args = parseArgs($parametros_esperados);
-
-// Verificar ayuda
-if (isset($args['help'])) {
-    showHelp($parametros_esperados);
-    exit(0);
-}
-
-echo "✅ Parámetros parseados:\n";
-foreach ($args as $clave => $valor) {
-    printf("  %s = %s\n", $clave, $valor);
-}
-*/
-
