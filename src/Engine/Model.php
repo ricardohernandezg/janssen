@@ -174,6 +174,7 @@ class Model
 
     /**
      * Checks the list attribute
+     * 
      * @return array|bool
      */
     private function checkList() : array|bool
@@ -267,20 +268,24 @@ class Model
     {
         try{
 
-            $sql = $this->prepareStatement()
+            $statement = $this->prepareStatement()
                 ->makeStatement();
-          
+
+            $sql = $statement['sql'];
+            $values = $statement['values'];
+
+
             switch(self::$query_mode){
                 case 0:
                 case 1: 
-                    $ret = Database::query($sql);
+                    $ret = Database::query($sql, $values);
                     break;                
                 case 3:
-                    $ret = Database::count($sql);
+                    $ret = Database::count($sql, $values);
                     break;
                 case 2:
                 case 4:
-                    $ret = Database::first($sql);
+                    $ret = Database::first($sql, $values);
             }
             
             if(self::$keep)
@@ -299,7 +304,7 @@ class Model
     /**
      * Sets debug mode on to return the SQL syntax intended to be used 
      *
-     * @return Object
+     * @return object
      */
     public static function debug()
     {
@@ -334,7 +339,7 @@ class Model
         
         $conn = ($this->connection_name !== "") ? 
             (\getConfig('connections')[$this->connection_name] ?? false) :
-            (\getConfig('default_connection') ?? false);
+            (\getConfig('connections')[\getConfig('default_connection')] ?? false);
         
         if($conn){
             $adaptor = \getDatabaseAdaptor($conn);
@@ -376,36 +381,63 @@ class Model
     
     /**
      * Translate the statement to query using the adaptor
+     * 
+     * @return array 
      */
-    private function makeStatement() : string
+    private function makeStatement() : array
     {        
+
         $parted_sql = self::getPartedSql();
-        $statement = Database::getAdaptor()->translate($parted_sql, (self::getMapper()->getMap() ?? []));
-        return $statement;
+        $sql = Database::getAdaptor()->translate($parted_sql, (self::getMapper()->getMap() ?? []));
+        $values = self::whereValues($parted_sql);
+
+        return [
+            'sql' => $sql,
+            'values' => $values
+            ];
     }
 
     /**
      * Simulate the statement binding
      * 
      * @param string $sql 
-     * @param ?array $params 
+     * @param ?array $bindings 
      * @return string
      */
-    private static function simularBindingArray(string $sql, ?array $params = []) : string
+    private static function simularBindingArray(string $sql, ?array $bindings = []) : string
     {
 
-        if(!$params) return $sql;
+        if(!$bindings) return $sql;
 
-        $sql_debug = preg_replace_callback(
+        $sql = preg_replace_callback(
             '/\?/',
-            function ($m) use (&$params) {
-                $valor = array_shift($params);
+            function ($m) use (&$bindings) {
+                $valor = array_shift($bindings);
                 return is_numeric($valor) ? $valor : "'$valor'";
             },
             $sql
         );
 
-        return $sql_debug;
+        return $sql;
+    }
+
+    /**
+     * Extract the values from where to make the bind
+     * 
+     * @param array $parted_sql
+     * @return string 
+     */
+    private static function whereValues(array $parted_sql = []){
+
+        $v = [];
+
+        foreach($parted_sql['where'] as $k=>$where){
+            foreach($where['members'] as $member){
+                $v[] = $member['value'];
+            }
+        }
+
+        return $v;
     }
 
 }

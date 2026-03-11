@@ -106,9 +106,6 @@ abstract class Adaptor
     public abstract function procedureExists($name, $schema = null);
     public abstract function functionExists($name, $schema = null);
 
-
-
-
     /**
      * Set the last error in a internal variable to allow the user 
      * to know what happened if the statement returns false
@@ -161,7 +158,7 @@ abstract class Adaptor
      * Get internal array with the fields needed to
      * instanciate a connection with this adapter
      *
-     * @return Array
+     * @return array
      */
     public function getAllConfigFields()
     {
@@ -172,8 +169,8 @@ abstract class Adaptor
      * Sets the value for the configuration field 
      * Fields MUST BE already a member of $_config_fields
      *
-     * @param String $field
-     * @param String $value
+     * @param string $field
+     * @param string $value
      * @return Adaptor
      */
     public function setConfigField($field, $value)
@@ -196,7 +193,7 @@ abstract class Adaptor
     /**
      * Returs the connection native object
      * 
-     * @return Object
+     * @return object
      */
     public function getConnector(){
         return $this->_cnx;
