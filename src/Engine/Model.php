@@ -46,7 +46,7 @@ class Model
      */
     private static $keep = false;    
 
-    private static $debug_and_wait = false;
+    private static $debug_mode = false;
 
     /**
      * Fields that must be defined in order to use the Model
@@ -304,12 +304,18 @@ class Model
     /**
      * Sets debug mode on to return the SQL syntax intended to be used 
      *
-     * @return object
+     * @return string
      */
     public static function debug()
     {
-        self::$debug_and_wait = true;
-        return self::me();
+        self::$debug_mode = true;
+        $parted_sql = self::getPartedSql();
+        $sql = Database::getAdaptor()->translate($parted_sql, (self::getMapper()->getMap() ?? []));
+        $values = self::whereValues($parted_sql);
+
+        $final_sql = self::simulateStatement($sql, $values);
+        self::$debug_mode = false;
+        return $final_sql;
     }
 
     /**
@@ -328,6 +334,7 @@ class Model
      */
     private function clearQuery()
     {
+        self::$debug_mode = false;
         return $this;
     }
 
@@ -371,7 +378,7 @@ class Model
                 break;
             case 0:
             default:
-                self::clearWhere();
+                if(!self::$debug_mode) self::clearWhere();
                     
         }
 
@@ -404,7 +411,7 @@ class Model
      * @param ?array $bindings 
      * @return string
      */
-    private static function simularBindingArray(string $sql, ?array $bindings = []) : string
+    private static function simulateStatement(string $sql, ?array $bindings = []) : string
     {
 
         if(!$bindings) return $sql;
@@ -425,9 +432,10 @@ class Model
      * Extract the values from where to make the bind
      * 
      * @param array $parted_sql
-     * @return string 
+     * @return array 
      */
-    private static function whereValues(array $parted_sql = []){
+    private static function whereValues(array $parted_sql = []) : array
+    {
 
         $v = [];
 
