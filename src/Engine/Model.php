@@ -332,15 +332,15 @@ class Model
     private function prepareStatement()
     {
         
-        if($this->connection_name !== ""){
-            // resuelve el adaptador correcto y setealo en database
-            $conn = \getConfig('connections')[$this->connection_name] ?? false;
-            if($conn){
-                $adaptor = \getDatabaseAdaptor($conn);
-                Database::setAdaptor($adaptor);
-            }else
+        $conn = ($this->connection_name !== "") ? 
+            (\getConfig('connections')[$this->connection_name] ?? false) :
+            (\getConfig('default_connection') ?? false);
+        
+        if($conn){
+            $adaptor = \getDatabaseAdaptor($conn);
+            Database::setAdaptor($adaptor);
+        }else
             throw new Exception('Connection not set in config', 500, 'Contact administrator');
-        }
         
         // obtengo el parted sql y lo modifico segun necesite
         $parted_sql = self::getPartedSql();
@@ -358,7 +358,7 @@ class Model
                 $parted_sql['where'][] = ['members' => [$w]];
                 break;                
             case 3:
-                $parted_sql['select'] = [];                //$ret = Database::queryOne($sql);
+                $parted_sql['select'] = []; 
                 $parted_sql['distinct'] = false;
                 break;
             case 4:
@@ -384,5 +384,28 @@ class Model
         return $statement;
     }
 
+    /**
+     * Simulate the statement binding
+     * 
+     * @param string $sql 
+     * @param ?array $params 
+     * @return string
+     */
+    private static function simularBindingArray(string $sql, ?array $params = []) : string
+    {
+
+        if(!$params) return $sql;
+
+        $sql_debug = preg_replace_callback(
+            '/\?/',
+            function ($m) use (&$params) {
+                $valor = array_shift($params);
+                return is_numeric($valor) ? $valor : "'$valor'";
+            },
+            $sql
+        );
+
+        return $sql_debug;
+    }
 
 }

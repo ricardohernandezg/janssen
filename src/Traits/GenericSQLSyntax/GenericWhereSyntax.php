@@ -52,10 +52,13 @@ trait GenericWhereSyntax
     }
 
     private static function processValue($value){
+        return '?';
+        /*
         if (is_numeric($value) || $value === true || $value === false)
             return $value;
         else
             return "'$value'";
+        */
     }
 
     protected static function flatWhere(Array $where = [])

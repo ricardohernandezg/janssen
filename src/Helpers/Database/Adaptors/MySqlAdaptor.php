@@ -257,16 +257,4 @@ class MySqlAdaptor extends Adaptor
         return $sql . ';';
     }
 
-    /**
-     * Prepare the bindings 
-     */
-    private static function bind(PDOStatement &$stmt, array $bindings = [])
-    {
-        // itera los bindings
-        $j = 1;
-        foreach ($bindings as $v){
-            $stmt->bindValue($j, $v, self::determineType($v));
-            $j++;
-        }
-    }
 }

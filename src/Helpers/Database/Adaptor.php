@@ -5,6 +5,7 @@ namespace Janssen\Helpers\Database;
 use Janssen\Helpers\Exception;
 use Janssen\Helpers\SQLStatement;
 use PDO;
+use PDOStatement;
 
 abstract class Adaptor
 {
@@ -37,6 +38,7 @@ abstract class Adaptor
     {
         $this->setAutoFieldMapping();
     }
+
 
     /**
      * Connect to database using the php function
@@ -89,6 +91,23 @@ abstract class Adaptor
      * MUST RETURN BOOL
      */
     public abstract function statement(string $sql, ?array $bindings = []);
+
+    /**
+     * Translate query object to SQL. 
+     * 
+     * @return string
+     */
+    public abstract function translate(array $parted_sql, array $mapping = []);
+    
+    // - - - - - DATABASE INFORMATION SECTION
+
+    public abstract function tableExists($name, $schema = null);
+    public abstract function viewExists($name, $schema = null);
+    public abstract function procedureExists($name, $schema = null);
+    public abstract function functionExists($name, $schema = null);
+
+
+
 
     /**
      * Set the last error in a internal variable to allow the user 
@@ -216,20 +235,19 @@ abstract class Adaptor
         // Por defecto, cualquier otro caso lo consideramos texto
         return PDO::PARAM_STR;
     }
-
-
-    /**
-     * Translate query object to SQL. 
-     * 
-     * @return string
-     */
-    public abstract function translate(array $parted_sql, array $mapping = []);
     
-    // - - - - - DATABASE INFORMATION SECTION
+    /**
+     * Prepare the bindings 
+     */
+    protected static function bind(PDOStatement &$stmt, array $bindings = [])
+    {
+        // itera los bindings
+        $j = 1;
+        foreach ($bindings as $v){
+            $stmt->bindValue($j, $v, self::determineType($v));
+            $j++;
+        }
+    }
 
-    public abstract function tableExists($name, $schema = null);
-    public abstract function viewExists($name, $schema = null);
-    public abstract function procedureExists($name, $schema = null);
-    public abstract function functionExists($name, $schema = null);
 
 }

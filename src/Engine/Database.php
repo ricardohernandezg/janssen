@@ -90,7 +90,6 @@ class Database
         // map the select part
         $mapped = self::createMappedString($sql, $mapping);
         $ret = self::$adaptor->query($mapped, $bindings);
-        //self::setFieldMapping();
         return $ret;
     }
   
@@ -186,9 +185,9 @@ class Database
     public static function debug(string $sql, ?array $bindings = []) : string
     {
         /**
-         * @todo before return, make the bindings and translate
+         * @todo translate the sql and return with bindings
          */
-        return $sql;
+        return self::simularBindingArray($sql, $bindings);
     }
 
     /**
