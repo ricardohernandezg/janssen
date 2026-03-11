@@ -568,6 +568,25 @@ trait SQLStatement
             return false;
     }
 
+    
+    /**
+     * Converts array to list of elements to put in a IN statement
+     * 
+     * @param array $array
+     * @return string
+     */
+    public static function arrayToIN($array)
+    {
+        if (empty($array)) return false;  
+        
+        return implode(',', array_map(
+            function ($val) {
+                return is_numeric($val) ? $val : '"' . $val . '"';  
+            },
+            $array
+        ));
+    }
+
     // - - - - - CLEAR STATEMENT - - - - - - 
     
     public static function clearWhere()
