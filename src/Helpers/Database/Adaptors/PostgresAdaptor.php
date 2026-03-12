@@ -11,6 +11,10 @@ use PDOStatement;
 class PostgresAdaptor extends Adaptor
 {
 
+    use \Janssen\Traits\GenericSQLSyntax\GenericSelectSyntax;
+    use \Janssen\Traits\GenericSQLSyntax\GenericWhereSyntax;
+    use \Janssen\Traits\GenericSQLSyntax\GenericOrderBySyntax;
+
     protected $_config_fields = [
         'host' => '',
         'user' => '',
@@ -91,6 +95,7 @@ class PostgresAdaptor extends Adaptor
      * Executes a statement and returns bool 
      * 
      * @param string $sql
+     * @param ?array $bindings
      * @return bool
      */    
     public function statement(string $sql, ?array $bindings = [])
@@ -125,6 +130,7 @@ class PostgresAdaptor extends Adaptor
      * Inserts a record and returns the corresponding Id if the $return_fields are provided
      * 
      * @param string $sql
+     * @param ?array $bindings
      * @return int 
      */
     public function insert(string $sql, ?array $bindings = [])
@@ -133,14 +139,11 @@ class PostgresAdaptor extends Adaptor
             $cnx = $this->connect();
             $stmt = $cnx->prepare($sql);
 
-            self::bind($stmt, $bindings);
-
-            // execute para insert preparados
-            $res = $stmt->execute();
+            $res = $stmt->execute($bindings);
 
             $this->affected_rows = -1;
             if ($res) {
-                $lastId = $cnx->lastInsertId();  // Método nativo de PDO para PostgreSQL
+                $lastId = $cnx->lastInsertId(); 
                 if ($lastId !== false && $lastId != '0') {
                     return $lastId;
                 } else {
@@ -206,7 +209,25 @@ class PostgresAdaptor extends Adaptor
 
     public function translate($parted_sql, array $mapping = [])
     {
-        return "";
+        $sql = $this->prepareSelect($parted_sql, $mapping);
+        $sql .= " FROM " . $parted_sql['from'];
+        if ($parted_sql['where']) {
+            $sql .= " WHERE " . $this->flatWhere($parted_sql['where']);
+        }
+
+        if (!empty($parted_sql['orderby'])) {
+            $sql .= $this->prepareOrderby($parted_sql);
+        }
+
+        if ($parted_sql['limit'] >= 0) {
+            $sql .= " LIMIT " . $parted_sql['limit'];
+        }
+
+        if ($parted_sql['offset'] >= 0) {
+            $sql .= " OFFSET " . $parted_sql['offset'];
+        }
+
+        return $sql . ';';
     }
 
 
