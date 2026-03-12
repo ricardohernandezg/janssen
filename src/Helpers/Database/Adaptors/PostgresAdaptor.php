@@ -197,8 +197,8 @@ class PostgresAdaptor extends Adaptor
 
     private function freeResult()
     {
-        if($this->last_result) pg_free_result($this->last_result);
-        $this->last_result = false;
+        //if($this->last_result) pg_free_result($this->last_result);
+        $this->last_result = null;
     }
 
     public function setAutoFieldMapping($value = true)
