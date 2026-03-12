@@ -175,22 +175,6 @@ class Database
     }
 
     /**
-     * Make the bindings and return the query translated
-     * by adaptor
-     * 
-     * @param string $sql
-     * @param ?array $bindings
-     * @return string
-     */
-    public static function debug(string $sql, ?array $bindings = []) : string
-    {
-        /**
-         * @todo translate the sql and return with bindings
-         */
-        return self::simularBindingArray($sql, $bindings);
-    }
-
-    /**
      * Destroys connection object
      */
     public static function disconnect()

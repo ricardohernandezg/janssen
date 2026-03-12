@@ -139,6 +139,7 @@ class MySqlAdaptor extends Adaptor
      * Executes a statement and returns bool 
      * 
      * @param string $sql
+     * @param ?array $bindings
      * @return bool
      */
     public function statement(string $sql, ?array $bindings = [])
@@ -166,28 +167,11 @@ class MySqlAdaptor extends Adaptor
         }        
     }
 
-    
-    /*
-    private function flatSQL($parted_sql)
-    {
-        $sql = 'SELECT ' . (self::$distinct?'DISTINCT ':'') . $parted_sql['select'] . ' FROM ' . $parted_sql['from'];
-        if(!empty(trim($parted_sql['where'])))
-            $sql .= ' WHERE ' . trim($parted_sql['where']);
-             
-        if(!empty(trim($parted_sql['orderby'])))
-            $sql .= ' ORDER BY ' . trim($parted_sql['orderby']);            
-
-        if(!empty(trim($parted_sql['limit'])))
-            $sql .= ' LIMIT ' . trim($parted_sql['limit']);
-            
-        return $sql;
-    } 
-    */   
-
     /**
      * Inserts a record and returns the corresponding Id
      * 
      * @param string $sql
+     * @param ?array $bindings
      * @return int 
      */
     public function insert(string $sql, ?array $bindings = [])

@@ -4,7 +4,9 @@ namespace Janssen\Helpers\Database\Adaptors;
 
 use Janssen\Helpers\Database\Adaptor;
 use Janssen\Helpers\Exception;
-use PgSql\Connection;
+use PDO;
+use PDOException;
+use PDOStatement;
 
 class PostgresAdaptor extends Adaptor
 {
@@ -22,64 +24,67 @@ class PostgresAdaptor extends Adaptor
     /**
      * Connects to PostgreSQL database
      * 
-     * @return Connection
+     * @return PDO
      */
-    public function connect(): Connection
+    public function connect(): PDO
     {
         if ($this->isConnected())
             return $this->_cnx;
 
-        // Construir cadena de conexión para pg_connect
-        $connStr = sprintf(
-            "host=%s port=%s dbname=%s user=%s password=%s",
-            $this->_config_fields['host'],
-            $this->_config_fields['port'],
-            $this->_config_fields['db'],
-            $this->_config_fields['user'],
-            $this->_config_fields['pwd']
-        );
+        $dsn = "pgsql:host={$this->_config_fields['host']};port={$this->_config_fields['port']};dbname={$this->_config_fields['db']};";
 
-        $cnx = pg_connect($connStr);
-
-        if ($cnx) {
-            // No es necesario setear charset con pg_connect, puede hacerse en la consulta si es necesario
+        try {
+            $cnx = new PDO(
+                $dsn,
+                $this->_config_fields['user'],
+                $this->_config_fields['pwd'],
+                [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_EMULATE_PREPARES   => false
+                ]
+            );
             $this->_cnx = $cnx;
             return $cnx;
-        } else {
-            throw new Exception('Unable to connect to PostgreSQL database', 500);
+        } catch (PDOException $e) {
+            $this->disconnect();
+            throw new Exception("Unable to connect to database (" . $e->getMessage() . ")", 500);
         }
+
     }
 
     public function disconnect()
     {
         $this->_cnx = null;
-    }    
+    }
 
     public function query($sql, ?array $bindings = [])
     {
         $this->freeResult();
 
-        /*
-        if(self::$debug_and_wait)
-            return $this->debug();
-        */
+        try {
+            $cnx = $this->connect();
+            $stmt = $cnx->prepare($sql);
 
-        $res = $this->last_result = pg_query($this->connect(), $sql);
-        if ($res) {
-            // Si $res es booleano verdadero (como TRUE), resulta en true
-            // En PostgreSQL, pg_query devuelve un recurso o FALSE en error,
-            // para obtener todos los resultados se usa pg_fetch_all
-            $ret = (is_bool($res)) ? true : pg_fetch_all($res);
-        } else {
-            // Obtener último error
-            $err = pg_last_error($this->_cnx);
-            if ($err) {
+            $res = $stmt->execute($bindings);
+
+            $this->last_result = $res;
+
+            if ($res) {
+                $ret = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                //$ret = !empty($ret) ? $ret : true;             
+            } else {
+                // Error en execute
+                $err = $cnx->errorInfo()[2] ?? 'UNKNOWN_ERROR';
                 $this->setLastError(null, $err, null, $sql);
+                $ret = false;
             }
-            $ret = false;
-        }
 
-        return $ret;
+            return $ret;
+        } catch (PDOException $e) {
+            $this->setLastError(null, $e->getMessage(), null, $sql);
+            return false;
+        }
     }
 
     /**
@@ -90,32 +95,13 @@ class PostgresAdaptor extends Adaptor
      */    
     public function statement(string $sql, ?array $bindings = [])
     {
-        $res = pg_query($this->connect(), $sql);
+        $res = $this->query($sql, $bindings);
         if ($res) {
             $ret = (is_bool($res));
             return $ret;
         }
         return $res;
     }
-
-    /**
-     * Returns number of rows
-     *
-     * @param string $sql
-     * @return integer
-     */
-    /*
-    public function howMany($sql)
-    {
-        $res = pg_query($this->connect(), $sql);
-        if ($res) {
-            $rows = pg_num_rows($res);
-        } else {
-            $rows = 0;
-        }
-        return $rows;
-    }
-    */
 
     /**
      * Check if query returns at least one row
@@ -126,7 +112,7 @@ class PostgresAdaptor extends Adaptor
     public function exists(string $sql, ?array $bindings = []): Bool 
     {
         $sql = "SELECT EXISTS($sql) as e";
-        $r = $this->query($sql);
+        $r = $this->query($sql, $bindings);
         if ($r && isset($r[0])) 
             $e = $r[0]['e'];
         else 
@@ -143,30 +129,28 @@ class PostgresAdaptor extends Adaptor
      */
     public function insert(string $sql, ?array $bindings = [])
     {
-        $c = $this->connect();
-        $sql = trim($sql);
+        try {
+            $cnx = $this->connect();
+            $stmt = $cnx->prepare($sql);
 
-        // postgres accepts returning in INSERT, UPDATE and DELETE
-        if (!preg_match('/^INSERT\s|^UPDATE\s|^DELETE\s.+$/im', $sql)) 
-            throw new Exception('Insert requires an INSERT, UPDATE OR DELETE SQL statement', 500);
+            self::bind($stmt, $bindings);
 
-        // check that the $sql has returning statement and $return_fields were provided
-        $has_returning = (preg_match('/\bRETURNING\b/i', $sql));
-        $has_return = (!empty($return_fields));
-        if($has_return && !$has_returning){
-            $returning = implode(",",$return_fields);
-            if(substr($sql, -1,1) == ';') $sql = substr($sql, 0,-1);
-            $sql .= " RETURNING $returning;";
-        }
+            // execute para insert preparados
+            $res = $stmt->execute();
 
-        $res = pg_query($c, $sql);
-
-        if ($res) {
-            $ar_id = pg_fetch_row($res);
-            return $ar_id[0];
-        } else {
-            $this->setLastError(pg_last_error($c), null, null, $sql);
-            return false;
+            $this->affected_rows = -1;
+            if ($res) {
+                $lastId = $cnx->lastInsertId();  // Método nativo de PDO para PostgreSQL
+                if ($lastId !== false && $lastId != '0') {
+                    return $lastId;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } catch (PDOException $e) {
+            throw new Exception($e->getMessage(), 500);
         }
     }
 
