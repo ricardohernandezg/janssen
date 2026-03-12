@@ -309,11 +309,11 @@ class Model
     public static function debug()
     {
         self::$debug_mode = true;
-        $parted_sql = self::getPartedSql();
-        $sql = Database::getAdaptor()->translate($parted_sql, (self::getMapper()->getMap() ?? []));
-        $values = self::whereValues($parted_sql);
 
-        $final_sql = self::simulateStatement($sql, $values);
+        $statement = self::me()->prepareStatement()
+            ->makeStatement();
+
+        $final_sql = self::simulateStatement($statement['sql'], $statement['values']);
         self::$debug_mode = false;
         return $final_sql;
     }
