@@ -203,7 +203,7 @@ class PostgresAdaptor extends Adaptor
 
     public function setAutoFieldMapping($value = true)
     {
-        $this->_map_return_fields = ($value == true)?PGSQL_ASSOC:PGSQL_NUM;
+        $this->_map_return_fields = ($value == true) ? PDO::FETCH_ASSOC : PDO::FETCH_NUM;
         return $this;
     }
 
