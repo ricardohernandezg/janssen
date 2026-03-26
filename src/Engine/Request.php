@@ -750,24 +750,24 @@ class URL
 
         $this->fullURL = $fullURL;
 
-        // Protocolo
+        // Protocol
         $this->protocol = $parts['scheme'] ?? '';
 
-        // Host y puerto
+        // Host and port
         $this->host = $parts['host'] ?? '';
         $this->port = $parts['port'] ?? '';
 
-        // Ruta
+        // Path
         $this->path = $parts['path'] ?? '';
         if($fixPath)
             $this->path = $this->fix($this->path);
 
-        // Query string original
+        // Query string
         $this->queryString = $parts['query'] ?? '';
 
         $this->payload = $this->queryStringToFriendlyPath($this->queryString);
 
-        // Verificar si host es IP o dominio
+        // Verify if host is IP or domain
         $this->host_is_domain = filter_var($this->host, FILTER_VALIDATE_IP) ? true : false;
 
         $si = $this->getSubdomainsInfo($this->host(), $domain);
@@ -775,7 +775,12 @@ class URL
         $this->fullSubdomain = $si['full'];
     }
 
-    // Convertir query string to friendly path
+    /**
+     * Converts query string in friendly path
+     *
+     * @param string $queryString
+     * @return string
+     */
     private static function queryStringToFriendlyPath($queryString)
     {
         parse_str($queryString, $params);
