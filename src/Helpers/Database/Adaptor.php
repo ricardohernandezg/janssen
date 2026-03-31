@@ -45,16 +45,16 @@ abstract class Adaptor
      *
      * It must be developed the way for each driver. 
      * 
-     * @param String $sql
-     * @return Integer|Array|Bool
+     * @param string $sql
+     * @return integer|array|boolean
      */
     public abstract function insert($sql);
 
     /**
      * Runs a query and returns the row count
      * 
-     * @param String $sql
-     * @return Integer|Bool
+     * @param string $sql
+     * @return integer|boolean
      */
     public abstract function howMany($sql);
 
@@ -67,9 +67,9 @@ abstract class Adaptor
      * Set the last error in a internal variable to allow the user 
      * to know what happened if the statement returns false
      * 
-     * @param String $code
-     * @param String $message
-     * @param String $sqlstate
+     * @param string $code
+     * @param string $message
+     * @param string $sqlstate
      * @return $this
      */
     public function setLastError($code, $message, $sqlstate, $query)
@@ -86,7 +86,7 @@ abstract class Adaptor
     /**
      * Return the user an array with the last error data
      *
-     * @return Array
+     * @return array
      */
     public function getLastError()
     {
@@ -124,7 +124,7 @@ abstract class Adaptor
      * Get internal array with the fields needed to
      * instanciate a connection with this adapter
      *
-     * @return Array
+     * @return array
      */
     public function getAllConfigFields()
     {
@@ -135,8 +135,8 @@ abstract class Adaptor
      * Sets the value for the configuration field 
      * Fields MUST BE already a member of $_config_fields
      *
-     * @param String $field
-     * @param String $value
+     * @param string $field
+     * @param string $value
      * @return Adaptor
      */
     public function setConfigField($field, $value)

@@ -32,7 +32,7 @@ class App
      * objects
      */
 
-    private static $version = '0.8.2';
+    private static $version = '0.8.83';
     private static $name = 'Janssen Core';
     private static $app_path;
     private static $s_assets_path;
@@ -427,7 +427,7 @@ class App
 
     public static function appPath()
     {
-        return self::$app_path . '/';
+        return self::$app_path;
     }
 
     public static function url()
