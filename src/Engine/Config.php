@@ -45,7 +45,7 @@ class Config
                 $dotenv = \Dotenv\Dotenv::createMutable($path);
                 $dotenv->load();
             }catch(Exception $e){
-                throw new Exception('You need to use Dotenv if you want to load .env files!');
+                throw new Exception($e->getMessage());
             }
         }
     }
