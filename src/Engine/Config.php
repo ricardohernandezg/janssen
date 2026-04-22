@@ -42,7 +42,7 @@ class Config
 
         if(file_exists("$path.env")){
             try{
-                $dotenv = \Dotenv\Dotenv::create($path);
+                $dotenv = \Dotenv\Dotenv::createMutable($path);
                 $dotenv->load();
             }catch(Exception $e){
                 throw new Exception('You need to use Dotenv if you want to load .env files!');
