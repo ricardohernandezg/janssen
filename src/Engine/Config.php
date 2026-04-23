@@ -16,7 +16,7 @@ class Config
      * getenv and is built to the configuration array take advantage of
      * env files loaded by DotEnv in case user chose to use it.
      *
-     * @param String $key
+     * @param string $key
      * @param Any $default
      * @return Any
      */
@@ -31,7 +31,7 @@ class Config
      * 
      * Load variables and put them in PHP's env space
      * 
-     * @param String $path
+     * @param string $path
      * @return void
      */
     public static function loadConfigFromEnv($path)
@@ -53,9 +53,9 @@ class Config
     /**
      * Get a configuration setting
      *
-     * @param String $name
-     * @param String $default
-     * @return String|Array
+     * @param string $name
+     * @param string $default
+     * @return string|array
      */
     public static function get($name = null, $default = null)
     {
@@ -78,7 +78,7 @@ class Config
     /**
      * Sets a configuration value
      *
-     * @param String $name
+     * @param string $name
      * @param Any $value
      * @return void
      */
@@ -111,7 +111,7 @@ class Config
      * Rewrites the settings internal values. 
      * This function is intended only for internal use
      *
-     * @param Array $settings
+     * @param array $settings
      * @return void
      */
     public static function setAll($settings)
@@ -130,7 +130,7 @@ class Config
     /**
      * Special function that will retrieve only the events part of the config
      *
-     * @return Array|Boolean
+     * @return array|boolean
      */
     public static function getEvents()
     {

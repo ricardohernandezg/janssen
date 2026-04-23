@@ -31,7 +31,7 @@ class ViewResponse extends Response
 
     public function __construct($template_name = '', $data = [])
     {
-        $this->setTemplatePath(App::appPath() . '../templates');
+        $this->setTemplatePath(App::appPath() . '/../templates');
 
         if($template_name !== '')
             $this->setTemplate($template_name, $data);

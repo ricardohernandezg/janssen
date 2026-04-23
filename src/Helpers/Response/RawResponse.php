@@ -2,6 +2,7 @@
 
 namespace Janssen\Helpers\Response;
 
+use Janssen\App;
 use Janssen\Engine\Response;
 use Janssen\Helpers\Exception;
 
@@ -28,9 +29,8 @@ class RawResponse extends Response
      */
     public function loadPage($page)
     {
-        $a = \Janssen\App::appPath();
         // we expect the templates are located in the same folder as public
-        $template_path = $a . "../templates";
+        $template_path = App::appPath() . "/../templates";
         $page_candidate = $template_path . '/' . $page;
         if(file_exists($page_candidate)){
         // turn off echo and capture 
