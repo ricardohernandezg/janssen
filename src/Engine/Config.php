@@ -17,8 +17,8 @@ class Config
      * env files loaded by DotEnv in case user chose to use it.
      *
      * @param string $key
-     * @param Any $default
-     * @return Any
+     * @param mixed $default
+     * @return mixed
      */
     public static function env($key, $default){
         if(isset($_ENV[$key]))
@@ -79,7 +79,7 @@ class Config
      * Sets a configuration value
      *
      * @param string $name
-     * @param Any $value
+     * @param mixed $value
      * @return void
      */
     public static function set($name, $value)

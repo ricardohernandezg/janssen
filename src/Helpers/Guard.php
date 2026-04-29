@@ -86,7 +86,7 @@ abstract class Guard
      * Set a key/value pair to the guard data
      *
      * @param String|Array $key
-     * @param Any $value
+     * @param mixed $value
      * @return Object
      */
     public function setData($key, $value = null)
