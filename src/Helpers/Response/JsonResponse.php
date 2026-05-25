@@ -26,7 +26,7 @@ class JsonResponse extends Response
         if(!is_array($content))
             $content = [$this->content];
             
-        $this->setContent(json_encode($content, Config::get('json_encode_options')));
+        $this->setContent(json_encode($content, Config::get('json_encode_options', 0)));
         return $this;
     }
 
