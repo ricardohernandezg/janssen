@@ -169,7 +169,11 @@ abstract class Adaptor
      * @return Object
      */
     public function getConnector(){
-        return $this->_cnx;
+
+        if ($this->isConnected())
+            return $this->_cnx;
+        
+        return $this->connect();
     }
 
     // DATABASE INFORMATION SECTION
