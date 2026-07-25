@@ -2,7 +2,7 @@
 
 namespace Janssen\Helpers\Response;
 
-use Janssen\Engine\Header;
+use Janssen\Engine\Event;
 use Janssen\Engine\Response;
 use Janssen\Engine\Config;
 
@@ -20,11 +20,13 @@ class JsonResponse extends Response
      */
     public function render()
     {
+        Event::invoke('JsonResponse.BeforeRender', $this);
+
         $content = $this->getContent();
         if(!is_array($content))
             $content = [$this->content];
             
-        $this->setContent(json_encode($content, Config::get('json_encode_options')));
+        $this->setContent(json_encode($content, Config::get('json_encode_options', 0)));
         return $this;
     }
 

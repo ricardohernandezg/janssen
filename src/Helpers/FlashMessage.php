@@ -32,7 +32,7 @@ class FlashMessage
      * Retuns a message and removes it from flash
      *
      * @param String $key
-     * @return Any|Bool
+     * @return mixed|Bool
      */
     public static function get($key)
     {

@@ -401,7 +401,7 @@ class App
      * Adds or modify an engine configuration at runtime
      *
      * @param String $config
-     * @param Any $value
+     * @param mixed $value
      * @return void
      */
     public function setEngineConfig($config, $value)
@@ -413,7 +413,7 @@ class App
      * Gets the value of a engine config
      *
      * @param String $config
-     * @return Any
+     * @return mixed
      */
     public static function getConfig($config)
     {
@@ -439,6 +439,12 @@ class App
 
     /**
      * Get assets path relative to /public
+     * 
+     * @param string $type
+     * @param string $filename
+     * @return string
+     * 
+     * @todo move this to another part, this is not responsability of core
      */
     public static function assets($type = '', $filename = '')
     {
@@ -465,16 +471,28 @@ class App
     }
 
     /**
+     * 
+     * @param string $to
+     * @return Response
+     * 
+     * @todo named routes
      * @todo think how to send flash messages with this approach
      */
     public static function redirectResponse($to = '/')
     {
         
         $to = trim($to);
-        // if the redirect url starts with '/' we'll assume
-        // the user is redirecting to a internal route. 
-        if(substr($to, 0,1) == '/')
-            $to = self::$request->getURI() . substr($to,1);
+
+        if($to == '/'){
+            $to = self::$request->getURI();
+        }else{
+            // if the redirect url starts with '/' we'll assume
+            // the user is redirecting to a internal route. 
+            if(substr($to, 0,1) == '/')
+                $to = self::$request->getURI() . '/' . substr($to,1);
+            else
+                throw new Exception('Named routes are not implemented yet!', 500);
+        }
 
         $h = new Header;
         $h->setMessage("Location: " . $to, 302, true);
@@ -485,17 +503,27 @@ class App
             Session::setValue(FlashMessage::getSessionVarName(), FlashMessage::all());
         }
         return $r;
+
     }
 
+    /**
+     * @param string $message 
+     * @param int $code
+     * 
+     * @return Response
+     */
     public static function errorResponse($message = 'Internal error', $code = 500)
     {
-        $er = new ErrorResponse($message, $code);
+        $r = new ErrorResponse($message, $code);
         $h = new Header;
         $h->setMessage($message, $code, true);
-        $er->setHeader($h);
-        return $er;
+        $r->setHeader($h);
+        return $r;
     }    
 
+    /**
+     * @return Header
+     */
     public function getCurrentHeader()
     {
         return $this->header;

@@ -3,6 +3,7 @@
 namespace Janssen\Helpers\Response;
 
 use Janssen\App;
+use Janssen\Engine\Event;
 use Janssen\Engine\Response;
 use Janssen\Helpers\Exception;
 
@@ -17,6 +18,7 @@ class RawResponse extends Response
 
     public function render()
     {
+        Event::invoke('RawResponse.BeforeRender', $this);
         return $this;
     }
 

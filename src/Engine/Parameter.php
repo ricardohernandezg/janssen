@@ -117,7 +117,7 @@ class Parameter implements \Countable
      * Sets or replaces a member value in the parameter list
      *
      * @param string $name
-     * @param any $value
+     * @param mixed $value
      * @return object
      */
     public function setMember($name, $value)
@@ -141,7 +141,7 @@ class Parameter implements \Countable
      * Allow set parameter members as attribute style
      *
      * @param string $name
-     * @param any $value
+     * @param mixed $value
      */
     public function __set(string $name, $value)
     {
