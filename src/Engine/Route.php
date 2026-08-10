@@ -12,6 +12,11 @@ use Janssen\Engine\Config;
 class Route 
 {
     /**
+     * Suggest regex to accept email address in route parameter
+     */
+    protected const ROUTE_PARAM_EMAIL = '[\-\+\*\w]+\@[\.\-\+\*\w]+\.+[\a-zA-Z]+';
+
+    /**
      * Saves the last succesfully found route to avoid searching it 
      * again with all the load that the regex brings
      *
