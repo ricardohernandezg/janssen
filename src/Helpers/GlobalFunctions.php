@@ -3,20 +3,68 @@
 use Janssen\App;
 use Janssen\Engine\Response;
 use Janssen\Engine\Route;
-use Janssen\Engine\Session;
-use Janssen\Helpers\Guard;
+//use Janssen\Engine\Session;
+//use Janssen\Helpers\Guard;
 use Janssen\Helpers\Response\ErrorResponse;
+
+final class FunctionMap
+{
+    
+    private static array $map = [];
+
+    public static function set(string $name, callable $fn): void
+    {
+        self::$map[$name] = $fn;
+    }
+
+    public static function get(string $name): callable
+    {
+        if (!isset(self::$map[$name])) {
+            throw new BadFunctionCallException("Function '{$name}' is not defined!");
+        }
+
+        return self::$map[$name];
+    }
+
+    // prevent this function to be instantiated
+    private function __construct() {}
+}
+
 
 function create_global_functions($funcs = [])
 {
     $mycncfunc = 'function __NAME__(__ARGS__){$i = new __CLASS__; return $i->__METHOD__(__UNTARGS__);}';
     $mycncfunc_woni = 'function __NAME__(__ARGS__){global $janapp; return $janapp->__METHOD__(__UNTARGS__);}';
     $mystafunc = 'function __NAME__(__ARGS__){return __CLASS__::__METHOD__(__UNTARGS__);}';
-
+  
     foreach($funcs as $k=>$v){
         $args = '';
         $untargs = '';
-        if(Route::isRoutedMethod($v)){
+
+        if(is_callable($v)){
+            // create an array of callables and invoke them from here
+            // Registro inicial (solo aquí se modifica el mapa)
+
+            // if function already exists, skip
+            if (function_exists($k)) {
+                continue;
+            }
+
+            // if name is not valid, skip
+            if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $k)) {
+                continue;
+            }
+
+            FunctionMap::set($k, $v);
+
+            // global function to make the call
+            eval("
+                    function {$k}(...\$args) {
+                        return FunctionMap::get('{$k}')(...\$args);
+                    }
+                ");
+            
+        }elseif(Route::isRoutedMethod($v)){
             $p = explode('@', $v);   
             if(method_exists($p[0], $p[1])){
                 // use reflection to get the parameters needed
@@ -86,16 +134,23 @@ function isStaticMethod($class, $method)
  * 
  * @see https://www.php.net/manual/en/function.get-class.php#114568
  *
- * @param String $class
- * @return void
+ * @param string $class
+ * @return string|false
  */
 function get_class_name($class)
 {
-    $classname = (is_object($class))?get_class($class):$class;
-    if ($pos = strrpos($classname, '\\')) return substr($classname, $pos + 1);
-    return $pos;
+    $classname = (is_object($class)) ? get_class($class) : $class;
+    if ($pos = strrpos($classname, '\\')){ 
+        return substr($classname, $pos + 1);
+    }
+    
+    return false;
 }
 
+/**
+ * @param string $text
+ * @return string
+ */
 function transform_to_class_name($text)
 {
     // check if the first character is slash
@@ -107,7 +162,7 @@ function transform_to_class_name($text)
     $ascii_code = ord($text); 
     if ($ascii_code < 65 || $ascii_code > 90)
         $text = ucfirst($text);
-    //return ucfirst(strtolower($text));
+    
     return $text;
 }
 
@@ -185,6 +240,10 @@ function old($name = null)
  * Good trick, doesn't??
  */
 spl_autoload_register('loadClass2');
+
+/**
+ * @param string $class
+ */
 function loadClass2($class)
 {
     // if we reach here and the class is not loaded, then we can 
