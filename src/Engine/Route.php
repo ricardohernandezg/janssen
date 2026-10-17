@@ -33,6 +33,9 @@ class Route
         self::getByPath(Request::getFullPath());
     }
 
+    /**
+     * @param string $path
+     */
     public static function getByPath($path)
     {
         // find a exclusive route, the first check will be returned
@@ -47,19 +50,51 @@ class Route
             
     }
 
+    /**
+     * @deprecated
+     * 
+     * @param string $path
+     */
     public static function getAllByPath($path)
     {
         $max = count(self::$routes);
         $res = [];
-        $i = 0;
+        $i = $idx = -1;
         do{
-            $i = self::findByPath($path, $i);
-            if($i){
-                $res[$i] = self::$routes[$i];
-                $i++;
+            $idx = self::findByPath($path, $i);
+            if($idx !== false){
+                $res[$idx] = self::$routes[$idx];
             } 
-        }while($i !== false); 
+            $i++;
+        }while($i < $max); 
+
         return $res;
+    }
+
+    /**
+     * Checks if given path corresponds to the provided route member
+     */
+    public static function checkPath(string $path, array $route) : bool
+    {
+
+        // take each bracketed sentence in $v and transform it
+        // to regex
+        $corresponds = false;
+        $regexed = self::bracketedToRegex($route['path']);
+        $pte = "/^{$regexed['regex']}$/";
+        if($regexed['matches'] > 0 && Regexer::isRegex($pte))
+        {
+            // evaluate
+            $r = preg_match($pte, $path);
+            if($r === FALSE)
+                throw new Exception("Regex to route '$path' not well formed");
+            $corresponds = ($r > 0);
+        }else{
+            // make direct match
+            $corresponds = (($route['path'] ?? '') === $path);
+        }
+
+        return $corresponds;
     }
 
     /**
@@ -69,6 +104,7 @@ class Route
      * 
      * If no names are found for a specific path, parameters will be
      * ommited
+     * @param string $path
      * 
      */
     public static function getParameters($path)
@@ -134,8 +170,10 @@ class Route
      * @todo change this to make it faster. Maybe finding a way to key the 
      * route when user doesn't provide a route name
      * 
+     * @param string $path
+     * 
      */
-    private static function findByPath($path, $offset = 0, $subdomain = '')
+    public static function findByPath($path, $offset = 0, $subdomain = '')
     {
         $found = $ret = false;
 
@@ -146,26 +184,14 @@ class Route
             else
                 break;
 
+            if(isset($v['domain']) && !empty($subdomain) && $v['domain'] !== $subdomain)
+                continue;
+            
             if(!self::isWellFormed($v))
                 throw new Exception('Error in route', 500);
 
-            if(isset($v['domain']) && !empty($subdomain) && $v['domain'] !== $subdomain)
-                continue;
-
-            // take each bracketed sentence in $v and transform it
-            // to regex
-            $cr = self::bracketedToRegex($v['path']);
-            $pte = "/^{$cr}$/";
-            if(Regexer::isRegex($pte)){
-                // evaluate
-                $r = preg_match($pte, $path);
-                if($r === FALSE)
-                    throw new Exception("Regex to route $i not well formed");
-                $found = ($r > 0);
-            }else{
-                // make direct match
-                $found = (($v[0] ?? '') === $path);
-            }
+            // check the path against route
+            $found = self::checkPath($path, $v);
             
             if($found){
                 $ret = $i;
@@ -176,6 +202,44 @@ class Route
         return $ret;
     }
 
+    /**
+     * Gets all the routes that match the path
+     * 
+     * @param string $path
+     */
+    public static function findAllByPath($path, $subdomain = '')
+    {
+        $found = false;
+        $ret = [];
+    
+        for($i = 0; $i < count(self::$routes); $i++)
+        {
+            if(isset(self::$routes[$i]))
+                $v = self::$routes[$i];
+            else
+                break;
+
+            if(isset($v['domain']) && !empty($subdomain) && $v['domain'] !== $subdomain)
+                continue;
+            
+            if(!self::isWellFormed($v))
+                throw new Exception('Error in route', 500);
+
+            // check the path against route
+            $found = self::checkPath($path, $v);
+            
+            if($found){
+                $ret[] = $v;
+                break;
+            }       
+        }
+
+        return empty($ret) ? false : $ret;
+    }
+
+    /**
+     * @todo check this!
+     */
     public static function isRoutedMethod($action)
     {
         $er = '/^[\\\\\w]+@[\w]+$/';
@@ -187,23 +251,27 @@ class Route
     /**
      * Returns the last succesfully found route
      *
-     * @return Array
+     * @return array
      */
     public static function getCurrent()
     {
         return self::$current;
     }
 
+    /**
+     * @param string $text
+     * @return array
+     */
     private static function bracketedToRegex($text)
     {
         // get all coincidences and transform to correct regex
         $matches = [];
+        $ret = ['matches' => 0, 'regex' => ''];
         $er = '/\{(.+)\}/mU';
         $i = preg_match_all($er,$text,$matches, PREG_OFFSET_CAPTURE);
         // each match comes with complementary info that will
         // allow to remake the full text in correct regex
         if($i > 0){
-            $ret = '';
             $last = 0;
             // we need to know if after the last match there is text that
             // needs to be passed
@@ -219,9 +287,14 @@ class Route
                 $ret .= $d . $match[0];
                 $last = $match[1] + strlen($match[0]) + 1;
             }
-            $ret .= Regexer::transform($over_text);
+            $ret['matches'] = $i;
+            $ret['regex'] .= Regexer::transform($over_text);
+        }elseif ($i == 0){
+            //$ret = Regexer::transform($text);
+            $ret['matches'] = 0;
+            $ret['regex'] = '';
         }else
-            $ret = Regexer::transform($text);
+            throw new Exception('Route not well formed', 500);
         
         return $ret;
 
@@ -229,6 +302,7 @@ class Route
 
     /**
      * UTILITY FOR ROUTE SHOWING 
+     * @param string $dst destination path
      */
     public static function hrefTo($dst)
     {
@@ -256,21 +330,26 @@ class Route
 
     /**
      * ENCRYPTION AND DECRYPTION METHODS
+     * 
+     * @param string $path
      */
-    public static function encrypt($route)
+    public static function encrypt($path)
     {
         /**
          * @todo add the timestamp to randomize the cipher when auth is done
          */
-        if(substr($route, 0,1) == '/') $route = substr($route, 1);
+        if(substr($path, 0,1) == '/') $path = substr($path, 1);
         $er = Config::get('encrypt_route', true);
         if($er == "true"){
-            $e = Encrypt::encrypt($route);
+            $e = Encrypt::encrypt($path);
             return "/$e";
         }else
-            return "/$route";
+            return "/$path";
     }
 
+    /**
+     * @param string $payload
+     */
     public static function decrypt($payload)
     {
         $er = Config::get('encrypt_route', true);
@@ -280,6 +359,9 @@ class Route
             return $payload; 
     }
 
+    /**
+     * @param string $route
+     */
     private static function isWellFormed($route)
     {
         return !(empty($route['path']) || empty($route['resolver']));
