@@ -284,7 +284,7 @@ class Route
                 // transform this partial
                 $d = Regexer::transform($t);
                 // paste the matched and 
-                $ret .= $d . $match[0];
+                $ret['regex'] .= $d . $match[0];
                 $last = $match[1] + strlen($match[0]) + 1;
             }
             $ret['matches'] = $i;
