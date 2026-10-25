@@ -182,11 +182,10 @@ class App
                     } else
                         throw new Exception("Indicated renderer for $page doesn't exists!", 500, 'Contact Administrator');
                 } else {
-                    $p = new RawResponse;
-                    $p->loadPage($action);
-                    $res = $p;
+                    $res = new RawResponse;
+                    $res->loadPage($action);
                 }
-            } elseif (in_array($rm, ['POST', 'PUT', 'DELETE'])) {
+            } elseif (in_array($rm, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
 
                 $ua = self::$request->getUserAction();
                 $method = $ua['method'];
@@ -432,9 +431,13 @@ class App
 
     public static function url()
     {
-
         $url = Request::getURI();
         return $url;
+    }
+
+    public static function getRequest()
+    {
+        return self::$request;
     }
 
     /**

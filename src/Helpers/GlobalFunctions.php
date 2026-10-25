@@ -13,6 +13,9 @@ function create_global_functions($funcs = [])
     $mycncfunc_woni = 'function __NAME__(__ARGS__){global $janapp; return $janapp->__METHOD__(__UNTARGS__);}';
     $mystafunc = 'function __NAME__(__ARGS__){return __CLASS__::__METHOD__(__UNTARGS__);}';
 
+    /**
+     * @note we won't throw an exception here as its very insecure. The message shoukd be interpreted by the developers
+     */
     foreach($funcs as $k=>$v){
         $args = '';
         $untargs = '';
@@ -44,7 +47,8 @@ function create_global_functions($funcs = [])
                 $ftc = str_replace('__UNTARGS__', $untargs, $ftc);
                 // do on-the-fly function
                 eval($ftc);
-            }
+            }else   
+                die("You are setting an alias for inexistent method $v");
         }
     }
 }
