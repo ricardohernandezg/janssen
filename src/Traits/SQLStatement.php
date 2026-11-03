@@ -438,11 +438,14 @@ trait SQLStatement
     /**
      * Returns the SQL intended to be used in query
      *
+     * @param string $sql
+     * @param array $mapping
+     * @param array $bindings
      * @param bool $stop Stops the execution of program and shows the query
      * 
-     * @return String
+     * @return string
      */
-    public static function debug($sql, ?Array $mapping = [], ?Array $bindings = [])
+    public static function debug($sql, ?Array $mapping = [], ?Array $bindings = [], $stop = false)
     {
         /*
         if(empty(self::$parted_sql))

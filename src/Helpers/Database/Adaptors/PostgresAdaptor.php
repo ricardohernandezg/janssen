@@ -4,6 +4,7 @@ namespace Janssen\Helpers\Database\Adaptors;
 
 use Janssen\Helpers\Database\Adaptor;
 use Janssen\Helpers\Exception;
+use Override;
 use PDO;
 use PDOException;
 use PDOStatement;
@@ -230,5 +231,35 @@ class PostgresAdaptor extends Adaptor
         return $sql . ';';
     }
 
+    /**
+     * 
+     */
+    public static function determineType($var)
+    {
+        // Detectar nulo
+        if (is_null($var)) return PDO::PARAM_NULL;
+
+        // Primero verificamos booleano
+        if (is_bool($var)) return PDO::PARAM_BOOL;
+
+        // Si es entero exacto (y no cadena)
+        if (is_int($var)) return PDO::PARAM_INT;
+
+        // Si es flotante (y no cadena)
+        if (is_float($var)) return PDO::PARAM_STR;
+
+        // Si es cadena, debemos diferenciar texto "numérico" de número real (como texto)
+        if (is_string($var)) {
+            // Si la cadena es numérica pero no queremos considerarla número (según criterio)
+            // Por ejemplo, si queremos que cadenas numéricas siempre se consideren texto:
+            return PDO::PARAM_STR;
+        }
+
+        // Si ha llegado aquí, y es numérico (string numérico), consideramos texto según requerimiento
+        if (is_numeric($var)) return PDO::PARAM_STR;
+
+        // Por defecto, cualquier otro caso lo consideramos texto
+        return PDO::PARAM_STR;
+    }
 
 }

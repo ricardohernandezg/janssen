@@ -3,6 +3,7 @@
 namespace Janssen\Engine;
 
 use Janssen\Engine\Mapper;
+use Janssen\Helpers\Database\Adaptor;
 
 class Parameter implements \Countable
 {
@@ -18,19 +19,17 @@ class Parameter implements \Countable
         ['>', '&gt;'],
     ];
 
-    public function __construct(Array $init_vals = null)
+    public function __construct(array $init_vals = [])
     {
-        if($init_vals){
-            foreach($init_vals as $k=>$v){
-                $this->members[$k] = $v;
-            }
+        foreach($init_vals as $k=>$v){
+            $this->members[$k] = $v;
         }
     }
 
     /**
      * Returns how many members has the parameter object
      *
-     * @return Integer
+     * @return integer
      */
     public function count() : Int
     {
@@ -40,7 +39,7 @@ class Parameter implements \Countable
     /**
      * Returns all the members of parameter
      *
-     * @return Array
+     * @return array
      */
     public function getAll()
     {
@@ -50,8 +49,8 @@ class Parameter implements \Countable
     /**
      * Returns a member of parameter
      *
-     * @param String $name
-     * @param String $default
+     * @param string $name
+     * @param string $default
      * @return mixed
      */
     public function getMember($name, $default = '')
@@ -98,7 +97,7 @@ class Parameter implements \Countable
      * if value is quotable and returns the value with its quotes
      * or not, or null.
      *
-     * @return String
+     * @return string
      */
     public function getQueryableOrNull($name)
     {
@@ -188,7 +187,7 @@ class Parameter implements \Countable
      * $fields must be a comma separated list of the paramters to get.
      * 
      */
-    public function stringify(String $fields = null, $delimiter = ',')
+    public function stringify(string $fields = '', string $delimiter = ',')
     {
         $ar_f = explode(",", $fields);
 
@@ -198,7 +197,7 @@ class Parameter implements \Countable
         return $this->stringifyFromArray(($ar_f?$ar_f:[]), $delimiter);
     }
 
-    public function stringifyFromArray(Array $fields, $delimiter = ',')
+    public function stringifyFromArray(array $fields, $delimiter = ',')
     {
         $ret = '';
         if(empty($fields))
@@ -213,7 +212,7 @@ class Parameter implements \Countable
         return $ret;
     }
 
-    public function updatefyFromArray(Array $fields, $delimiter = ',', $ignore_absents = false)
+    public function updatefyFromArray(array $fields, $delimiter = ',', $ignore_absents = false)
     {
         $ret = '';
         if(empty($fields))
@@ -232,7 +231,7 @@ class Parameter implements \Countable
         return $ret;
     }
 
-    public function updatefy(String $fields = null, $delimiter = ',', $ignore_absents = false)
+    public function updatefy(string $fields = '', $delimiter = ',', $ignore_absents = false)
     {
         $ar_f = explode(",", $fields);
 
@@ -240,6 +239,27 @@ class Parameter implements \Countable
             $ar_f = false;
 
         return $this->updatefyFromArray(($ar_f?$ar_f:[]), $delimiter, $ignore_absents);
+    }
+
+    /**
+     * @param string $fields
+     * @param Adaptor $adaptor
+     * @return string|false
+     */
+    public function getBindables(string $fields, Adaptor $adaptor)
+    {
+        $ar_f = explode(",", $fields);
+
+        if(is_array($ar_f) && count($ar_f) == 1 && $ar_f[0] == '')
+            return false;
+
+        $ret = ['bindings' => [], 'types' => []];
+        // iterate the array and return the value and its correct binding type
+        foreach ($ar_f as $v){
+            $type = $adaptor::determineType($v);
+        }
+
+        return $ret;
     }
 
     /**
@@ -287,7 +307,9 @@ class Parameter implements \Countable
         return $p;
     }
 
-
+    /**
+     * @todo check whats this for
+     */
     private function processNumericValue($value)
     {
         return $value;
